@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9830e15dbecba9c4fa51b4bf96287813, type: 3}
+  m_Name: SwitchSkill
+  m_EditorClassIdentifier: Assembly-CSharp::SwitchSkillMechanic
+  steps:
+  - mechanic: {fileID: 11400000, guid: fc59fcced4d960944b72d6a0822e45ad, type: 2}
+    param:
+      rid: 830848502686810185
+  - mechanic: {fileID: 11400000, guid: 8eac857f8e9b7ac4e8dfb345295b3ca3, type: 2}
+    param:
+      rid: 830848502686810186
+  references:
+    version: 2
+    RefIds:
+    - rid: 830848502686810185
+      type: {class: MeleeParams, ns: , asm: Assembly-CSharp}
+      data:
+        radius: 1.6
+        angleDeg: 120
+        enemyMask:
+          serializedVersion: 2
+          m_Bits: 128
+        attack: 10
+        apRatio: 0
+        knockback: 6
+        attackPercent: 1
+        windup: 0.05
+        recover: 0.08
+        cooldown: 0.1
+    - rid: 830848502686810186
+      type: {class: HomingParams, ns: , asm: Assembly-CSharp}
+      data:
+        speed: 10
+        acceleration: 0
+        maxTurnDegPerSec: 360
+        radius: 0.2
+        maxRange: 12
+        maxLife: 3
+        enemyMask:
+          serializedVersion: 2
+          m_Bits: 128
+        blockerMask:
+          serializedVersion: 2
+          m_Bits: 8
+        damage: 8
+        apRatio: 0
+        knockback: 5
+        cooldown: 0.35
+        retargetOnLost: 1
+        retargetRadius: 3

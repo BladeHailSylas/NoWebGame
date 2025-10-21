@@ -1,0 +1,4 @@
+repository "WebGane/WebGane@14568813361473@cloud"
+  path "/"
+    br "/main"
+    co "/main"

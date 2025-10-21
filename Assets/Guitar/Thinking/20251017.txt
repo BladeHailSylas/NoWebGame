@@ -1,0 +1,66 @@
+정리
+
+EntityData가 transform을 가지게 됐다
+이걸로 아마 EntityData가 GameObject를 대체할 수 있을 거다
+물론 transform에 name은 안 들어가지만
+그리고 각 모듈이 완성되긴 했는데 아직 서로 이어주진 않았다
+
+우리가 생각하는 구조는 이렇다
+
+PlayerActController가 입력을 받는다
+PlayerLocomotion이 입력에 맞춰 MoveIntent를 발행한다
+IntentCollector가 매 틱 MoveIntent를 받아 IntentValidator(BattleCore 모듈이다)로 전달
+IntentValidator는 Validated Intent를 모아서 제공할 수 있다
+IntentRouter가 매 틱 Validated Intent를 받아서 각 모듈에 넘긴다
+CoreMotor2D는 그걸로 "이 엔터티를 이렇게 움직여야겠군" 하고 움직임을 실제 수행한다
+
+즉 간단하게 보자면 다음과 같다:
+PlayerActController => PlayerLocomotion => IntentCollector => IntentValidator => IntentRouter => CoreMotor2D
+이미 PlayerActController와 PlayerLocomotion은 다소 수정을 완료했다, 이건 뭐 쉽지
+내가 보기에 여기서 연결이 필요한 건 Validator => Router => Motor 부분
+
+그리고 구조 외적으로도 약간 수정이 필요하다
+TheWorld가 Entity를 만들어줘야 우리가 그 엔터티를 할당받고 조종할 수 있게 된다
+해야 할 건 대략 이 정도
+TheWorld가 엔터티를 생성해야 한다
+CoreMotor2D가 FixedVector2와 EntityID를 함께 받게끔 refactoring한다
+
+구조가 조금 길기는 해도 실제로 동일 틱에 수행되는 부분이 많아 딜레이가 많지는 않을 것이다, 딜레이가 문제라면 틱 조정이 필요하겠지
+Internal Tick과 Game Tick을 나눠야 할 수도 있지만 당장은 생각하지 않는다
+
+참고로 MoveIntent는 움직이는 엔터티의 ID, 움직임 벡터(FixedVector2다), IntentID, Intent 생성 틱(나중에 틱 관리가 필요할까 봐), 발행자 ID를 포함
+그리고 IntentValidator는 움직이는 엔터티가 이동 불가한지 판정한다, 이건 원시적인 것이고 실제로 완성되면 아래처럼 판정할 것이다:
+
+발행자 ID가 움직이는 엔터티 ID와 동일하다(자기가 움직인다): 해당 ID가 immovable에 포함이면 무시, 아니면 Validated
+다르다(넉백이나 그랩 등): 유효한 엔터티 ID이면 Validated(어쩌면 이건 CC처럼 판정해야 해서 CCMove Type을 만들어야 할 수도 있다)
+
+TheWorld는 일단 임시로 엔터티를 1개만 만들어서 나에게 할당한다
+테스트를 위해 이렇게 만들며, 이미 구조가 꽤 잘 구성되었기 때문에 나중에 여러 개 생성해서 할당하는 방법만 생성하면 문제 없다
+최초의 할당이 문제인데, 아마 매치의 모두가 돌아가면서 "내가 이거 할 거야" 라고 선언하는 것으로 정하면 되겠다
+문제는 어떻게 돌아가는가? 누가 최초가 되는가? 일명 '방장'이 있다면 방장부터 좌측이든 우측이든 돌아가면 된다
+그냥 아무나 하나 정해서 돌아가게? 시스템이 개개인을 식별하려면 각 플레이어 고유의 정보가 필요하지 않은가
+어쩌면 SID(세션 ID)나 UID(유저 ID)를 생성해야 할 수도 있겠다, 각 방법의 장점은 다음과 같다
+SID: 크기가 작아(3v3이라고 해 봐야 6이다) byte 정도로 다룰 수 있다, 패킷이 실제 없다 모터 얏타!
+UID: 항상 고정되어 나중에 커뮤니티 기능(친추 등)에 유리하다, 똑같은 UID가 없으니 매 순간 구분이 쉽다
+단점은 이렇다
+SID: 그 최초의 인원을 명확히 정하는 방법을 몰라서 이러고 있는 것, 또 세션에 들어가기 전까지 익명이라 친추가 어렵다
+UID: 크기가 조금 크다(uint), 게임에 처음 접속했을 때 UID를 생성해야 되는데 이건 데이터를 따로 저장해야 된다
+물론 나는 ASP.NET Core + DB를 다룰 수 있으니 문제가 없다, 오히려 이쪽이 extensible일지도 모르겠다
+
+코드의 구조는 명확한데 Unity 엔진과 migration이 필요해졌다
+기존의 코드는 MonoBehaviour가 너무 많은데 사실 Core 구조를 따르면 그럴 필요가 없다
+시스템 로직에 관해서는 TickRunner랑 Input System 정도?
+
+이번 주에 한 것
+Lockstep 동기화를 고안했다
+가장 느린 사람의 인터벌에 모든 사람을 동기시키는 방법이 있고, 인터벌 그룹을 나눠 매치를 잡는 방법이 있었다
+느린 사람에게 맞추는 방식은 게임 개시 시에 잠깐 못 움직이는 시간을 주고 그 사이에 인터벌을 재어 동기시킨다는 생각을 했다
+그룹 매칭은 매치가 오래 걸릴 가능성이 있긴 한데, 두 가지 방법을 혼합하면 훨씬 쾌적한 플레이를 즐길 수 있을 것이다
+
+타격감을 위해 히트스톱을 고안했다
+모든 공격은 공격 후 딜레이가 있어서 어차피 못 움직이는데, 이때 히트스톱을 걸어 공정하게 정지를 연출할 수 있다
+히트스톱 동안 밀리는 프레임은 히트스톱 종료 시~공격 후 딜레이 종료 전까지 재생을 조금 빠르게 해 해결 가능하다
+유튜브 실시간 스트리밍을 놓쳤을 때 2배속으로 실시간을 따라잡는 느낌으로 보면 된다, 이후 실시간은 절대 2배로 재생 못 하지
+이건 공격자에게 경직이 오는 Monster Hunter 방식과 넉다운에 걸릴 때 히트스톱을 걸어 안전하게 연출하는 Party Animals의 방식을 활용했다
+땡큐소머치
+
