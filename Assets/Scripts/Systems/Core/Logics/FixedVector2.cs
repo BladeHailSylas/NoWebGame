@@ -63,8 +63,8 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	/// <summary>
 	/// Converts to the Unity floating-point representation.
 	/// </summary>
-	public Vector2 AsVector2 => new(_rawX / (float)UnitsPerFloat, _rawY / (float)UnitsPerFloat);
-	public Vector2 ToVector2() => AsVector2;
+	public Vector2 asVector2 => new(_rawX / (float)UnitsPerFloat, _rawY / (float)UnitsPerFloat);
+	public Vector2 ToVector2() => asVector2;
 
 	public static FixedVector2 FromVector2(Vector2 vector)
 	{
@@ -101,7 +101,7 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	}
 	public override string ToString()
 	{
-		return $"({AsVector2.x:F3}, {AsVector2.y:F3})";
+		return $"({asVector2.x:F3}, {asVector2.y:F3})";
 	}
 
 	/// <summary>

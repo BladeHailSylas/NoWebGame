@@ -2,11 +2,11 @@
 using SkillInterfaces;
 using UnityEngine;
 
+[System.Obsolete("This will be removed in future versions")]
 /// <summary>
 ///     타깃팅과 관련된 런타임 계산을 표준화합니다. SkillRunner/IntentOrchestrator 체계를 고려해 재사용 가능한 유틸리티를 제공합니다.
 /// </summary>
-public static class TargetingRuntimeUtil
-{
+public static class TargetingRuntimeUtil {
 	/// <summary>
 	///     Synthetic Anchor에 부여하는 이름입니다. ProjectileMovement 등 기존 코드와 호환하기 위해 상수로 정의합니다.
 	/// </summary>

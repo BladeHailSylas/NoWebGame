@@ -40,6 +40,7 @@ public class InputBinder : MonoBehaviour
 	{
 		if (_inputVector.SqrMagnitude() > 1e-6f)
 		{
+			//Debug.Log($"Moving {_inputVector} at {tick}");
 			_actor.MakeMove(new FixedVector2(_inputVector));
 		}
 	}

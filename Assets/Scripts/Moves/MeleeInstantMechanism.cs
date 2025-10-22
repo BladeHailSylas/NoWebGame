@@ -14,7 +14,7 @@ public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
         }
 
         MechanismRuntimeUtil.QueueFollowUps(p, AbilityHook.OnCastStart, null, "Melee");
-        /** 필요 시 OnCastStart 시점에서 상태 UI를 갱신하려면 위 줄을 확장해 전달하십시오. */
+        /* 필요 시 OnCastStart 시점에서 상태 UI를 갱신하려면 위 줄을 확장해 전달하십시오. */
 
         if (p.windup > 0f)
         {
