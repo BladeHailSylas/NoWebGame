@@ -5,16 +5,15 @@ using UnityEngine;
 public class PlayerActController : IVulnerable, IPullable
 {
 	private PlayerStats _stats;
-	private readonly PlayerLocomotion _locomotion = new();
+	private readonly FixedMotor _motor;
 	private PlayerEffects _effects;
-	public static PlayerActController Instance { get; private set; }
 
-	public PlayerActController()
+	public PlayerActController(FixedMotor motor, Rigidbody2D rb)
 	{
-		Instance ??= this;
+		_motor = motor;
 	}
 	[Header("Move")]
-	int moveUnits = 8000;
+	int speed = 8;
 	private readonly byte _mySId = 1; // = BattleCore.Manager.playerInfo.sid;
 	// 입력 이벤트에서 방향만 갱신(즉시 이동 금지)
 	public void MakeMove(FixedVector2 move, byte mySid = 1)
@@ -23,10 +22,9 @@ public class PlayerActController : IVulnerable, IPullable
 	}
 	public void MakeMove(NormalMoveData move, byte mySid = 1)
 	{
-		if(mySid is 0 or > 6) mySid = _mySId;
-		Debug.Log($"[MakeMove] frame={Time.frameCount} move={move.Type}");
-		_locomotion.CreateMoveIntent(move.Movement * moveUnits, mySid, 0);
-		
+		_motor.Depenetrate();
+		_motor.Move(move.Movement * (speed));
+		_motor.Depenetrate();
 	}
 	// --- IVulnerable ---
 	public void TakeDamage(int damage, int apratio, DamageType type)
@@ -37,10 +35,6 @@ public class PlayerActController : IVulnerable, IPullable
 	}
 
 	public void Die()
-	{
-		
-	}
-	public void TickPerformed(ushort tick = 0)
 	{
 		
 	}

@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public readonly struct FixedVector2 : IEquatable<FixedVector2>
 {
-	public const int UnitsPerFloat = 1000;
+	public const int UnitsPerFloat = 1024;
 
 	readonly int _rawX;
 	readonly int _rawY;
@@ -40,6 +40,7 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	/// </summary>
 	public int Magnitude => (int)Math.Sqrt(RawX * RawX + RawY * RawY);
 	public double MagnitudeDouble => Math.Sqrt(RawX * RawX + RawY * RawY);
+	public int SqrMagnitude => RawX * RawX + RawY * RawY;
 
 	public FixedVector2(int rawX, int rawY)
 	{
@@ -62,16 +63,18 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	/// <summary>
 	/// Converts to the Unity floating-point representation.
 	/// </summary>
-	public Vector2 ToVector2()
-	{
-		return new Vector2(_rawX / (float)UnitsPerFloat, _rawY / (float)UnitsPerFloat);
-	}
+	public Vector2 AsVector2 => new(_rawX / (float)UnitsPerFloat, _rawY / (float)UnitsPerFloat);
+	public Vector2 ToVector2() => AsVector2;
 
 	public static FixedVector2 FromVector2(Vector2 vector)
 	{
 		return new FixedVector2(vector);
 	}
 
+	public static int Dot(FixedVector2 a, FixedVector2 b)
+	{
+		return a._rawX * b._rawX + a._rawY + b._rawY;
+	}
 	public static FixedVector2 operator +(FixedVector2 a, FixedVector2 b)
 	{
 		return new FixedVector2(a._rawX + b._rawX, a._rawY + b._rawY);
@@ -98,7 +101,7 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	}
 	public override string ToString()
 	{
-		return $"({ToVector2().x:F3}, {ToVector2().y:F3})";
+		return $"({AsVector2.x:F3}, {AsVector2.y:F3})";
 	}
 
 	/// <summary>

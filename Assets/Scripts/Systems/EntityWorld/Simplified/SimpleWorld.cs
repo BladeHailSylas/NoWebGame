@@ -6,7 +6,7 @@ using UnityEngine;
 /// 최소 단위 테스트용 월드 컨테이너.
 /// EntityId 관리, 스폰, 이동 적용 등 기본 로직만 남겼습니다.
 /// </summary>
-public sealed class SimpleWorld
+/*public sealed class SimpleWorld
 {
     private readonly List<SimpleEntity> _entities = new();
     private readonly List<int> _freeIds = new();
@@ -60,7 +60,7 @@ public sealed class SimpleWorld
         // 일단 테스트용으로 Transform만 적용:
         _entities[index] = entity;
         ActiveEntityCount++;
-        Debug.Log($"Entity {entity.ID.Value} has created at {entity.Transform.ToVector2()}");
+        Debug.Log($"Entity {entity.ID.Value} has created at {entity.Transform.asVector2()}");
         return newId;
     }
 
@@ -112,4 +112,4 @@ public sealed class SimpleWorld
         ActiveEntityCount = 0;
         CurrentTick = 0;
     }
-}
+}*/

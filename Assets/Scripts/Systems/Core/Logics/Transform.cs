@@ -20,8 +20,9 @@ public struct CoreTransform
 
     public readonly Vector3 ToVector3(float z = 0f)
     {
-        Vector2 pos2 = position.ToVector2();
-        return new Vector3(pos2.x, pos2.y, z);
+        //Vector2 pos2 = position.asVector2();
+        //return new Vector3(pos2.x, pos2.y, z);
+        return new Vector3(0, 0, 0);
     }
 
     public readonly void ApplyTo(Transform transform)
@@ -31,8 +32,9 @@ public struct CoreTransform
             return;
         }
 
-        Vector2 pos2 = position.ToVector2();
-        Vector3 target = new(pos2.x, pos2.y, transform.position.z);
+        //Vector2 pos2 = position.asVector2();
+        //Vector3 target = new(pos2.x, pos2.y, transform.position.z);
+        Vector3 target = new(0, 0, 0);
         transform.position = target;
         transform.rotation = Quaternion.Euler(0f, 0f, rotation);
     }

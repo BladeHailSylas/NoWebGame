@@ -8,7 +8,7 @@ using UnityEditor;
 public class MeleeParams : ISkillParam, ICooldownParam, IFollowUpProvider
 {
 	[Header("Area")]
-	public int unitradius = 1600;
+	public float radius = 1.6f;
 	[Range(0, 360)] public float angleDeg = 120f;
 	public LayerMask enemyMask;
 

@@ -8,7 +8,7 @@ public sealed class PlayerInstaller : MonoBehaviour
     {
         if (spec == null || controller == null)
         {
-            Debug.LogError("[PlayerInstaller] Spec �Ǵ� Controller�� ��� �ֽ��ϴ�.");
+            Debug.LogError("[PlayerInstaller] Spec?");
             return;
         }
         controller.spec = spec;

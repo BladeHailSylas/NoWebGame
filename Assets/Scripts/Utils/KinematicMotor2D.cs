@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using ActInterfaces;
 
 [Serializable]
 public struct CollisionPolicy
@@ -24,19 +23,19 @@ public struct MoveResult
         /// <summary>
         /// Helper accessor for legacy call sites that expect a float Vector2 delta.
         /// </summary>
-        public readonly Vector2 ActualDeltaVector => actualDelta.ToVector2();
+        public readonly Vector2 ActualDeltaVector => actualDelta.AsVector2;
 
         /// <summary>
         /// Helper accessor for legacy call sites that expect a float Vector2 normal.
         /// </summary>
-        public readonly Vector2 HitNormalVector => hitNormal.ToVector2();
+        public readonly Vector2 HitNormalVector => hitNormal.AsVector2;
 }
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
-[Obsolete]
-public class KinematicMotor2D : MonoBehaviour, ISweepable
+[Obsolete("Use FixedMotor instead.")]
+public class KinematicMotor2D : MonoBehaviour
 {
 	[Header("Defaults")]
 	public CollisionPolicy defaultPolicy = new()
@@ -148,14 +147,14 @@ public class KinematicMotor2D : MonoBehaviour, ISweepable
         private FixedVector2 RemoveNormalComponent(FixedVector2 vector, LayerMask mask, ref MoveResult result)
         {
                 // Bridge deterministic data to Unity physics by operating in float space locally.
-                Vector2 vfinalFloat = vector.ToVector2();
+                Vector2 vfinalFloat = vector.AsVector2;
                 float magnitude = vfinalFloat.magnitude;
                 if (magnitude <= 0f)
                 {
                         return new FixedVector2(0, 0);
                 }
 
-                Vector2 origin = _coreTransform.position.ToVector2();
+                Vector2 origin = _coreTransform.position.AsVector2;
                 Vector2 direction = vfinalFloat.normalized;
                 var maskHit = Physics2D.CircleCastAll(origin, _current.unitradius, direction, magnitude, mask);
                 foreach (var hit in maskHit)

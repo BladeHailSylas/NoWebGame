@@ -25,7 +25,7 @@ public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
         Vector2 fwd = GetMouseDir(cam, origin);
         float half = p.angleDeg * 0.5f;
 
-        var hits = Physics2D.OverlapCircleAll(origin, p.unitradius, p.enemyMask);
+        var hits = Physics2D.OverlapCircleAll(origin, p.radius, p.enemyMask);
         Transform firstHit = null;
         foreach (var c in hits)
         {

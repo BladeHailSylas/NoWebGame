@@ -38,7 +38,7 @@ public sealed class CoreMotor : MonoBehaviour
 
                 public CollisionBody(Func<IHitShape> factory, object owner = null)
                 {
-                        _staticShape = default;
+                        _staticShape = null;
                         _shapeFactory = factory ?? throw new ArgumentNullException(nameof(factory));
                         Owner = owner;
                 }
@@ -60,7 +60,6 @@ public sealed class CoreMotor : MonoBehaviour
                         {
                                 yield break;
                         }
-
                         for (int i = 0; i < shapes.Length; i++)
                         {
                                 IHitShape shape = shapes[i];

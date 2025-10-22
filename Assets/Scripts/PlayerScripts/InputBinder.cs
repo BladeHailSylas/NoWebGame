@@ -16,7 +16,7 @@ public class InputBinder : MonoBehaviour
 	private void Awake()
 	{
 		_controls = new InputSystem_Actions();
-		_actor = new PlayerActController();
+		_actor = new PlayerActController(GetComponent<FixedMotor>(), GetComponent<Rigidbody2D>());
 		_attacker = new PlayerAttackController();
 	}
 
@@ -38,9 +38,8 @@ public class InputBinder : MonoBehaviour
 
 	private void TickHandler(ushort tick)
 	{
-		if (_inputVector.magnitude > 1e-6f)
+		if (_inputVector.SqrMagnitude() > 1e-6f)
 		{
-			//Debug.Log($"Move {_inputVector}");
 			_actor.MakeMove(new FixedVector2(_inputVector));
 		}
 	}

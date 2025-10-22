@@ -1,10 +1,12 @@
 ﻿using Intents;
-
+using UnityEngine;
 public class PlayerLocomotion
 {
-	public void CreateMoveIntent(FixedVector2 movement, byte mySid, ushort tick)
+	private Rigidbody2D rb;
+	
+	public void Move(FixedVector2 movement, byte mySid, ushort tick)
 	{
-		IntentCollector.Instance.QueueIntent(new MoveIntent(mySid, 0, tick, new NormalMoveData(movement)));
+		//FixedMotor.Move(movement, rb);
 	}
 	/*FixedVector2 _knockbackBudget;
 		float distancePerTick = Mathf.Max(0f, force) / Ticker.TicksPerSecond;
