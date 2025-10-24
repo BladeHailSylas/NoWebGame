@@ -1,4 +1,4 @@
-repository "WebGane/WebGane@14568813361473@cloud"
+repository "NoWebGame/NoWebGame@14568813361473@cloud"
   path "/"
     br "/main"
     co "/main"

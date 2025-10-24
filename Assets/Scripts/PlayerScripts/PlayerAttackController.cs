@@ -6,20 +6,20 @@ public class PlayerAttackController
     {
         Debug.Log($"Temporarily disabled. You pressed: {slot}");
     }
-    public int SkillPriority(ISkillMechanism mech, ISkillParam param, SkillSlot slot)
+    public int SkillPriority(ISkillMechanism mech, ISkillParams @params, SkillSlot slot)
     {
-        return SkillPriority(mech, param as ICooldownParam, slot);
+        return SkillPriority(mech, @params as ICooldownParams, slot);
     }
-    public int SkillPriority(ISkillMechanism mech, ICooldownParam param, SkillSlot slot)
+    public int SkillPriority(ISkillMechanism mech, ICooldownParams @params, SkillSlot slot)
     {
-        if (mech == null || param == null)
+        if (mech == null || @params == null)
         {
             Debug.LogWarning("SkillPriority: 메커니즘 또는 파라미터가 null입니다. Priority level이 임시로 0이 됩니다.");
             return 0;
         }
-        if (!mech.ParamType.IsInstanceOfType(param))
+        if (!mech.ParamType.IsInstanceOfType(@params))
         {
-            Debug.LogError($"ParamType mismatch: {mech.ParamType.Name} 필요, {param.GetType().Name} 제공. Priority level이 임시로 -1이 됩니다.");
+            Debug.LogError($"ParamType mismatch: {mech.ParamType.Name} 필요, {@params.GetType().Name} 제공. Priority level이 임시로 -1이 됩니다.");
             return -1;
         }
         int weight = 0;
@@ -37,6 +37,6 @@ public class PlayerAttackController
             _ => 0,
         };
         //Debug.Log($"[Runner] SkillPriority: {slot} 슬롯의 {mech.ParamType.Name} 타입은 {weight * 1000} priority입니다");
-        return weight * 1000 + (int)param.Cooldown;
+        return weight * 1000 + (int)@params.Cooldown;
     }
 }

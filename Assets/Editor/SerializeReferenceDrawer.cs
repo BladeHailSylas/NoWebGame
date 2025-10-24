@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(ISkillParam), true)]
+[CustomPropertyDrawer(typeof(ISkillParams), true)]
 public class SerializeReferenceDrawer : PropertyDrawer
 {
     private Dictionary<string, Type> _cachedTypes;
@@ -14,23 +14,23 @@ public class SerializeReferenceDrawer : PropertyDrawer
     {
         _cachedTypes ??= (from asm in AppDomain.CurrentDomain.GetAssemblies()
                             from type in asm.GetTypes()
-                            where !type.IsAbstract && typeof(ISkillParam).IsAssignableFrom(type)
+                            where !type.IsAbstract && typeof(ISkillParams).IsAssignableFrom(type)
                             select type).ToDictionary(t => t.Name, t => t);
 
-        // ¶óº§ Ç¥½Ã
+        // ï¿½ï¿½ Ç¥ï¿½ï¿½
         EditorGUI.BeginProperty(position, label, property);
         var typeNames = _cachedTypes.Keys.ToList();
 
-        // ÇöÀç Å¸ÀÔ
+        // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
         var currentType = property.managedReferenceValue?.GetType();
         var currentIndex = currentType != null ? typeNames.IndexOf(currentType.Name) : -1;
 
-        // µå·Ó´Ù¿î Rect ºÐ¸®
+        // ï¿½ï¿½Ó´Ù¿ï¿½ Rect ï¿½Ð¸ï¿½
         var dropdownRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
         var fieldRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + 2,
                                  position.width, position.height - EditorGUIUtility.singleLineHeight - 2);
 
-        // µå·Ó´Ù¿î
+        // ï¿½ï¿½Ó´Ù¿ï¿½
         int newIndex = EditorGUI.Popup(dropdownRect, "Param Type", currentIndex, typeNames.ToArray());
         if (newIndex != currentIndex)
         {
@@ -38,7 +38,7 @@ public class SerializeReferenceDrawer : PropertyDrawer
             property.managedReferenceValue = Activator.CreateInstance(type);
         }
 
-        // ½ÇÁ¦ ÇÊµå Ç¥½Ã
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ Ç¥ï¿½ï¿½
         if (property.managedReferenceValue != null)
             EditorGUI.PropertyField(fieldRect, property, new GUIContent("Param Data"), true);
 

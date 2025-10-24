@@ -22,6 +22,15 @@ public readonly struct TargetRequest
         TargetMask = targetMask;
         CasterPos = FixedVector2.FromVector2(caster.position);
     }
+    public TargetRequest(Transform caster, TargetMode mode)
+    {
+        Caster = caster;
+        MinRange = 0;
+        MaxRange = float.MaxValue;
+        Mode = mode;
+        TargetMask = LayerMask.GetMask("Foe");
+        CasterPos = FixedVector2.FromVector2(caster.position);
+    }
 }
 /// <summary>
 /// TargetResolver의 반환 결과 (타깃 / 앵커 / 감지 여부)
@@ -62,6 +71,7 @@ public class TargetResolver : MonoBehaviour
                 return ResolveTowardsCursor(request);
 
             default:
+                Debug.LogError("No good");
                 return new TargetResolveResult(null, request.CasterPos, false);
         }
     }
