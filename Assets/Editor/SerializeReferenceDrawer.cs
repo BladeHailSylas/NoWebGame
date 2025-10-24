@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(ISkillParams), true)]
+[CustomPropertyDrawer(typeof(INewParams), true)]
 public class SerializeReferenceDrawer : PropertyDrawer
 {
     private Dictionary<string, Type> _cachedTypes;
@@ -14,7 +14,7 @@ public class SerializeReferenceDrawer : PropertyDrawer
     {
         _cachedTypes ??= (from asm in AppDomain.CurrentDomain.GetAssemblies()
                             from type in asm.GetTypes()
-                            where !type.IsAbstract && typeof(ISkillParams).IsAssignableFrom(type)
+                            where !type.IsAbstract && typeof(INewParams).IsAssignableFrom(type)
                             select type).ToDictionary(t => t.Name, t => t);
 
         // �� ǥ��

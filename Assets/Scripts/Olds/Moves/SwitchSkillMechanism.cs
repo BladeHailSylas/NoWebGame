@@ -4,9 +4,9 @@ using SkillInterfaces;
 using Intents;
 
 [CreateAssetMenu(menuName = "Mechanics/Switch Controller")]
-public class SwitchSkillMechanism : SkillMechanismBase<SwitchControllerParamses>
+public class SwitchSkillMechanism : SkillMechanismBase<SwitchControllerParams>
 {
-	public override IEnumerator Execute(Transform owner, Camera cam, SwitchControllerParamses p)
+	public override IEnumerator Execute(Transform owner, Camera cam, SwitchControllerParams p)
 	{
 		/*if (p == null)
 		{

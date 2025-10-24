@@ -213,7 +213,7 @@ public class DashParams : ISkillParams, ICooldownParams, IFollowUpProvider, ITar
 }
 
 [System.Serializable]
-public class SwitchControllerParamses : ISkillParams, ISwitchPolicy
+public class SwitchControllerParams : ISkillParams, ISwitchPolicy
 {
 	[Tooltip("교대 실행할 기술 목록(타깃/논타깃 혼재 가능)")]
 	public List<MechanicRef> steps = new();

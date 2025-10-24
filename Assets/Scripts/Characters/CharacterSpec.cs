@@ -6,7 +6,7 @@ public struct SkillBinding
 {
 	public SkillSlot slot;
 	public ScriptableObject mechanism;
-	[SerializeReference] public ISkillParams @params;
+	[SerializeReference] public INewParams @params;
 }
 
 [CreateAssetMenu(menuName = "Game/Characters/Spec")]

@@ -1,42 +1,75 @@
+using System.Collections.Generic;
 using SkillInterfaces;
 using UnityEngine;
+
 public class PlayerAttackController
 {
+    private readonly SkillRunner _runner;
+    private readonly Transform _caster;
+    private readonly Dictionary<SkillSlot, SkillBinding> _skills;
+
+    public PlayerAttackController(Transform caster, TargetResolver resolver, Dictionary<SkillSlot, SkillBinding> skills)
+    {
+        _caster = caster;
+        _runner = new SkillRunner(resolver);
+        _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
+
+        // Validate all provided skill bindings
+        foreach (var kvp in _skills)
+        {
+            var binding = kvp.Value;
+
+            if (binding.mechanism is not INewMechanism)
+            {
+                Debug.LogError($"[PlayerAttackController] Invalid mechanism in slot {kvp.Key}.");
+                continue;
+            }
+
+            if (binding.@params is not INewParams)
+            {
+                Debug.LogError($"[PlayerAttackController] Invalid params in slot {kvp.Key}.");
+            }
+        }
+
+        Debug.Log($"[PlayerAttackController] Initialized with {_skills.Count} bound skills.");
+    }
+
+    /// <summary>
+    /// Attempts to cast the skill assigned to the given slot.
+    /// </summary>
     public void TryCast(SkillSlot slot)
     {
-        Debug.Log($"Temporarily disabled. You pressed: {slot}");
-    }
-    public int SkillPriority(ISkillMechanism mech, ISkillParams @params, SkillSlot slot)
-    {
-        return SkillPriority(mech, @params as ICooldownParams, slot);
-    }
-    public int SkillPriority(ISkillMechanism mech, ICooldownParams @params, SkillSlot slot)
-    {
-        if (mech == null || @params == null)
+        if (!_skills.TryGetValue(slot, out var binding))
         {
-            Debug.LogWarning("SkillPriority: 메커니즘 또는 파라미터가 null입니다. Priority level이 임시로 0이 됩니다.");
-            return 0;
+            Debug.LogWarning($"[PlayerAttackController] No skill bound to slot {slot}.");
+            return;
         }
-        if (!mech.ParamType.IsInstanceOfType(@params))
+
+        if (binding.mechanism is not INewMechanism mech)
         {
-            Debug.LogError($"ParamType mismatch: {mech.ParamType.Name} 필요, {@params.GetType().Name} 제공. Priority level이 임시로 -1이 됩니다.");
-            return -1;
+            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid mechanism.");
+            return;
         }
-        int weight = 0;
-        weight += mech.ParamType.Name switch
+
+        if (binding.@params is not INewParams param)
         {
-            "MeleeParams" or "MissileParams" or "HitscanParams" or "AreaParams" => 3,
-            "DashParams" or "TeleportParams" => 2,
-            _ => 1,
-        };
-        weight += slot switch
-        {
-            SkillSlot.Attack => 1,
-            SkillSlot.AttackSkill or SkillSlot.Skill1 or SkillSlot.Skill2 => 2,
-            SkillSlot.Ultimate => 3,
-            _ => 0,
-        };
-        //Debug.Log($"[Runner] SkillPriority: {slot} 슬롯의 {mech.ParamType.Name} 타입은 {weight * 1000} priority입니다");
-        return weight * 1000 + (int)@params.Cooldown;
+            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid params.");
+            return;
+        }
+
+        // Construct the skill command
+        var cmd = new SkillCommand(
+            caster: _caster,
+            mode: TargetMode.TowardsEntity,
+            castPosition: FixedVector2.FromVector2(_caster.position),
+            mech: mech,
+            @params: param,
+            target: null,
+            chainDepth: 0
+        );
+
+        // Trigger the skill
+        _runner.Activate(cmd);
+        Debug.Log($"[PlayerAttackController] Casted skill from slot {slot} ({mech.GetType().Name}).");
     }
 }

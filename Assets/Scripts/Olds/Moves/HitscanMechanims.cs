@@ -32,7 +32,7 @@ public class HitscanSkillMechanism : ITempMechanism
         //else direction = (cmd.Anchor.asVector2 - origin).normalized;
 
         // Raycast 수행
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction, p.maxRange, p.targetMask);
+        RaycastHit2D hit = Physics2D.Raycast(origin, direction, p.maxRange, LayerMask.GetMask("Default"));
         if (p.debugDraw)
         {
             Debug.DrawRay(origin, direction * p.maxRange,
@@ -49,7 +49,7 @@ public class HitscanSkillMechanism : ITempMechanism
         var vulnerable = hit.collider.GetComponent<IVulnerable>();
         if (vulnerable != null)
         {
-            vulnerable.TakeDamage(p.damage);
+            //vulnerable.TakeDamage(p.damage);
             Debug.Log($"[HitscanSkill] {hit.collider.name}에게 {p.damage} 데미지!");
         }
         else
@@ -59,7 +59,7 @@ public class HitscanSkillMechanism : ITempMechanism
     }
 }
 
-[System.Serializable]
+/*[System.Serializable]
 public class HitscanParams : ISkillParams
 {
     public float maxRange = 6f;
@@ -85,4 +85,4 @@ public class HitscanParams : ISkillParams
         this.damage = d;
         targetMask = LayerMask.GetMask("Foe");
     }
-}
+}*/

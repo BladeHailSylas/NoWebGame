@@ -1,51 +1,72 @@
-﻿// PlayerAttackController.cs — Intent 기반 입력 파이프라인.
-// 잠재적 문제: Runner가 존재하지 않으면 입력이 조용히 무시되므로, 에디터 툴에서 검증 루틴을 추가해야 합니다.
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using SkillInterfaces;
 
 public class InputBinder : MonoBehaviour
 {
-	public CharacterSpec spec;
-	private PlayerActController _actor;
-	private PlayerAttackController _attacker;
-	private InputSystem_Actions _controls;
-	private Vector2 _inputVector;
+    [Header("Character Data")]
+    public CharacterSpec spec;
 
-	private void Awake()
-	{
-		_controls = new InputSystem_Actions();
-		_actor = new PlayerActController(GetComponent<FixedMotor>(), GetComponent<Rigidbody2D>());
-		_attacker = new PlayerAttackController();
-	}
+    private PlayerActController _actor;
+    private PlayerAttackController _attacker;
+    private InputSystem_Actions _controls;
+    private Vector2 _inputVector;
 
-	private void OnEnable()
-	{
-		Debug.Log("Hello again");
-		_controls.Enable();
+    private void Awake()
+    {
+        _controls = new InputSystem_Actions();
 
-		// Move
-		_controls.Player.Move.performed += ctx => _inputVector = ctx.ReadValue<Vector2>();
+        // 🎯 Prepare movement controller
+        _actor = new PlayerActController(GetComponent<FixedMotor>(), GetComponent<Rigidbody2D>());
 
-		_controls.Player.Move.canceled += _ => _inputVector = Vector2.zero;
+        // 🎯 Prepare attack controller
+        var resolver = GetComponent<TargetResolver>();
+        if (resolver == null)
+        {
+            Debug.LogError("[InputBinder] TargetResolver missing on player object!");
+            return;
+        }
 
-		// Attack
-		//_controls.Player.Attack.performed += _ => _attacker.OnAttackPressed();
-		//_controls.Player.Attack.canceled += _ => _attacker.OnAttackReleased();
-		Ticker.Instance.OnTick += TickHandler;
-	}
+        // Build skill dictionary from CharacterSpec
+        var skillDict = new Dictionary<SkillSlot, SkillBinding>
+        {
+            { SkillSlot.Attack, spec.attack },
+            { SkillSlot.Skill1, spec.skill1 },
+            { SkillSlot.Skill2, spec.skill2 },
+            { SkillSlot.Ultimate, spec.ultimate }
+        };
 
-	private void TickHandler(ushort tick)
-	{
-		if (_inputVector.SqrMagnitude() > 1e-6f)
-		{
-			//Debug.Log($"Moving {_inputVector} at {tick}");
-			_actor.MakeMove(new FixedVector2(_inputVector));
-		}
-	}
-	private void OnDisable()
-	{
-		_controls?.Disable();
-	}
+        _attacker = new PlayerAttackController(transform, resolver, skillDict);
+    }
+
+    private void OnEnable()
+    {
+        _controls.Enable();
+
+        // 🕹️ Movement input
+        _controls.Player.Move.performed += ctx => _inputVector = ctx.ReadValue<Vector2>();
+        _controls.Player.Move.canceled += _ => _inputVector = Vector2.zero;
+
+        // ⚔️ Attack input
+        _controls.Player.Attack.performed += _ => _attacker.TryCast(SkillSlot.Attack);
+        // You can add more when needed, e.g. Skill1, Skill2, Ultimate
+
+        Ticker.Instance.OnTick += TickHandler;
+    }
+
+    private void TickHandler(ushort tick)
+    {
+        if (_inputVector.SqrMagnitude() > 1e-6f)
+        {
+            _actor.MakeMove(new FixedVector2(_inputVector));
+        }
+    }
+
+    private void OnDisable()
+    {
+        _controls?.Disable();
+        if (Ticker.Instance != null)
+            Ticker.Instance.OnTick -= TickHandler;
+    }
 }

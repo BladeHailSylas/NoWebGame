@@ -1422,7 +1422,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1475334588}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a38c14eef48a4483902a77ec5d7ee5ee, type: 3}
+  m_Script: {fileID: 11500000, guid: 0517e833c5372224bb033845d3b9d039, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TickerRunner
 --- !u!1 &1517524293
@@ -1523,6 +1523,7 @@ GameObject:
   - component: {fileID: 1725135781}
   - component: {fileID: 1725135783}
   - component: {fileID: 1725135784}
+  - component: {fileID: 1725135785}
   m_Layer: 6
   m_Name: Player
   m_TagString: BlueTeam
@@ -1650,6 +1651,21 @@ MonoBehaviour:
     unitradius: 500
     unitskin: 125
     allowWallSlide: 1
+--- !u!114 &1725135785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725135777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5571cfcd474e40a9931fb9eaf6264251, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetResolver
+  cursorResolver: {fileID: 977408138}
+  anchorPrefab: {fileID: 0}
+  debugLog: 1
 --- !u!1 &1752660213
 GameObject:
   m_ObjectHideFlags: 0
@@ -1847,7 +1863,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1933435287
 MonoBehaviour:
   m_ObjectHideFlags: 0

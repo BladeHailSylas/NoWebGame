@@ -13,230 +13,46 @@ MonoBehaviour:
   m_Name: New Challenger
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSpec
   displayName: New Challenger
-  baseHP: 1280
-  baseHPGen: 2
+  baseHp: 0
+  baseHpGen: 0
   baseMana: 640
-  baseManaGen: 6.4
+  baseManaGen: 6
   baseAttack: 121
   baseDefense: 20
   baseSpeed: 8
   attack:
     slot: 0
-    mechanism: {fileID: 11400000, guid: fc59fcced4d960944b72d6a0822e45ad, type: 2}
-    param:
-      rid: 830848590756970620
+    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
+    params:
+      rid: 3203422884986951
   skill1:
     slot: 2
     mechanism: {fileID: 11400000, guid: 8eac857f8e9b7ac4e8dfb345295b3ca3, type: 2}
-    param:
-      rid: 830848590756970621
+    params:
+      rid: -2
   skill2:
     slot: 3
     mechanism: {fileID: 11400000, guid: 8cd4bfe941aac2f4aa7c5fe05d78363b, type: 2}
-    param:
-      rid: 830848590756970622
+    params:
+      rid: -2
   ultimate:
     slot: 4
     mechanism: {fileID: 0}
-    param:
-      rid: 830848840148189256
+    params:
+      rid: -2
   references:
     version: 2
     RefIds:
-    - rid: 3202900328972360
-      type: {class: MeleeParams, ns: , asm: Assembly-CSharp}
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 3203422884986951
+      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
       data:
-        radius: 1.6
-        angleDeg: 360
-        enemyMask:
+        minRange: 0
+        maxRange: 10
+        layerMask:
           serializedVersion: 2
           m_Bits: 128
-        attack: 10
-        apRatio: 0
-        knockback: 0
-        attackPercent: 1
-        windup: 0.05
-        recover: 0.08
-        cooldown: 8
-        onHit: []
-        onExpire: []
-    - rid: 3203104197574728
-      type: {class: MeleeParams, ns: , asm: Assembly-CSharp}
-      data:
-        radius: 1.6
-        angleDeg: 360
-        enemyMask:
-          serializedVersion: 2
-          m_Bits: 128
-        attack: 10
-        apRatio: 0
-        knockback: 0
-        attackPercent: 1
-        windup: 0.05
-        recover: 0.08
-        cooldown: 8
-        onHit: []
-        onExpire: []
-    - rid: 830848590756970620
-      type: {class: MeleeParams, ns: , asm: Assembly-CSharp}
-      data:
-        radius: 1.6
-        angleDeg: 120
-        enemyMask:
-          serializedVersion: 2
-          m_Bits: 128
-        attack: 10
-        apRatio: 0
-        knockback: 3
-        attackPercent: 1
-        windup: 0.05
-        recover: 0.08
-        cooldown: 0.1
-        onHit: []
-        onExpire:
-        - mechanic: {fileID: 11400000, guid: fc59fcced4d960944b72d6a0822e45ad, type: 2}
-          param:
-            rid: 3203104197574728
-          delay: 0
-          passSameTarget: 0
-          respectBusyCooldown: 0
-    - rid: 830848590756970621
-      type: {class: MissileParams, ns: , asm: Assembly-CSharp}
-      data:
-        speed: 50
-        acceleration: 0
-        maxTurnDegPerSec: 360
-        radius: 0.2
-        maxRange: 12
-        maxLife: 3
-        enemyMask:
-          serializedVersion: 2
-          m_Bits: 128
-        blockerMask:
-          serializedVersion: 2
-          m_Bits: 8
-        damage: 8
-        apRatio: 0
-        knockback: 0
-        startDelay: 0
-        cooldown: 0.35
-        endDelay: 0.05
-        retargetOnLost: 0
-        retargetRadius: 3
-        targetSelf: 0
-        mode: 0
-        fallback: 10
-        local: {x: 0, y: 0}
-        col: 0
-        skin: 0
-        canpen: 1
-        onHit: []
-        onExpire: []
-    - rid: 830848590756970622
-      type: {class: DashParams, ns: , asm: Assembly-CSharp}
-      data:
-        _mode: 2
-        _fallbackRange: 12
-        _localOffset: {x: 0, y: 0}
-        _wallsMask:
-          serializedVersion: 2
-          m_Bits: 8
-        _canpen: 1
-        _targetSelf: 0
-        duration: 0.18
-        speedCurve:
-          serializedVersion: 2
-          m_Curve:
-          - serializedVersion: 3
-            time: 0
-            value: 1
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0
-            outWeight: 0
-          - serializedVersion: 3
-            time: 1
-            value: 1
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0
-            outWeight: 0
-          m_PreInfinity: 2
-          m_PostInfinity: 2
-          m_RotationOrder: 4
-        stopOnWall: 1
-        radius: 0.5
-        skin: 0.05
-        dealDamage: 1
-        canPenetrate: 1
-        enemyMask:
-          serializedVersion: 2
-          m_Bits: 128
-        damage: 8
-        apRatio: 0
-        knockback: 6
-        grantIFrame: 1
-        iFrameDuration: 0.18
-        cooldown: 0
-        onExpire:
-        - mechanic: {fileID: 11400000, guid: fc59fcced4d960944b72d6a0822e45ad, type: 2}
-          param:
-            rid: 3202900328972360
-          delay: 0
-          passSameTarget: 0
-          respectBusyCooldown: 0
-    - rid: 830848840148189256
-      type: {class: DashParams, ns: , asm: Assembly-CSharp}
-      data:
-        _mode: 2
-        _fallbackRange: 4
-        _localOffset: {x: 0, y: 0}
-        _wallsMask:
-          serializedVersion: 2
-          m_Bits: 0
-        _canpen: 0
-        _targetSelf: 0
-        duration: 0.18
-        speedCurve:
-          serializedVersion: 2
-          m_Curve:
-          - serializedVersion: 3
-            time: 0
-            value: 1
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0
-            outWeight: 0
-          - serializedVersion: 3
-            time: 1
-            value: 1
-            inSlope: 0
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0
-            outWeight: 0
-          m_PreInfinity: 2
-          m_PostInfinity: 2
-          m_RotationOrder: 4
-        stopOnWall: 1
-        radius: 0.5
-        skin: 0.05
-        dealDamage: 1
-        canPenetrate: 1
-        enemyMask:
-          serializedVersion: 2
-          m_Bits: 0
-        damage: 8
-        apRatio: 0
-        knockback: 6
-        grantIFrame: 1
-        iFrameDuration: 0.18
-        cooldown: 0.35
-        onExpire: []
+        hitEffectPrefab: {fileID: 0}
+        cooldownTicks: 0
+        debugDraw: 1
