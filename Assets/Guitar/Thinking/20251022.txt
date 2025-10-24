@@ -1,0 +1,16 @@
+할거
+1. SkillRunner의 Activate 메서드를 완성한다
+일단 TargetResolver에서 true가 반환되면 그 target을 기반으로 Mechanism의 Cast를 실행한다
+참고로 Ticker와 연결해서 쿨타임을 재야 하는 것을 반드시 생각하도록
+
+2. Dummy Mechanism과 Dummy Params를 만든다
+사실 HitScan을 만들어도 되는데 발동 자체를 확인하는 게 중요해 보이므로 Dummy 생성
+가장 쉬운 건 HitScan이라고 봐서 그냥 HitScan을 처음부터 만들고 테스트해도 된다
+그 경우 Targeting 실패했을 때 어떻게 나오는지 볼 수도 있겠지
+
+3. Dummy(HitScan)가 잘 작동한다면 여기에 맞춰 MeleeInstant, Projectile, Dash를 고친다
+Projectile은 MonoBehvaiour이므로 Ticker를 구독하게 만들라
+
+어쩌면 ISkillMechanism과 ISkillParams도 처음부터 다시 만들 필요가 있지 않을까
+왜? 옛날 시스템에 맞춰진 것들인데 너무 그지같음
+현대식 TargetResolver와 SkillRunner에 맞춰 현대화할 필요가 있을 것으로 생각
