@@ -68,8 +68,8 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 			dashPolicy.wallsMask = p.WallsMask;
 			dashPolicy.enemyMask = p.enemyMask;
 			dashPolicy.enemyAsBlocker = !p.CanPenetrate;
-			dashPolicy.unitradius = p.unitradius;
-			dashPolicy.unitskin = Math.Max(10, p.unitskin);
+			dashPolicy.unitRadius = p.unitradius;
+			dashPolicy.unitSkin = Math.Max(10, p.unitskin);
 			dashPolicy.allowWallSlide = true;
 
 			using (motor.With(dashPolicy))

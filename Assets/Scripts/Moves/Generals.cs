@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using UnityEngine;
-using System.Collections.Generic;
+using Debug = System.Diagnostics.Debug;
+
 /// <summary>
 /// Encapsulates damage configuration for hitscan or projectile skills.
 /// </summary>
@@ -27,4 +29,25 @@ public interface INewMechanism
 public interface INewParams
 {
     short CooldownTicks { get; }
+}
+
+public abstract class ObjectGeneratingMechanism : ScriptableObject, INewMechanism
+{
+    protected GameObject GenerateObject(string name, Vector3 position, float radius, int durationTicks)
+    {
+        var obj = new GameObject(name);
+        obj.transform.position = position;
+
+        var collider = obj.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+        collider.radius = radius;
+
+        if (durationTicks > 0)
+        {
+            //obj.AddComponent<DeterministicLifetime>().Initialize(durationTicks);
+        }
+        return obj;
+    }
+
+    public abstract void Execute(INewParams @params, Transform caster, Transform target);
 }

@@ -14,7 +14,7 @@ public class TickerRunner : MonoBehaviour
     {
         _ticker = new Ticker();
         Debug.Log("Ticker Awake, time is ticking...");
-        BattleCore.Initialize();
+        //BattleCore.Initialize();
         StartCoroutine(TickLoop());
     }
 

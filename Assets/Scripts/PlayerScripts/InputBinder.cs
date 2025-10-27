@@ -17,10 +17,10 @@ public class InputBinder : MonoBehaviour
     {
         _controls = new InputSystem_Actions();
 
-        // 🎯 Prepare movement controller
+        //Prepare movement controller
         _actor = new PlayerActController(GetComponent<FixedMotor>(), GetComponent<Rigidbody2D>());
 
-        // 🎯 Prepare attack controller
+        //Prepare attack controller
         var resolver = GetComponent<TargetResolver>();
         if (resolver == null)
         {
@@ -44,11 +44,11 @@ public class InputBinder : MonoBehaviour
     {
         _controls.Enable();
 
-        // 🕹️ Movement input
+        //Movement input
         _controls.Player.Move.performed += ctx => _inputVector = ctx.ReadValue<Vector2>();
         _controls.Player.Move.canceled += _ => _inputVector = Vector2.zero;
 
-        // ⚔️ Attack input
+        //Attack input
         _controls.Player.Attack.performed += _ => _attacker.TryCast(SkillSlot.Attack);
         // You can add more when needed, e.g. Skill1, Skill2, Ultimate
 

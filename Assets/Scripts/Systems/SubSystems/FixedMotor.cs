@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -5,21 +6,11 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class FixedMotor : MonoBehaviour
 {
-    public CollisionPolicy policy = new()
-    {
-        wallsMask = LayerMask.GetMask("Walls&Obstacles"),
-        enemyMask = LayerMask.GetMask("Foe"),
-        enemyAsBlocker = true,
-        unitradius = 500,
-        unitskin = 125,
-        allowWallSlide = true
-    };
-
     private Rigidbody2D _rb;
     private Collider2D _col;
     private FixedVector2 _position;
     private bool _needsSync;
-
+    public CollisionPolicy policy;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
@@ -27,6 +18,15 @@ public class FixedMotor : MonoBehaviour
         _rb.gravityScale = 0f;
         _col = GetComponent<Collider2D>();
         _position = new FixedVector2(transform.position);
+        policy = new()
+        {
+            wallsMask = LayerMask.GetMask("Walls&Obstacles"),
+            enemyMask = LayerMask.GetMask("Foe"),
+            enemyAsBlocker = true,
+            unitRadius = 500,
+            unitSkin = 125,
+            allowWallSlide = true
+        };
     }
 
     private void LateUpdate()
@@ -63,25 +63,24 @@ public class FixedMotor : MonoBehaviour
         _position = new FixedVector2(target);
         _needsSync = true;
     }
-#region ===== Utils =====
     /// <summary>
     /// 이동 벡터에서 충돌체의 법선 방향 성분을 제거하여 "벽을 따라 미끄러지는" 효과를 만듭니다.
     /// </summary>
     private Vector2 RemoveNormalComponent(Vector2 vector, LayerMask mask, bool treatedAsBlocker = true)
     {
         // Bridge deterministic data to Unity physics by operating in float space locally.
-        Vector2 vfinalFloat = vector;
-        float magnitude = vfinalFloat.magnitude;
+        Vector2 vFinalFloat = vector;
+        float magnitude = vFinalFloat.magnitude;
         if (magnitude <= 0f)
         {
             return new Vector2(0, 0);
         }
 
         Vector2 origin = _rb.position;
-        Vector2 direction = vfinalFloat.normalized;
-        float skinRadius = (policy.unitradius + policy.unitskin) / (float)FixedVector2.UnitsPerFloat;
+        Vector2 direction = vFinalFloat.normalized;
+        float skinRadius = (policy.unitRadius + policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
         float distance = vector.magnitude;
-        //var maskHit = Physics2D.CircleCastAll(origin, .unitradius, direction, magnitude, mask);
+        //var maskHit = Physics2D.CircleCastAll(origin, .unitRadius, direction, magnitude, mask);
         var maskHit = Physics2D.CircleCastAll(origin, skinRadius, direction, distance, mask);
         foreach (var hit in maskHit)
         {
@@ -95,14 +94,14 @@ public class FixedMotor : MonoBehaviour
                 continue;
             }
             Vector2 nFloat = hit.normal.normalized;
-            float dot = Vector2.Dot(vfinalFloat, nFloat);
+            float dot = Vector2.Dot(vFinalFloat, nFloat);
             if (Mathf.Abs(dot) > 0f && treatedAsBlocker)
             {
-                vfinalFloat -= dot * nFloat;
+                vFinalFloat -= dot * nFloat;
             }
         }
 
-        return vfinalFloat;
+        return vFinalFloat;
     }
     /// <summary>
     /// Collider 겹침을 해소하기 위해 보정 벡터를 계산하고 적용합니다.
@@ -146,5 +145,17 @@ public class FixedMotor : MonoBehaviour
         _position = new FixedVector2(newPos);
         _needsSync = true;
     }
+}
+
+#region ===== CollisionPolicy =====
+[Serializable]
+public struct CollisionPolicy
+{
+    public LayerMask wallsMask;
+    public LayerMask enemyMask;
+    public bool enemyAsBlocker;
+    public int unitRadius;
+    public int unitSkin;
+    public bool allowWallSlide;
 }
 #endregion

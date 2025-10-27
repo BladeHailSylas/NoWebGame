@@ -41,6 +41,11 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 	{
 		Debug.Log("The real damage");
 	}
+
+	public void TakeDamage(DamageData data)
+	{
+		TakeDamage(data.Value, data.APRatio, data.Type);
+	}
 	public void TakeDamage(float damage, float apratio, StatsInterfaces.DamageType isFixed)
 	{
 		if (isFixed == StatsInterfaces.DamageType.Fixed)

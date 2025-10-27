@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ActInterfaces;
 using UnityEngine;
 using SkillInterfaces;
 
@@ -53,6 +54,7 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
         if (hit.collider != null)
         {
             //Placeholder: actual damage logic handled externally
+            hit.collider.GetComponent<IVulnerable>().TakeDamage(10);
             Debug.Log($"[HitscanMechanism] Hit detected on {hit.collider.name}");
             OnHit(hit.collider.transform);
         }

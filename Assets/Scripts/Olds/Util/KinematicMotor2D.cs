@@ -2,17 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public struct CollisionPolicy
-{
-	public LayerMask wallsMask;
-	public LayerMask enemyMask;
-	public bool enemyAsBlocker;
-	public int unitradius;
-	public int unitskin;
-	public bool allowWallSlide;
-}
-
 public struct MoveResult
 {
         public FixedVector2 actualDelta;
@@ -43,8 +32,8 @@ public class KinematicMotor2D : MonoBehaviour
 		wallsMask = 0,
 		enemyMask = 0,
 		enemyAsBlocker = true,
-		unitradius = 500,
-		unitskin = 125,
+		unitRadius = 500,
+		unitSkin = 125,
 		allowWallSlide = true
 	};
         private Rigidbody2D _rb;
@@ -156,7 +145,7 @@ public class KinematicMotor2D : MonoBehaviour
 
                 Vector2 origin = _coreTransform.position.asVector2;
                 Vector2 direction = vfinalFloat.normalized;
-                var maskHit = Physics2D.CircleCastAll(origin, _current.unitradius, direction, magnitude, mask);
+                var maskHit = Physics2D.CircleCastAll(origin, _current.unitRadius, direction, magnitude, mask);
                 foreach (var hit in maskHit)
                 {
                         if (!hit.collider)
