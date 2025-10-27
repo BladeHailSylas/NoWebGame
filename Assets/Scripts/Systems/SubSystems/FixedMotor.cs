@@ -33,7 +33,7 @@ public class FixedMotor : MonoBehaviour
     {
         if (_needsSync)
         {
-            transform.position = _position.asVector2;
+            transform.position = _position.AsVector2;
             _needsSync = false;
         }
     }

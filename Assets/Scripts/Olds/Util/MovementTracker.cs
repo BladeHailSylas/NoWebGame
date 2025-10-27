@@ -40,7 +40,7 @@ public class MovementTracker : MonoBehaviour
         LastPosition = current;
 
         // 이동 거리 및 속도 계산
-        float distance = Delta.asVector2.magnitude;
+        float distance = Delta.AsVector2.magnitude;
         Speed = distance / Time.deltaTime;
 
         // 디버그 출력
@@ -48,7 +48,7 @@ public class MovementTracker : MonoBehaviour
         {
             if (distance > stopThreshold)
             {
-                Debug.Log($"[MovementTracker] Δ=({Delta.asVector2.x:F3}, {Delta.asVector2.y:F3})  " +
+                Debug.Log($"[MovementTracker] Δ=({Delta.AsVector2.x:F3}, {Delta.AsVector2.y:F3})  " +
                           $"Speed={Speed:F3} m/s");
             }
             else
@@ -77,6 +77,6 @@ public class MovementTracker : MonoBehaviour
     /// </summary>
     public bool IsStationary()
     {
-        return Delta.asVector2.magnitude < stopThreshold;
+        return Delta.AsVector2.magnitude < stopThreshold;
     }
 }

@@ -12,12 +12,12 @@ public struct MoveResult
         /// <summary>
         /// Helper accessor for legacy call sites that expect a float Vector2 delta.
         /// </summary>
-        public readonly Vector2 ActualDeltaVector => actualDelta.asVector2;
+        public readonly Vector2 ActualDeltaVector => actualDelta.AsVector2;
 
         /// <summary>
         /// Helper accessor for legacy call sites that expect a float Vector2 normal.
         /// </summary>
-        public readonly Vector2 HitNormalVector => hitNormal.asVector2;
+        public readonly Vector2 HitNormalVector => hitNormal.AsVector2;
 }
 
 [DisallowMultipleComponent]
@@ -136,14 +136,14 @@ public class KinematicMotor2D : MonoBehaviour
         private FixedVector2 RemoveNormalComponent(FixedVector2 vector, LayerMask mask, ref MoveResult result)
         {
                 // Bridge deterministic data to Unity physics by operating in float space locally.
-                Vector2 vfinalFloat = vector.asVector2;
+                Vector2 vfinalFloat = vector.AsVector2;
                 float magnitude = vfinalFloat.magnitude;
                 if (magnitude <= 0f)
                 {
                         return new FixedVector2(0, 0);
                 }
 
-                Vector2 origin = _coreTransform.position.asVector2;
+                Vector2 origin = _coreTransform.position.AsVector2;
                 Vector2 direction = vfinalFloat.normalized;
                 var maskHit = Physics2D.CircleCastAll(origin, _current.unitRadius, direction, magnitude, mask);
                 foreach (var hit in maskHit)

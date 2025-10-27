@@ -89,7 +89,7 @@ public class HitscanParams : INewParams
     [Header("Hitscan Settings")]
     public float minRange;
     public float maxRange = 10f;
-    public DamageData damage = new DamageData(StatsInterfaces.DamageType.Normal, 1000, 0);
+    public DamageData damage;
     public LayerMask layerMask = 1 << 8; // Default "Foe" layer
     public GameObject hitEffectPrefab;   // Placeholder — not used yet
     [Header("Ticker")] 
