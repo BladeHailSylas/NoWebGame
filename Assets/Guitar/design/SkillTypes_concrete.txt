@@ -1,0 +1,99 @@
+System Skills가 아닌 모든 기술은 Targeted, 비대상 기술의 경우 대신 앵커를 생성하고 이를 대상으로 삼아 발동한다
+
+#region ===== Direct hit skills =====
+
+Hitscan
+대상을 즉시 공격한다
+고유 params는 minRange, maxRange
+구현이 가장 쉽다
+
+Melee
+정면 부채꼴 방향을 공격한다
+고유 params는 degree, radius
+구현이 실제 쉽다
+
+Area
+해당 지점으로부터 일정 범위를 공격한다
+고유 params는 CenterCoordinate, AreaShape, endTick(entity generation inheritance)
+Area skill 자체는 그냥 Area entity를 생성하는 것 뿐이다
+실제 피해를 주고 수명을 유지하는 건 Area entity가 처리한다
+
+Projectile
+대상을 향하는 투사체를 발사하여 공격한다
+고유 params는 range, endTick(entity generation inheritance), canPenetrate
+이것도 그냥 Projectile entity를 생성하는 것 뿐이다
+하지만 이 경우는 entity가 움직여야 하기에 조금 구현이 귀찮아진다
+거기다 canPenetrate면 대상이나 벽과 충돌하기까지 멈추면 안 되므로 더 귀찮
+
+#endregion
+
+#region ===== Attackable Skills =====
+
+Dash
+대상 지점을 향해 빠르게 움직인다
+고유 params는 speed, maxRange, endTick(무한 돌진 방지), canAttack, canPenetrate
+게임을 망친 추한 타입이다
+이 자식 때문에 KinematicMotor2D를 도입하다 어쩌구 저쩌구 했다
+사실 이 정도로 망가질 게임이면 그냥 망가지는 게 필연이겠지만 아무튼 겜망추임
+Dash는 무조건 일반 이동 이상의 속력을 가져야 하며, Dash 중에는 일반 이동이 비활성화
+
+Teleport
+대상 지점으로 순간이동한다
+고유 params는 maxRange, attackWidth(0이면 공격 기능이 없다)
+필드에서 사라졌다가 대상 지점에서 나타난다, 이 덕에 targeted 기술을 그냥 흘릴 수 있다
+그런데 이게 너무 강해서 비대상 Teleport는 없었으면 좋겠음
+추가로 attackWidth가 있으면 순간이동 경로 상의 적을 공격하는 것
+
+Effect
+효과를 부여한다
+고유 params는 EffectType, endTick
+이건 아마 OnHit FollowUp으로 보는 게 가장 일반적인 기술이리라
+하지만 Damage Effect가 따로 있기 때문에(지딜이다) Attackable Skill로 분류되었다
+예전에는 분류에 따라 Priority가 있었고 Effect는 Priority 1000이었지만 지금은 없는 일
+
+#endregion
+
+#region ===== Util Skills =====
+
+Summon
+대상 지점에 특정(prefab) entity를 생성한다
+고유 params는 maxRange, endTick(entity generation inheritance)
+Area, Projectile에 이은 entity generation 3형제다
+아마 이게 가장 구현하기 귀찮을 것인데 prefab을 따로 만들어야 하기 때문
+그래도 여전히 entity 생성하고 끝인 기술이기에 prefab만 잘 만들면 문제가 없다
+
+Gain
+대상에게 체력/마나/보호막/특수 보호막을 제공한다
+고유 params는 gainType, amount
+변동이 잦은 체력/마나 관련은 따로 빼어 경량화 알고리즘을 적용하는 게 나은 것 같았다
+
+#endregion
+
+#region ===== System Skills =====
+
+Switch
+여러 기술 중 하나를 골라 사용하는 것이다
+고유 params는 SwitchType, SwitchCondition
+하지만 플레이어가 알아서 고를 수는 없고 전달된 SwitchCondition에 맞춰 임의로 시전한다
+효과가 바뀌는 기술도 Switch고 재사용(아트록스 Q) 기술도 Switch다
+쿨타임 후 자동으로 효과가 강화되는 기술은 Stack을 얻고 소모하는 것으로 처리하자
+
+Delay
+기술에 지연을 둔다
+고유 params는 DelayType, maxTick
+DelayType은 Delay와 Hold가 있는데, Delay는 꼼짝없이 maxTick까지 기다려야 한다
+다만 Hold는 maxTick이 되면 FollowUp을 자동 발동, 그 이전에도 임의로 발동 가능하다
+
+Toggle
+지속 기술의 사용 여부를 전환한다
+고유 params는 initMana(0이면 시전 시 마나를 소모하지 않는다)
+그 지속 기술은 아마 FollowUp으로 사용할 것 같다
+
+Channel
+누르고 있는 동안 지속 기술을 사용한다
+고유 params는 모르겠음
+이건 Toggle + Hold의 융합 버전이라고 보면 된다
+누르고 있는 동안(Hold) 지속 기술을 사용(Toggle)
+그런데 둘 중 어느 쪽으로도 채널링을 다룰 수는 없어서 따로 뺐음
+
+#endregion
