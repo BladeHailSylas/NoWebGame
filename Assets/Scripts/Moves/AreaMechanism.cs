@@ -1,8 +1,56 @@
 using UnityEngine;
 
-public class AreaMechanism : ScriptableObject
+[CreateAssetMenu(menuName = "Skills/Mechanisms/Area")]
+public class AreaMechanism : ObjectGeneratingMechanism
 {
-    
+    public override void Execute(INewParams @params, Transform caster, Transform target)
+    {
+        if (@params is not AreaParams param)
+        {
+            Debug.LogError("[AreaMechanism] Invalid parameter type.");
+            return;
+        }
+
+        // Determine the center position
+        Vector3 centerPos = target != null
+            ? target.position
+            : caster.position;
+
+        // Spawn the area object
+        GameObject areaObj = GenerateObject("AreaZone", centerPos);
+
+        // Add collider for detection (temporary visualization)
+        CircleCollider2D collider = areaObj.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+
+        if (param.Area is CircleArea circle)
+        {
+            collider.radius = circle.Radius / 1000f; // Convert from deterministic unit
+        }
+        else
+        {
+            Debug.LogWarning("[AreaMechanism] Unsupported area shape type — default radius used.");
+            collider.radius = 1f;
+        }
+
+        // Add placeholder AreaEntity (to be implemented next)
+        //AreaEntity entity = areaObj.AddComponent<AreaEntity>();
+        //entity.Initialize(param.Damage, param.LayerMask);
+
+        Debug.Log($"[AreaMechanism] Spawned area at {centerPos} with radius {collider.radius}");
+    }
+}
+
+public struct AreaParams : INewParams
+{
+    public short CooldownTicks { get; private set; }
+    [SerializeReference] public IAreaShapes Area;
+
+    public AreaParams(short cooldownTicks, IAreaShapes area)
+    {
+        CooldownTicks = cooldownTicks;
+        Area = area;
+    }
 }
 
 public interface IAreaShapes

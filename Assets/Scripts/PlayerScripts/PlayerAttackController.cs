@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class PlayerAttackController
 {
-    private readonly SkillRunner _runner;
+    private readonly CommandCollector _collector;
     private readonly Transform _caster;
     private readonly Dictionary<SkillSlot, SkillBinding> _skills;
 
-    public PlayerAttackController(Transform caster, TargetResolver resolver, Dictionary<SkillSlot, SkillBinding> skills)
+    public PlayerAttackController(Transform caster, TargetResolver resolver, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
     {
         _caster = caster;
-        _runner = new SkillRunner(resolver);
+        //_runner = new SkillRunner(resolver);
         _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
-
+        _collector = collector;
         // Validate all provided skill bindings
         foreach (var kvp in _skills)
         {
@@ -30,7 +30,6 @@ public class PlayerAttackController
                 Debug.LogError($"[PlayerAttackController] Invalid params in slot {kvp.Key}.");
             }
         }
-
         Debug.Log($"[PlayerAttackController] Initialized with {_skills.Count} bound skills.");
     }
 
@@ -69,7 +68,30 @@ public class PlayerAttackController
         );
 
         // Trigger the skill
-        _runner.Activate(cmd);
+        //_runner.Activate(cmd);
+        _collector?.EnqueueCommand(cmd);
         Debug.Log($"[PlayerAttackController] Casted skill from slot {slot} ({mech.GetType().Name}).");
+    }
+
+    public void PrepareCast(SkillSlot slot)
+    {
+        if (!_skills.TryGetValue(slot, out var binding))
+        {
+            Debug.LogWarning($"[PlayerAttackController] No skill bound to slot {slot}.");
+            return;
+        }
+
+        if (binding.mechanism is not INewMechanism mech)
+        {
+            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid mechanism.");
+            return;
+        }
+
+        if (binding.@params is not INewParams param)
+        {
+            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid params.");
+            return;
+        }
+        Debug.Log($"[PlayerAttackController] You are casting {mech.GetType().Name} with cooldown {param.CooldownTicks}");
     }
 }

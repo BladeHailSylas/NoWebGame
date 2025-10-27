@@ -56,19 +56,27 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
             //Placeholder: actual damage logic handled externally
             hit.collider.GetComponent<IVulnerable>().TakeDamage(10);
             Debug.Log($"[HitscanMechanism] Hit detected on {hit.collider.name}");
-            OnHit(hit.collider.transform);
+            OnHit(caster, hit.collider.transform, param);
         }
 
-        OnFinished();
+        OnFinished(target);
     }
 
-    protected virtual void OnHit(Transform hitTarget)
+    protected virtual void OnHit(Transform caster, Transform hitTarget, HitscanParams param)
     {
         // Placeholder for EffectSkill or damage pipeline.
+        if (param.OnHitFollowUp.Mechanism is INewMechanism mech)
+        {
+            Debug.Log($"[HitscanMechanism] Now enqueuing {mech.GetType().Name}");
+            SkillCommand cmd = new(caster, TargetMode.TowardsEntity, new FixedVector2(caster.position),
+                mech, param.OnHitFollowUp.Params, hitTarget);
+            CommandCollector.Instance.EnqueueCommand(cmd);
+            //Debug.Log($"You are casting {mech.GetType().Name} as a followup to {hitTarget.name}");
+        }
         Debug.Log($"[HitscanMechanism] OnHit triggered on {hitTarget.name}");
     }
 
-    protected virtual void OnFinished()
+    protected virtual void OnFinished(Transform prevTarget)
     {
         // Placeholder for completion callbacks or follow-ups.
         Debug.Log("[HitscanMechanism] OnFinished triggered.");
@@ -88,7 +96,9 @@ public class HitscanParams : INewParams
     [SerializeField] private short cooldownTicks;
     public short CooldownTicks => cooldownTicks;
     [Header("FollowUp")] 
-    public INewMechanism FollowUp;
+    public MechanismRef OnHitFollowUp;
+
+    public MechanismRef OnExpireFollowUp;
     [Header("Debug")]
     public bool debugDraw = true;
 }

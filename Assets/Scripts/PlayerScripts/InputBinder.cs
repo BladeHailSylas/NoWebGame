@@ -37,7 +37,7 @@ public class InputBinder : MonoBehaviour
             { SkillSlot.Ultimate, spec.ultimate }
         };
 
-        _attacker = new PlayerAttackController(transform, resolver, skillDict);
+        _attacker = new PlayerAttackController(transform, resolver, skillDict, GetComponent<CommandCollector>());
     }
 
     private void OnEnable()
@@ -47,9 +47,12 @@ public class InputBinder : MonoBehaviour
         //Movement input
         _controls.Player.Move.performed += ctx => _inputVector = ctx.ReadValue<Vector2>();
         _controls.Player.Move.canceled += _ => _inputVector = Vector2.zero;
-
         //Attack input
-        _controls.Player.Attack.performed += _ => _attacker.TryCast(SkillSlot.Attack);
+        _controls.Player.Attack.performed += _ => _attacker.PrepareCast(SkillSlot.Attack);
+        _controls.Player.Attack.canceled += _ => _attacker.TryCast(SkillSlot.Attack);
+        _controls.Player.Skill1.canceled += _ => _attacker.TryCast(SkillSlot.Skill1);
+        _controls.Player.Skill2.canceled += _ => _attacker.TryCast(SkillSlot.Skill2);
+        _controls.Player.Ultimate.canceled += _ => _attacker.TryCast(SkillSlot.Ultimate);
         // You can add more when needed, e.g. Skill1, Skill2, Ultimate
 
         Ticker.Instance.OnTick += TickHandler;

@@ -1,4 +1,3 @@
-using SkillInterfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,20 +16,20 @@ public class SerializeReferenceDrawer : PropertyDrawer
                             where !type.IsAbstract && typeof(INewParams).IsAssignableFrom(type)
                             select type).ToDictionary(t => t.Name, t => t);
 
-        // �� ǥ��
+        //
         EditorGUI.BeginProperty(position, label, property);
         var typeNames = _cachedTypes.Keys.ToList();
 
-        // ���� Ÿ��
+        //
         var currentType = property.managedReferenceValue?.GetType();
         var currentIndex = currentType != null ? typeNames.IndexOf(currentType.Name) : -1;
 
-        // ��Ӵٿ� Rect �и�
+        //
         var dropdownRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
         var fieldRect = new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + 2,
                                  position.width, position.height - EditorGUIUtility.singleLineHeight - 2);
 
-        // ��Ӵٿ�
+        //
         int newIndex = EditorGUI.Popup(dropdownRect, "Param Type", currentIndex, typeNames.ToArray());
         if (newIndex != currentIndex)
         {
@@ -38,7 +37,7 @@ public class SerializeReferenceDrawer : PropertyDrawer
             property.managedReferenceValue = Activator.CreateInstance(type);
         }
 
-        // ���� �ʵ� ǥ��
+        //
         if (property.managedReferenceValue != null)
             EditorGUI.PropertyField(fieldRect, property, new GUIContent("Param Data"), true);
 
