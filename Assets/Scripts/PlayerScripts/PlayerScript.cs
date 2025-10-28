@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using EffectInterfaces;
 using SkillInterfaces;
+using StatsInterfaces;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,7 +15,7 @@ public sealed class PlayerScript : MonoBehaviour
 {
     [Header("Configuration")]
     [SerializeField] private CharacterSpec spec;
-    [SerializeField] private FixedMotor motor;
+    [SerializeField][System.Obsolete] private FixedMotor motor;
     [SerializeField] private TargetResolver targetResolver;
     [SerializeField] private CommandCollector commandCollector;
 
@@ -29,7 +31,7 @@ public sealed class PlayerScript : MonoBehaviour
     private void Awake()
     {
         _logger = new PlayerLogger(gameObject.name);
-        motor ??= GetComponent<FixedMotor>();
+        //motor ??= GetComponent<FixedMotor>();
         targetResolver ??= GetComponent<TargetResolver>();
         commandCollector ??= GetComponent<CommandCollector>();
 

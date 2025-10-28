@@ -36,7 +36,7 @@ public sealed class PlayerActController : IVulnerable, IPullable
 
         _motor.Depenetrate();
         var speed = _stats.Stats.Speed;
-        _motor.Move(move.Movement * speed);
+        _motor.Move(move.Normalized * speed);
         _motor.Depenetrate();
     }
 
