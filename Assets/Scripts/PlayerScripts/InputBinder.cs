@@ -7,19 +7,28 @@ public class InputBinder : MonoBehaviour
 {
     [Header("Character Data")]
     public CharacterSpec spec;
-
+    
     private PlayerActController _actor;
     private PlayerAttackController _attacker;
+    public BaseStatsContainer BaseStats;
+    private PlayerStatsBridge _stats;
     private InputSystem_Actions _controls;
     private Vector2 _inputVector;
 
     private void Awake()
     {
         _controls = new InputSystem_Actions();
-
+        BaseStats = new(
+            spec.baseHp, 
+            spec.baseHpGen, 
+            spec.baseMana, 
+            spec.baseManaGen,
+            spec.baseAttack, 
+            spec.baseDefense, 
+            spec.baseSpeed
+        );
         //Prepare movement controller
-        _actor = new PlayerActController(GetComponent<FixedMotor>(), GetComponent<Rigidbody2D>());
-
+        _actor = new PlayerActController(GetComponent<FixedMotor>(), _stats);
         //Prepare attack controller
         var resolver = GetComponent<TargetResolver>();
         if (resolver == null)
@@ -37,7 +46,7 @@ public class InputBinder : MonoBehaviour
             { SkillSlot.Ultimate, spec.ultimate }
         };
 
-        _attacker = new PlayerAttackController(transform, resolver, skillDict, GetComponent<CommandCollector>());
+        _attacker = new PlayerAttackController(transform, resolver, skillDict, GetComponent<CommandCollector>(), _stats);
     }
 
     private void OnEnable()

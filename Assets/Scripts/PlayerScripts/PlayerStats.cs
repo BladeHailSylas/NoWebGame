@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
-public sealed class PlayerStats : MonoBehaviour // 플레이어 스탯 관리, 다른 곳에서는 참조만
+public sealed class PlayerStats //: MonoBehaviour // 플레이어 스탯 관리, 다른 곳에서는 참조만
 {
-	[SerializeReference] readonly CharacterSpec _spec;
+	//[SerializeReference] readonly CharacterSpec _spec;
 	public int BaseHealth { get; private set; }
 	public int MaxHealth { get; private set; }
 	public int Health { get; private set; }
@@ -25,19 +25,20 @@ public sealed class PlayerStats : MonoBehaviour // 플레이어 스탯 관리, �
 	public int ManaRegen { get; private set; }
 	public int BaseSpeed { get; private set; } = 8;
 	public int Speed { get; private set; } = 8;
-	public int JumpTime { get; private set; }
-	public bool OnGround { get; private set; }
+	//public int JumpTime { get; private set; }
+	//public bool OnGround { get; private set; }
 	public bool IsDead { get; private set; }
-	private void Awake()
+
+	public PlayerStats(BaseStatsContainer con)
 	{
-		/*BaseHealth = _spec.baseHp;
-		BaseHealthRegen = _spec.baseHpGen;
-		BaseArmor = _spec.baseDefense;
-		BaseAttackDamage = _spec.baseAttack;
-		BaseMana = _spec.baseMana;
-		BaseManaRegen = _spec.baseManaGen;
-		BaseSpeed = _spec.baseSpeed;*/
-		BaseSpeed = 8000;
+		BaseHealth = con.BaseHp;
+		BaseHealthRegen = con.BaseHpGen;
+		BaseMana = con.BaseMana;
+		BaseManaRegen = con.BaseManaGen;
+		BaseAttackDamage = con.BaseAttack;
+		BaseArmor = con.BaseDefense;
+		BaseSpeed = con.BaseSpeed;
+		Debug.Log($"Initiated. Stats: {BaseHealth}, {BaseMana}, {BaseAttackDamage}, {BaseArmor}, {BaseSpeed}");
 	}
 	public void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
 	{

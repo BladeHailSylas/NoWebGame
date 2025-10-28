@@ -27,19 +27,19 @@ MonoBehaviour:
       rid: 3203422884986951
   skill1:
     slot: 2
-    mechanism: {fileID: 11400000, guid: 8eac857f8e9b7ac4e8dfb345295b3ca3, type: 2}
+    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
     params:
-      rid: -2
+      rid: 3203489022345287
   skill2:
     slot: 3
-    mechanism: {fileID: 11400000, guid: 8cd4bfe941aac2f4aa7c5fe05d78363b, type: 2}
+    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
     params:
-      rid: -2
+      rid: 3203489022345288
   ultimate:
     slot: 4
-    mechanism: {fileID: 0}
+    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
     params:
-      rid: -2
+      rid: 3203489022345289
   references:
     version: 2
     RefIds:
@@ -49,10 +49,96 @@ MonoBehaviour:
       type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
       data:
         minRange: 0
+        maxRange: 15
+        layerMask:
+          serializedVersion: 2
+          m_Bits: 128
+        hitEffectPrefab: {fileID: 0}
+        cooldownTicks: 0
+        OnHitFollowUp:
+          Mechanism: {fileID: 11400000, guid: 92846dab9cb5aa64eb9a8eca809422df, type: 2}
+          Params:
+            rid: 3203489022345292
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        OnExpireFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        debugDraw: 1
+    - rid: 3203489022345287
+      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
+      data:
+        minRange: 0
         maxRange: 10
         layerMask:
           serializedVersion: 2
           m_Bits: 128
         hitEffectPrefab: {fileID: 0}
         cooldownTicks: 0
+        OnHitFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        OnExpireFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
         debugDraw: 1
+    - rid: 3203489022345288
+      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
+      data:
+        minRange: 0
+        maxRange: 20
+        layerMask:
+          serializedVersion: 2
+          m_Bits: 128
+        hitEffectPrefab: {fileID: 0}
+        cooldownTicks: 0
+        OnHitFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        OnExpireFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        debugDraw: 1
+    - rid: 3203489022345289
+      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
+      data:
+        minRange: 10
+        maxRange: 200
+        layerMask:
+          serializedVersion: 2
+          m_Bits: 128
+        hitEffectPrefab: {fileID: 0}
+        cooldownTicks: 0
+        OnHitFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        OnExpireFollowUp:
+          Mechanism: {fileID: 0}
+          Params:
+            rid: -2
+          PassSameTarget: 0
+          RespectBusyCooldown: 0
+        debugDraw: 1
+    - rid: 3203489022345292
+      type: {class: AreaParams, ns: , asm: Assembly-CSharp}
+      data:
+        Area:
+          rid: -2

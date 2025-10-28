@@ -1,24 +1,22 @@
 using System;
 using UnityEngine;
 
-[DisallowMultipleComponent]
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Collider2D))]
-public class FixedMotor : MonoBehaviour
+/// <summary>
+/// Deterministic movement bridge between FixedVector2 logic and Unity 2D physics.
+/// </summary>
+public class FixedMotor
 {
-    private Rigidbody2D _rb;
-    private Collider2D _col;
-    private FixedVector2 _position;
+    private readonly Rigidbody2D _rb;
+    private readonly Collider2D _col;
+    private FixedVector2 _pos;
     private bool _needsSync;
-    public CollisionPolicy policy;
-    private void Awake()
+    public CollisionPolicy Policy { get; set; }
+
+    public FixedMotor(Rigidbody2D rb, Collider2D col)
     {
-        _rb = GetComponent<Rigidbody2D>();
-        _rb.bodyType = RigidbodyType2D.Kinematic;
-        _rb.gravityScale = 0f;
-        _col = GetComponent<Collider2D>();
-        _position = new FixedVector2(transform.position);
-        policy = new()
+        _rb = rb ?? throw new ArgumentNullException(nameof(rb));
+        _col = col ?? throw new ArgumentNullException(nameof(col));
+        Policy = new()
         {
             wallsMask = LayerMask.GetMask("Walls&Obstacles"),
             enemyMask = LayerMask.GetMask("Foe"),
@@ -27,93 +25,80 @@ public class FixedMotor : MonoBehaviour
             unitSkin = 125,
             allowWallSlide = true
         };
-    }
-
-    private void LateUpdate()
-    {
-        if (_needsSync)
-        {
-            transform.position = _position.AsVector2;
-            _needsSync = false;
-        }
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0f;
+        _pos = new FixedVector2(rb.position);
     }
 
     /// <summary>
-    /// 벽과의 충돌을 감안하여 delta 방향 이동을 시도합니다.
-    /// enemyAsBlocker가 false라면 enemyMask는 무시합니다.
+    /// Synchronizes Unity transform with deterministic position.
+    /// Should be called from PlayerScript.LateUpdate().
     /// </summary>
-    public void Move(FixedVector2 desiredDelta, Rigidbody2D rb = null)
+    public void SyncPosition()
     {
-        rb ??= _rb;
-        Vector2 delta = desiredDelta.ToVector2() / 60;
-        if (delta.sqrMagnitude < 0)
+        if (!_needsSync) return;
+        _col.transform.position = _pos.AsVector2;
+        _needsSync = false;
+    }
+
+    /// <summary>
+    /// Attempts to move by a delta, considering wall and enemy collision.
+    /// </summary>
+    public void Move(FixedVector2 desiredDelta)
+    {
+        Vector2 delta = desiredDelta.ToVector2() / 60f;
+        if (delta.sqrMagnitude <= 0f)
             return;
 
-        //MoveResult result = default;
+        // 1️⃣ Remove wall collision normals
+        delta = RemoveNormalComponent(delta, Policy.wallsMask);
 
-        // 1️⃣ 벽과 충돌 시 법선 성분 제거
-        delta = RemoveNormalComponent(delta, policy.wallsMask);
+        // 2️⃣ Remove enemy collision normals if treated as blockers
+        if (Policy.enemyAsBlocker)
+            delta = RemoveNormalComponent(delta, Policy.enemyMask);
 
-        // 2️⃣ 적과 충돌 시, 적이 blocker일 때만 제거
-        if (policy.enemyAsBlocker)
-            delta = RemoveNormalComponent(delta, policy.enemyMask);
-        // 3️⃣ 이동 수행
-        Vector2 target = rb.position + delta;
-        rb.MovePosition(target);
-        _position = new FixedVector2(target);
+        // 3️⃣ Apply movement
+        Vector2 target = _rb.position + delta;
+        _rb.MovePosition(target);
+        _pos = new FixedVector2(target);
         _needsSync = true;
     }
-    /// <summary>
-    /// 이동 벡터에서 충돌체의 법선 방향 성분을 제거하여 "벽을 따라 미끄러지는" 효과를 만듭니다.
-    /// </summary>
+
     private Vector2 RemoveNormalComponent(Vector2 vector, LayerMask mask, bool treatedAsBlocker = true)
     {
-        // Bridge deterministic data to Unity physics by operating in float space locally.
-        Vector2 vFinalFloat = vector;
-        float magnitude = vFinalFloat.magnitude;
+        Vector2 vFinal = vector;
+        float magnitude = vFinal.magnitude;
         if (magnitude <= 0f)
-        {
-            return new Vector2(0, 0);
-        }
+            return Vector2.zero;
 
         Vector2 origin = _rb.position;
-        Vector2 direction = vFinalFloat.normalized;
-        float skinRadius = (policy.unitRadius + policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
+        Vector2 direction = vFinal.normalized;
+        float skinRadius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
         float distance = vector.magnitude;
-        //var maskHit = Physics2D.CircleCastAll(origin, .unitRadius, direction, magnitude, mask);
-        var maskHit = Physics2D.CircleCastAll(origin, skinRadius, direction, distance, mask);
-        foreach (var hit in maskHit)
-        {
-            if (!hit.collider)
-            {
-                continue;
-            }
 
-            if (mask == policy.enemyMask && !policy.enemyAsBlocker)
-            {
-                continue;
-            }
-            Vector2 nFloat = hit.normal.normalized;
-            float dot = Vector2.Dot(vFinalFloat, nFloat);
+        var hits = Physics2D.CircleCastAll(origin, skinRadius, direction, distance, mask);
+        foreach (var hit in hits)
+        {
+            if (!hit.collider) continue;
+            if (mask == Policy.enemyMask && !Policy.enemyAsBlocker) continue;
+
+            Vector2 n = hit.normal.normalized;
+            float dot = Vector2.Dot(vFinal, n);
             if (Mathf.Abs(dot) > 0f && treatedAsBlocker)
-            {
-                vFinalFloat -= dot * nFloat;
-            }
+                vFinal -= dot * n;
         }
 
-        return vFinalFloat;
+        return vFinal;
     }
+
     /// <summary>
-    /// Collider 겹침을 해소하기 위해 보정 벡터를 계산하고 적용합니다.
+    /// Applies depenetration correction when overlapping with blockers.
     /// </summary>
     public void Depenetrate()
     {
-        if (!_rb || !_col)
-            return;
-
-        LayerMask blockers = policy.wallsMask;
-        if (policy.enemyAsBlocker)
-            blockers |= policy.enemyMask;
+        LayerMask blockers = Policy.wallsMask;
+        if (Policy.enemyAsBlocker)
+            blockers |= Policy.enemyMask;
 
         ContactFilter2D filter = new() { useLayerMask = true, useTriggers = false };
         filter.SetLayerMask(blockers);
@@ -127,12 +112,10 @@ public class FixedMotor : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             var other = overlaps[i];
-            if (!other)
-                continue;
+            if (!other) continue;
 
             var distInfo = _col.Distance(other);
-            if (!distInfo.isOverlapped)
-                continue;
+            if (!distInfo.isOverlapped) continue;
 
             correction += distInfo.normal * distInfo.distance;
         }
@@ -142,7 +125,7 @@ public class FixedMotor : MonoBehaviour
 
         Vector2 newPos = _rb.position + correction;
         _rb.MovePosition(newPos);
-        _position = new FixedVector2(newPos);
+        _pos = new FixedVector2(newPos);
         _needsSync = true;
     }
 }

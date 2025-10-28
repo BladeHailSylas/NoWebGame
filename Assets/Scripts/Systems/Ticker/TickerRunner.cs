@@ -28,7 +28,7 @@ public class TickerRunner : MonoBehaviour
             }
             catch (TickCountOverflowException ex)
             {
-				
+				Debug.LogError("Die yobbo");
             }
             yield return interval;
         }

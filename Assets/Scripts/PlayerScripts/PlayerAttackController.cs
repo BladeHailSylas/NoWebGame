@@ -7,13 +7,15 @@ public class PlayerAttackController
     private readonly CommandCollector _collector;
     private readonly Transform _caster;
     private readonly Dictionary<SkillSlot, SkillBinding> _skills;
+    private readonly PlayerStatsBridge _stats;
 
-    public PlayerAttackController(Transform caster, TargetResolver resolver, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
+    public PlayerAttackController(Transform caster, TargetResolver resolver, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector, PlayerStatsBridge stats)
     {
         _caster = caster;
         //_runner = new SkillRunner(resolver);
         _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
         _collector = collector;
+        _stats = stats;
         // Validate all provided skill bindings
         foreach (var kvp in _skills)
         {

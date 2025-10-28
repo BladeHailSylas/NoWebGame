@@ -1524,6 +1524,7 @@ GameObject:
   - component: {fileID: 1725135783}
   - component: {fileID: 1725135784}
   - component: {fileID: 1725135785}
+  - component: {fileID: 1725135786}
   m_Layer: 6
   m_Name: Player
   m_TagString: BlueTeam
@@ -1648,8 +1649,8 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 128
     enemyAsBlocker: 1
-    unitradius: 500
-    unitskin: 125
+    unitRadius: 0
+    unitSkin: 0
     allowWallSlide: 1
 --- !u!114 &1725135785
 MonoBehaviour:
@@ -1666,6 +1667,18 @@ MonoBehaviour:
   cursorResolver: {fileID: 977408138}
   anchorPrefab: {fileID: 0}
   debugLog: 1
+--- !u!114 &1725135786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725135777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c54c6a981fdc406091e20a6b861a510a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CommandCollector
 --- !u!1 &1752660213
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,9 +12,7 @@ public class AreaMechanism : ObjectGeneratingMechanism
         }
 
         // Determine the center position
-        Vector3 centerPos = target != null
-            ? target.position
-            : caster.position;
+        var centerPos = target?.position ?? caster.position;
 
         // Spawn the area object
         GameObject areaObj = GenerateObject("AreaZone", centerPos);
