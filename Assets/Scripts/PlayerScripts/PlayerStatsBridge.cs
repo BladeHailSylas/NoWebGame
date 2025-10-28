@@ -1,32 +1,30 @@
-using UnityEngine;
 using StatsInterfaces;
 
-public class PlayerStatsBridge : MonoBehaviour
+/// <summary>
+/// Maintains the player's runtime statistics and exposes helper methods for
+/// other modules. This bridge keeps the heavy lifting out of MonoBehaviours,
+/// improving testability.
+/// </summary>
+public sealed class PlayerStatsBridge
 {
-    public PlayerStatsContainer Stats { get; private set; }
+    public PlayerStatsContainer Stats { get; }
+    private readonly PlayerContext _context;
 
-    private void Awake()
+    public PlayerStatsBridge(PlayerContext context, BaseStatsContainer baseStats)
     {
-        Stats = new PlayerStatsContainer(GetComponent<InputBinder>().BaseStats);
-        Ticker.Instance.OnTick += OnTick;
+        _context = context;
+        Stats = new PlayerStatsContainer(baseStats);
     }
 
-    private void OnDestroy()
-    {
-        if (Ticker.Instance != null)
-            Ticker.Instance.OnTick -= OnTick;
-    }
-
-    private void OnTick(ushort deltaMs)
+    public void Tick(ushort deltaMs)
     {
         Stats.TickRegen(deltaMs);
     }
 
-    // === Unity/Command interface ===
     public void ApplyDamage(int amount, int apRatio = 0, DamageType type = DamageType.Normal)
     {
         Stats.ReduceStat(ReduceType.Health, amount, apRatio, type);
-        Debug.Log($"{gameObject.name} took {amount} damage, HP: {Stats.Health}/{Stats.MaxHealth}");
+        _context.Logger.Info($"Damage applied: {amount}, HP {Stats.Health}/{Stats.MaxHealth}.");
     }
 
     public void ApplyManaCost(int amount)
@@ -34,16 +32,11 @@ public class PlayerStatsBridge : MonoBehaviour
         Stats.ReduceStat(ReduceType.Mana, amount);
     }
 
-    public void Heal(int amount)
-    {
-        Debug.Log("Not heal");
-        //Stats.Heal(amount);
-    }
-
     public void ResetStats()
     {
         Stats.ResetToBase();
     }
+
     public void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
     {
         Stats.ReduceStat(stat, amount, apRatio, type);
