@@ -1,16 +1,19 @@
-﻿using UnityEngine;
+using UnityEngine;
+
+[DefaultExecutionOrder(-100)]
 public sealed class PlayerInstaller : MonoBehaviour
 {
     [SerializeField] private CharacterSpec spec;
-    [SerializeField] private InputBinder controller;
+    [SerializeField] private PlayerScript playerScript;
 
     private void Awake()
     {
-        if (spec == null || controller == null)
+        if (spec == null || playerScript == null)
         {
-            Debug.LogError("[PlayerInstaller] Spec?");
+            Debug.LogError("[PlayerInstaller] Missing spec or player script reference.");
             return;
         }
-        controller.spec = spec;
+
+        playerScript.InstallSpec(spec);
     }
 }
