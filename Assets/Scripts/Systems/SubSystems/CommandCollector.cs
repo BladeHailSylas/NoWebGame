@@ -9,7 +9,7 @@ public class CommandCollector : MonoBehaviour
     public static CommandCollector Instance { get; private set; }
     void OnEnable()
     {
-        Debug.Log("Ready to collect garbage");
+        //Debug.Log("Ready to collect garbage");
         _runner = new SkillRunner(GetComponent<TargetResolver>());
         Ticker.Instance.OnTick += TickHandler;
         Instance = this;

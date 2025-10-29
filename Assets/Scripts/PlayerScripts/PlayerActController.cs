@@ -1,72 +1,87 @@
-﻿using ActInterfaces;
+using ActInterfaces;
 using StatsInterfaces;
 using UnityEngine;
 
-public class PlayerActController : IVulnerable, IPullable
+/// <summary>
+/// Handles locomotion and vulnerability logic for the player character. The
+/// logic is kept free from MonoBehaviour dependencies so it can be simulated in
+/// unit tests.
+/// </summary>
+public sealed class PlayerActController : IVulnerable, IPullable
 {
-	private PlayerStatsBridge _stats;
-	private readonly FixedMotor _motor;
-	private PlayerEffects _effects;
+    private readonly PlayerContext _context;
+    private readonly PlayerStatsBridge _stats;
+    private readonly PlayerEffects _effects;
+    private readonly FixedMotor _motor;
 
-	public PlayerActController(FixedMotor motor, PlayerStatsBridge stats)//, BaseStatsContainer con)
-	{
-		_motor = motor;
-		_stats = stats;
+    public PlayerActController(PlayerContext context, PlayerStatsBridge stats, PlayerEffects effects, Rigidbody2D rb, Collider2D col)
+    {
+        _context = context;
+        _stats = stats;
+        _effects = effects;
+        //_motor = context.Motor;
+        _motor = new(rb, col);
+    }
 
-	}
-	[Header("Move")]
-	int _speed = 8;
-	private readonly byte _mySId = 1; // = BattleCore.Manager.playerInfo.sid;
-	// 입력 이벤트에서 방향만 갱신(즉시 이동 금지)
-	public void MakeMove(FixedVector2 move, byte mySid = 1)
-	{
-		MakeMove(new NormalMoveData(move), mySid);
-	}
-	public void MakeMove(NormalMoveData move, byte mySid = 1)
-	{
-		_motor.Depenetrate();
-		_motor.Move(move.Movement * (_speed));
-		_motor.Depenetrate();
-	}
-	// --- IVulnerable ---
-	public void TakeDamage(int damage, int apratio, DamageType type)
-		=> _stats.ReduceStat(ReduceType.Health, damage, apratio, type);
-	public void TakeDamage(float damage, float apratio, DamageType type)
-	{
-		TakeDamage((int)damage, (int)apratio, type);
-	}
+    /// <summary>
+    /// Moves the player in the provided direction. Movement honours the effect
+    /// system, so immobilizing conditions are respected.
+    /// </summary>
+    public void MakeMove(FixedVector2 move)
+    {
+        /*if (!_effects.IsMovable)
+        {
+            _context.Logger.Warn("Movement prevented due to status effect.");
+            return;
+        }*/
+        _motor.Depenetrate();
+        var speed = _stats.Stats.Speed;
+        //Debug.Log($"Got {move.Normalized * speed}");
+        _motor.Move(move.Normalized * speed);
+        _motor.Depenetrate();
+    }
 
-	public void Die()
-	{
-		
-	}
+    public void TakeDamage(int damage, int apratio, DamageType type)
+    {
+        _stats.ReduceStat(ReduceType.Health, damage, apratio, type);
+        _context.Logger.Info($"Damage taken: {damage} ({type}).");
+    }
 
-	// --- IPullable ---
-	public void ApplyKnockback(Vector2 direction, float force)
-	{
-		// Kinematic에서는 velocity/Force가 먹지 않으므로 Locomotion 버퍼로 위임
-		//locomotion.ApplyKnockback(direction, force);
-	}
+    public void TakeDamage(DamageData data)
+    {
+        //TakeDamage(data.Value, data.APRatio, data.Type);
+    }
+
+    public void Die()
+    {
+        _context.Logger.Warn("Player death triggered. Implement respawn flow when ready.");
+    }
+
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        /** Future hook: integrate with locomotion buffer when implemented. */
+        _context.Logger.Info($"Knockback requested direction={direction}, force={force}.");
+    }
 }
 
 public readonly struct BaseStatsContainer
 {
-	public readonly int BaseHp;
-	public readonly int BaseHpGen;
-	public readonly int BaseMana;
-	public readonly int BaseManaGen;
-	public readonly int BaseAttack;
-	public readonly int BaseDefense;
-	public readonly int BaseSpeed;
+    public readonly int BaseHp;
+    public readonly int BaseHpGen;
+    public readonly int BaseMana;
+    public readonly int BaseManaGen;
+    public readonly int BaseAttack;
+    public readonly int BaseDefense;
+    public readonly int BaseSpeed;
 
-	public BaseStatsContainer(int bhp, int hpg, int bmp, int mpg, int bad, int bar, int bsp)
-	{
-		BaseHp = bhp;
-		BaseHpGen = hpg;
-		BaseMana = bmp;
-		BaseManaGen = mpg;
-		BaseAttack = bad;
-		BaseDefense = bar;
-		BaseSpeed = bsp;
-	}
+    public BaseStatsContainer(int bhp, int hpg, int bmp, int mpg, int bad, int bar, int bsp)
+    {
+        BaseHp = bhp;
+        BaseHpGen = hpg;
+        BaseMana = bmp;
+        BaseManaGen = mpg;
+        BaseAttack = bad;
+        BaseDefense = bar;
+        BaseSpeed = bsp;
+    }
 }

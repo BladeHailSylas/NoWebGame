@@ -820,50 +820,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc0241031271208488532abf6f278dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDummy
---- !u!1 &881497801
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 881497803}
-  - component: {fileID: 881497802}
-  m_Layer: 6
-  m_Name: Effects
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &881497802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 881497801}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a24968047dd25804d88ee4c245caa358, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerEffects
---- !u!4 &881497803
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 881497801}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1921015321}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &977408137
 GameObject:
   m_ObjectHideFlags: 0
@@ -1521,10 +1477,9 @@ GameObject:
   - component: {fileID: 1725135780}
   - component: {fileID: 1725135779}
   - component: {fileID: 1725135781}
-  - component: {fileID: 1725135783}
-  - component: {fileID: 1725135784}
   - component: {fileID: 1725135785}
   - component: {fileID: 1725135786}
+  - component: {fileID: 1725135787}
   m_Layer: 6
   m_Name: Player
   m_TagString: BlueTeam
@@ -1574,7 +1529,6 @@ Transform:
   m_Children:
   - {fileID: 855105503}
   - {fileID: 1822249925}
-  - {fileID: 1921015321}
   - {fileID: 115066193}
   - {fileID: 1580612234}
   - {fileID: 1933435288}
@@ -1616,42 +1570,6 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
---- !u!114 &1725135783
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1725135777}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42d40be1ed1730546a2eb5f03cf64046, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttackController
-  spec: {fileID: 11400000, guid: d39f3125f1da80b4fa78df2fd03d8bbd, type: 2}
---- !u!114 &1725135784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1725135777}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86cde75da6a040bca738cfaa53eeed3d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FixedMotor
-  policy:
-    wallsMask:
-      serializedVersion: 2
-      m_Bits: 8
-    enemyMask:
-      serializedVersion: 2
-      m_Bits: 128
-    enemyAsBlocker: 1
-    unitRadius: 0
-    unitSkin: 0
-    allowWallSlide: 1
 --- !u!114 &1725135785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1679,6 +1597,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c54c6a981fdc406091e20a6b861a510a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CommandCollector
+--- !u!114 &1725135787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725135777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 568eab817bc4d7041bcfb647f4427512, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerScript
+  spec: {fileID: 11400000, guid: d39f3125f1da80b4fa78df2fd03d8bbd, type: 2}
+  targetResolver: {fileID: 1725135785}
+  commandCollector: {fileID: 1725135786}
 --- !u!1 &1752660213
 GameObject:
   m_ObjectHideFlags: 0
@@ -1814,52 +1747,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInstaller
   spec: {fileID: 11400000, guid: d39f3125f1da80b4fa78df2fd03d8bbd, type: 2}
-  controller: {fileID: 1725135783}
---- !u!1 &1921015320
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1921015321}
-  - component: {fileID: 1921015322}
-  m_Layer: 6
-  m_Name: Stats
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1921015321
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1921015320}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 881497803}
-  m_Father: {fileID: 1725135780}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1921015322
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1921015320}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d20ead164ec755041bb167eda8c36996, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatsContainer
+  playerScript: {fileID: 0}
 --- !u!1 &1933435286
 GameObject:
   m_ObjectHideFlags: 0

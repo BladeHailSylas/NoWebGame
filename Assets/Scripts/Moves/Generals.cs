@@ -4,30 +4,49 @@ using UnityEngine;
 /// <summary>
 /// Encapsulates damage configuration for hitscan or projectile skills.
 /// </summary>
-[System.Serializable]
 public readonly struct DamageData
 {
     public readonly StatsInterfaces.DamageType Type;
     public readonly int Value;
-    public readonly int APRatio;
+    public readonly int Attack;
+    public readonly double APRatio;
+    public readonly double Amplitude;
 
-    public DamageData(StatsInterfaces.DamageType type, int value, int apRatio)
+    public DamageData(StatsInterfaces.DamageType type, int attack, int value = 1, double apRatio = 0, double amplitude = 100)
     {
         Type = type;
+        Attack = attack;
         Value = value;
         APRatio = apRatio;
+        Amplitude = amplitude;
     }
 }
 // DamageType Normal, Fixed, MaxPercent, CurrentPercent, LostPercent
 
 public interface INewMechanism
 {
-    void Execute(INewParams @params, Transform caster, Transform target);
+    void Execute(CastContext ctx);
 }
 
 public interface INewParams
 {
     short CooldownTicks { get; }
+}
+
+public struct CastContext
+{
+    public readonly INewParams Params;
+    public readonly Transform Caster;
+    public readonly Transform Target;
+    public DamageData Damage;
+
+    public CastContext(INewParams param, Transform caster, Transform target, DamageData damage)
+    {
+        Params = param;
+        Caster = caster;
+        Target = target;
+        Damage = damage;
+    }
 }
 
 /// <summary>
@@ -41,8 +60,13 @@ public abstract class ObjectGeneratingMechanism : ScriptableObject, INewMechanis
     /// </summary>
     protected GameObject GenerateObject(string name, Vector3 position, ushort durationTicks)
     {
-        var obj = new GameObject(name);
-        obj.transform.position = position;
+        var obj = new GameObject(name)
+        {
+            transform =
+            {
+                position = position
+            }
+        };
 
         var collider = obj.AddComponent<CircleCollider2D>();
         collider.isTrigger = true;
@@ -65,13 +89,15 @@ public abstract class ObjectGeneratingMechanism : ScriptableObject, INewMechanis
     /// All mechanisms must implement this — defines their activation behavior.
     /// </summary>
     public abstract void Execute(INewParams @params, Transform caster, Transform target);
+
+    public abstract void Execute(CastContext ctx);
 }
 
 [Serializable]
 public struct MechanismRef
 {
-    public ScriptableObject Mechanism;
-    [SerializeReference] public INewParams Params;
-    public bool PassSameTarget;
-    public bool RespectBusyCooldown;
+    public ScriptableObject mechanism;
+    [SerializeReference] public INewParams @params;
+    public bool passSameTarget;
+    public bool respectBusy;
 }

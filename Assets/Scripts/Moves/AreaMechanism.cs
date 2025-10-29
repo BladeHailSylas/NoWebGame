@@ -5,14 +5,18 @@ public class AreaMechanism : ObjectGeneratingMechanism
 {
     public override void Execute(INewParams @params, Transform caster, Transform target)
     {
-        if (@params is not AreaParams param)
+    }
+
+    public override void Execute(CastContext ctx)
+    {
+        if (ctx.Params is not AreaParams param)
         {
             Debug.LogError("[AreaMechanism] Invalid parameter type.");
             return;
         }
 
         // Determine the center position
-        var centerPos = target?.position ?? caster.position;
+        var centerPos = ctx.Target?.position ?? ctx.Caster.position;
 
         // Spawn the area object
         GameObject areaObj = GenerateObject("AreaZone", centerPos);

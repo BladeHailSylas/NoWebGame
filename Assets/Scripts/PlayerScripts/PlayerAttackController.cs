@@ -1,64 +1,63 @@
 using System.Collections.Generic;
 using SkillInterfaces;
+using StatsInterfaces;
 using UnityEngine;
 
-public class PlayerAttackController
+/// <summary>
+/// Coordinates player attacks by resolving skill bindings and enqueueing
+/// commands to the shared command collector.
+/// </summary>
+public sealed class PlayerAttackController
 {
+    private readonly PlayerContext _context;
     private readonly CommandCollector _collector;
     private readonly Transform _caster;
     private readonly Dictionary<SkillSlot, SkillBinding> _skills;
-    private readonly PlayerStatsBridge _stats;
-
-    public PlayerAttackController(Transform caster, TargetResolver resolver, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector, PlayerStatsBridge stats)
+    public PlayerAttackController(PlayerContext context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
     {
+        _context = context;
         _caster = caster;
-        //_runner = new SkillRunner(resolver);
         _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
         _collector = collector;
-        _stats = stats;
-        // Validate all provided skill bindings
+
         foreach (var kvp in _skills)
         {
             var binding = kvp.Value;
-
             if (binding.mechanism is not INewMechanism)
             {
-                Debug.LogError($"[PlayerAttackController] Invalid mechanism in slot {kvp.Key}.");
+                _context.Logger.Error($"Invalid mechanism in slot {kvp.Key}.");
                 continue;
             }
 
             if (binding.@params is not INewParams)
             {
-                Debug.LogError($"[PlayerAttackController] Invalid params in slot {kvp.Key}.");
+                _context.Logger.Error($"Invalid params in slot {kvp.Key}.");
             }
         }
-        Debug.Log($"[PlayerAttackController] Initialized with {_skills.Count} bound skills.");
+
+        _context.Logger.Info($"Attack controller initialised with {_skills.Count} skills.");
     }
 
-    /// <summary>
-    /// Attempts to cast the skill assigned to the given slot.
-    /// </summary>
     public void TryCast(SkillSlot slot)
     {
         if (!_skills.TryGetValue(slot, out var binding))
         {
-            Debug.LogWarning($"[PlayerAttackController] No skill bound to slot {slot}.");
+            _context.Logger.Warn($"No skill bound to slot {slot}.");
             return;
         }
 
         if (binding.mechanism is not INewMechanism mech)
         {
-            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid mechanism.");
+            _context.Logger.Error($"Skill in slot {slot} has invalid mechanism.");
             return;
         }
 
         if (binding.@params is not INewParams param)
         {
-            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid params.");
+            _context.Logger.Error($"Skill in slot {slot} has invalid params.");
             return;
         }
 
-        // Construct the skill command
         var cmd = new SkillCommand(
             caster: _caster,
             mode: TargetMode.TowardsEntity,
@@ -66,34 +65,33 @@ public class PlayerAttackController
             mech: mech,
             @params: param,
             target: null,
-            chainDepth: 0
+            damage: _context.Stats.DamageData()
         );
-
-        // Trigger the skill
-        //_runner.Activate(cmd);
+        //Debug.Log($"Sent Attack damage { _context.Stats.DamageData().Attack}");
         _collector?.EnqueueCommand(cmd);
-        Debug.Log($"[PlayerAttackController] Casted skill from slot {slot} ({mech.GetType().Name}).");
+        _context.Logger.Info($"Casted skill from slot {slot} ({mech.GetType().Name}).");
     }
 
     public void PrepareCast(SkillSlot slot)
     {
         if (!_skills.TryGetValue(slot, out var binding))
         {
-            Debug.LogWarning($"[PlayerAttackController] No skill bound to slot {slot}.");
+            _context.Logger.Warn($"No skill bound to slot {slot}.");
             return;
         }
 
         if (binding.mechanism is not INewMechanism mech)
         {
-            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid mechanism.");
+            _context.Logger.Error($"Skill in slot {slot} has invalid mechanism.");
             return;
         }
 
         if (binding.@params is not INewParams param)
         {
-            Debug.LogError($"[PlayerAttackController] Skill in slot {slot} has invalid params.");
+            _context.Logger.Error($"Skill in slot {slot} has invalid params.");
             return;
         }
-        Debug.Log($"[PlayerAttackController] You are casting {mech.GetType().Name} with cooldown {param.CooldownTicks}");
+
+        _context.Logger.Info($"Preparing {mech.GetType().Name} (cooldown {param.CooldownTicks}).");
     }
 }
