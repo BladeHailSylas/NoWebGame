@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using EffectInterfaces;
 using SkillInterfaces;
 using StatsInterfaces;
+using Unity.Properties;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -41,7 +42,7 @@ public sealed class PlayerScript : MonoBehaviour
             return;
         }
 
-        _context = new PlayerContext(this, gameObject, transform, motor, targetResolver, commandCollector, spec, _logger);
+        _context = new PlayerContext(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
 
         var baseStats = new BaseStatsContainer(
             spec.baseHp,
@@ -55,7 +56,7 @@ public sealed class PlayerScript : MonoBehaviour
 
         _statsBridge = new PlayerStatsBridge(_context, baseStats);
         _effects = new PlayerEffects(_context);
-        _actController = new PlayerActController(_context, _statsBridge, _effects);
+        _actController = new PlayerActController(_context, _statsBridge, _effects, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
         _attackController = new PlayerAttackController(_context, transform, BuildSkillDictionary(), commandCollector);
         _inputBinder = new InputBinder(_actController, _attackController);
 
@@ -70,12 +71,6 @@ public sealed class PlayerScript : MonoBehaviour
         if (spec == null)
         {
             _logger.Error("CharacterSpec reference missing.");
-            return false;
-        }
-
-        if (motor == null)
-        {
-            _logger.Error("FixedMotor component missing.");
             return false;
         }
 
@@ -112,7 +107,7 @@ public sealed class PlayerScript : MonoBehaviour
 
         if (Ticker.Instance != null)
         {
-            Ticker.Instance.OnTick += OnTick;
+            Ticker.Instance.OnTick += TickHandler;
         }
         else
         {
@@ -138,11 +133,11 @@ public sealed class PlayerScript : MonoBehaviour
 
         if (Ticker.Instance != null)
         {
-            Ticker.Instance.OnTick -= OnTick;
+            Ticker.Instance.OnTick -= TickHandler;
         }
     }
 
-    private void OnTick(ushort tick)
+    private void TickHandler(ushort tick)
     {
         _inputBinder.Tick(tick);
         _statsBridge.Tick(tick);
@@ -150,6 +145,7 @@ public sealed class PlayerScript : MonoBehaviour
 
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
+        //Debug.Log($"Got {ctx.ReadValue<Vector2>()}");
         _inputBinder.SetMovementInput(ctx.ReadValue<Vector2>());
     }
 

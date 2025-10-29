@@ -27,6 +27,10 @@ public sealed class PlayerStatsBridge
         _context.Logger.Info($"Damage applied: {amount}, HP {Stats.Health}/{Stats.MaxHealth}.");
     }
 
+    public double AP() => Stats.TotalArmorPenetration();
+    public double DR() => Stats.TotalDamageReduction();
+    public double DA() => Stats.TotalDamageAmplitude();
+    public DamageData DamageData() => new(DamageType.Normal, Stats.AttackDamage, 1, AP(), DA());
     public void ApplyManaCost(int amount)
     {
         Stats.ReduceStat(ReduceType.Mana, amount);

@@ -112,7 +112,7 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 							if (hitIds.Contains(id)) continue;
 							if (c.TryGetComponent(out ActInterfaces.IVulnerable v))
 							{
-								v.TakeDamage(p.damage, p.apRatio);
+								//v.TakeDamage(p.damage, p.apRatio);
 								if (c.attachedRigidbody && p.knockback != 0f)
 								{
 									var kdir = ((Vector2)c.transform.position - (Vector2)owner.position).normalized;

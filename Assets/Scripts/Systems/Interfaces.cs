@@ -53,7 +53,7 @@ namespace ActInterfaces
 	public interface IVulnerable //피해를 받아 죽을 수 있음
 	{
 		void TakeDamage(int damage, int apratio = 1, StatsInterfaces.DamageType type = 0);
-		void TakeDamage(float damage, float apratio = 1, StatsInterfaces.DamageType type = 0);
+		void TakeDamage(DamageData data);
 		void Die();
 	}
 

@@ -25,8 +25,9 @@ public sealed class PlayerStatsContainer
     public int Speed { get; private set; }
     public bool IsDead { get; private set; }
 
-    public List<int> DamageReduction { get; private set; } = new();
-    public List<int> ArmorPenetration { get; private set; } = new();
+    public List<byte> DamageReduction { get; private set; } = new();
+    public List<byte> ArmorPenetration { get; private set; } = new();
+    public List<short> DamageAmplitudes { get; private set; } = new();
 
     // ===== Constructor =====
     public PlayerStatsContainer(BaseStatsContainer baseCon)
@@ -55,7 +56,6 @@ public sealed class PlayerStatsContainer
         SpecialShield = 0;
         IsDead = false;
     }
-
     // ===== Damage / Stat Manipulation =====
     public void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
     {
@@ -117,7 +117,7 @@ public sealed class PlayerStatsContainer
 
     public double TotalArmorPenetration()
     {
-        double total = 1.0;
+        double total = 1;
         foreach (var ap in ArmorPenetration)
             total *= (1 - ap / 100.0);
         return 1 - total;
@@ -130,7 +130,7 @@ public sealed class PlayerStatsContainer
             total *= (1 - dr / 100.0);
 
         // Lower bound to prevent healing from damage
-        return Math.Max(0.15, total);
+        return (int)Math.Max(0.15, total);
     }
 
     // ===== Regeneration =====
@@ -139,5 +139,16 @@ public sealed class PlayerStatsContainer
         // regen every second-like rate
         Health = Math.Min(MaxHealth, Health + HealthRegen);
         Mana = Math.Min(MaxMana, Mana + ManaRegen);
+    }
+
+    public double TotalDamageAmplitude()
+    {
+        double total = 1;
+        foreach (var da in DamageAmplitudes)
+        {
+            total *= (1 + da);
+        }
+
+        return total;
     }
 }

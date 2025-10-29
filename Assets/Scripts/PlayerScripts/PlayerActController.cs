@@ -14,12 +14,13 @@ public sealed class PlayerActController : IVulnerable, IPullable
     private readonly PlayerEffects _effects;
     private readonly FixedMotor _motor;
 
-    public PlayerActController(PlayerContext context, PlayerStatsBridge stats, PlayerEffects effects)
+    public PlayerActController(PlayerContext context, PlayerStatsBridge stats, PlayerEffects effects, Rigidbody2D rb, Collider2D col)
     {
         _context = context;
         _stats = stats;
         _effects = effects;
-        _motor = context.Motor;
+        //_motor = context.Motor;
+        _motor = new(rb, col);
     }
 
     /// <summary>
@@ -28,14 +29,14 @@ public sealed class PlayerActController : IVulnerable, IPullable
     /// </summary>
     public void MakeMove(FixedVector2 move)
     {
-        if (!_effects.IsMovable)
+        /*if (!_effects.IsMovable)
         {
             _context.Logger.Warn("Movement prevented due to status effect.");
             return;
-        }
-
+        }*/
         _motor.Depenetrate();
         var speed = _stats.Stats.Speed;
+        //Debug.Log($"Got {move.Normalized * speed}");
         _motor.Move(move.Normalized * speed);
         _motor.Depenetrate();
     }
@@ -46,9 +47,9 @@ public sealed class PlayerActController : IVulnerable, IPullable
         _context.Logger.Info($"Damage taken: {damage} ({type}).");
     }
 
-    public void TakeDamage(float damage, float apratio, DamageType type)
+    public void TakeDamage(DamageData data)
     {
-        TakeDamage((int)damage, (int)apratio, type);
+        //TakeDamage(data.Value, data.APRatio, data.Type);
     }
 
     public void Die()

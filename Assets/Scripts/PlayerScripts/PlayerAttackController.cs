@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SkillInterfaces;
+using StatsInterfaces;
 using UnityEngine;
 
 /// <summary>
@@ -64,9 +65,9 @@ public sealed class PlayerAttackController
             mech: mech,
             @params: param,
             target: null,
-            chainDepth: 0
+            damage: _context.Stats.DamageData()
         );
-
+        //Debug.Log($"Sent Attack damage { _context.Stats.DamageData().Attack}");
         _collector?.EnqueueCommand(cmd);
         _context.Logger.Info($"Casted skill from slot {slot} ({mech.GetType().Name}).");
     }

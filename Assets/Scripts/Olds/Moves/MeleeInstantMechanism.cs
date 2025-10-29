@@ -41,7 +41,7 @@ public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
 
             if (c.TryGetComponent(out ActInterfaces.IVulnerable v))
             {
-                v.TakeDamage(p.attack * p.attackPercent, p.apRatio);
+                //v.TakeDamage(p.attack * p.attackPercent, p.apRatio);
                 firstHit ??= c.transform;
             }
 

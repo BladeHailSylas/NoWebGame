@@ -9,7 +9,6 @@ public sealed class PlayerContext
     public PlayerScript Owner { get; }
     public GameObject GameObject { get; }
     public Transform Transform { get; }
-    public FixedMotor Motor { get; }
     public TargetResolver TargetResolver { get; }
     public CommandCollector CommandCollector { get; }
     public CharacterSpec Spec { get; }
@@ -18,12 +17,11 @@ public sealed class PlayerContext
     public PlayerStatsBridge Stats { get; private set; }
     public PlayerEffects Effects { get; private set; }
 
-    public PlayerContext(PlayerScript owner, GameObject gameObject, Transform transform, FixedMotor motor, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, IPlayerLogger logger)
+    public PlayerContext(PlayerScript owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, IPlayerLogger logger)
     {
         Owner = owner;
         GameObject = gameObject;
         Transform = transform;
-        Motor = motor;
         TargetResolver = resolver;
         CommandCollector = collector;
         Spec = spec;

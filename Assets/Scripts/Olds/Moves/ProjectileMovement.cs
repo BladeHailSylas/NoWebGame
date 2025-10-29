@@ -82,7 +82,7 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 
 					// ÇÇÇØ/³Ë¹é Àû¿ë
 					if (c.TryGetComponent(out IVulnerable v))
-						v.TakeDamage(_p.damage, _p.apRatio);
+						//v.TakeDamage(_p.damage, _p.apRatio);
 					if (c.attachedRigidbody)
 						c.attachedRigidbody.AddForce(_dir * _p.knockback, ForceMode2D.Impulse);
 

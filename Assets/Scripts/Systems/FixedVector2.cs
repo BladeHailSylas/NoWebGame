@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public readonly struct FixedVector2 : IEquatable<FixedVector2>
 {
-	public const int UnitsPerFloat = 1024;
+	public const int UnitsPerFloat = 1000;
 
 	readonly int _rawX;
 	readonly int _rawY;
@@ -23,16 +23,16 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	/// <summary>
 	/// Normalized vector (unit length). Returns (0,0) if the vector is zero.
 	/// </summary>
-	public FixedVector2 Normalized 
-	{ 
+	public FixedVector2 Normalized
+	{
 		get
 		{
-			double length = MagnitudeDouble;
-			if (length < 1e-6)
-			{
-				return new FixedVector2(0, 0);
-			}
-			return new FixedVector2((int)(RawX / length), (int)(RawY / length));
+			if (RawX == 0 && RawY == 0) return Zero;
+			long len = LongSqrt(RawX * RawX + RawY * RawY);
+			long normX = (RawX * UnitsPerFloat) / len;
+			long normY = (RawY * UnitsPerFloat) / len;
+
+			return new FixedVector2((int)normX, (int)normY);
 		}
 	}
 	/// <summary>
@@ -65,6 +65,8 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	/// </summary>
 	public Vector2 AsVector2 => new(_rawX / (float)UnitsPerFloat, _rawY / (float)UnitsPerFloat);
 	public Vector2 ToVector2() => AsVector2;
+	
+	public FixedVector2 Zero => new FixedVector2(0, 0);
 
 	public static FixedVector2 FromVector2(Vector2 vector)
 	{
@@ -103,7 +105,35 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	{
 		return $"({AsVector2.x:F3}, {AsVector2.y:F3})";
 	}
+	// Integer square root using bitwise method (deterministic)
+	public static long LongSqrt(long value)
+	{
+		if (value <= 0)
+			return 0;
 
+		long result = 0;
+		long bit = 1L << 62; // Start from the highest bit possible
+
+		// Shift 'bit' down until it's <= value
+		while (bit > value)
+			bit >>= 2;
+
+		while (bit != 0)
+		{
+			if (value >= result + bit)
+			{
+				value -= result + bit;
+				result = (result >> 1) + bit;
+			}
+			else
+			{
+				result >>= 1;
+			}
+			bit >>= 2;
+		}
+
+		return result;
+	}
 	/// <summary>
 	/// Squared distance between two fixed vectors in squared fixed units.
 	/// </summary>
@@ -113,7 +143,6 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 		long dy = (long)a._rawY - b._rawY;
 		return (int)Math.Sqrt(dx * dx + dy * dy);
 	}
-
 	public bool Equals(FixedVector2 other)
 	{
 		return _rawX == other._rawX && _rawY == other._rawY;

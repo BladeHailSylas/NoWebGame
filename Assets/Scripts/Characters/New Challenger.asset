@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: New Challenger
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSpec
   displayName: New Challenger
-  baseHp: 0
-  baseHpGen: 0
-  baseMana: 640
-  baseManaGen: 6
-  baseAttack: 121
-  baseDefense: 20
-  baseSpeed: 8
+  baseHp: 128000
+  baseHpGen: 1000
+  baseMana: 64000
+  baseManaGen: 6000
+  baseAttack: 12100
+  baseDefense: 2000
+  baseSpeed: 8000
   attack:
     slot: 0
     mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}

@@ -42,6 +42,7 @@ public sealed class InputBinder
     {
         if (_inputVector.sqrMagnitude > 1e-6f)
         {
+            //Debug.Log($"Sending {_inputVector}");
             _actor.MakeMove(new FixedVector2(_inputVector));
         }
     }
