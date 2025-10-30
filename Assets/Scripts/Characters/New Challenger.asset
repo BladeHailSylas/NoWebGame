@@ -19,7 +19,7 @@ MonoBehaviour:
   baseManaGen: 6000
   baseAttack: 12100
   baseDefense: 2000
-  baseSpeed: 8000
+  baseSpeed: 8
   attack:
     slot: 0
     mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
@@ -43,8 +43,6 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
     - rid: 3203422884986951
       type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
       data:
@@ -55,18 +53,13 @@ MonoBehaviour:
           m_Bits: 128
         hitEffectPrefab: {fileID: 0}
         cooldownTicks: 0
-        OnHitFollowUp:
-          Mechanism: {fileID: 11400000, guid: 92846dab9cb5aa64eb9a8eca809422df, type: 2}
-          Params:
-            rid: 3203489022345292
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
-        OnExpireFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
+        onHitFollowUp:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 3203564166709321
+          passSameTarget: 0
+          respectBusy: 0
+        onExpireFollowUp: []
         debugDraw: 1
     - rid: 3203489022345287
       type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
@@ -78,18 +71,8 @@ MonoBehaviour:
           m_Bits: 128
         hitEffectPrefab: {fileID: 0}
         cooldownTicks: 0
-        OnHitFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
-        OnExpireFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
+        onHitFollowUp: []
+        onExpireFollowUp: []
         debugDraw: 1
     - rid: 3203489022345288
       type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
@@ -101,18 +84,8 @@ MonoBehaviour:
           m_Bits: 128
         hitEffectPrefab: {fileID: 0}
         cooldownTicks: 0
-        OnHitFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
-        OnExpireFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
+        onHitFollowUp: []
+        onExpireFollowUp: []
         debugDraw: 1
     - rid: 3203489022345289
       type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
@@ -124,21 +97,29 @@ MonoBehaviour:
           m_Bits: 128
         hitEffectPrefab: {fileID: 0}
         cooldownTicks: 0
-        OnHitFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
-        OnExpireFollowUp:
-          Mechanism: {fileID: 0}
-          Params:
-            rid: -2
-          PassSameTarget: 0
-          RespectBusyCooldown: 0
+        onHitFollowUp: []
+        onExpireFollowUp: []
         debugDraw: 1
-    - rid: 3203489022345292
-      type: {class: AreaParams, ns: , asm: Assembly-CSharp}
+    - rid: 3203564166709321
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
       data:
-        Area:
-          rid: -2
+        damageValue: 6
+        defaultAPRatio: 0
+        defaultAmplitude: 0
+        type: 2
+        onHitFollowUps:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 3203564166709322
+          passSameTarget: 0
+          respectBusy: 0
+        onExpireFollowUps: []
+    - rid: 3203564166709322
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 75
+        defaultAPRatio: 0
+        defaultAmplitude: 0
+        type: 0
+        onHitFollowUps: []
+        onExpireFollowUps: []

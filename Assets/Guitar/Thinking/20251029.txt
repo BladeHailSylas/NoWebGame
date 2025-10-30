@@ -36,6 +36,12 @@ Mechanism 자체가 잃은 체력의 10% 피해를 주고, Damage가 2.2 공격�
 FollowUp이 이런 식으로 피해를 주려면 아마 공격력 값만 줘야 할 수도 있을 것 같다
 FollowUp을 Mechanism이 호출하는데 AttackController가 값을 결정해서 주면 FollowUp은 좀 어려워짐
 
+구현하고 보니 깨달은 문제점인데 복합 피해가 순차적으로 들어가기 때문에 피해를 받을 때마다 적용되는 효과가 여러 번 중첩된다
+툴팁을 수정하거나 로직을 수정해야 되는데 툴팁 수정이 맞지 않나 싶다
+예를 들어 "(2.2 공격력) 피해를 주고, 잃은 체력의 10%만큼 추가 피해를 준다" 처럼
+아니면 DamageData에 tick info를 넣고, tick이 갱신될 때마다 이전 tick의 피해를 실제 적용하도록 하면 복합 피해를 한 번에 받을 수 있다
+더 좋은 건 이 방법이지만 너무 어려운 것 같다, 이건 나중에 기회가 되면 만들도록 하겠음 힘들어 죽겠다
+어차피 모든 피해가 DamageMechanism을 통해 들어가고 나머지 모든 Mechanism은 데이터를 아래로 계속 이어나가는 느낌이니 나중에 구현해도 괜찮을 것이다
 
 DamageMechanism이 생성됐다
 
@@ -45,3 +51,39 @@ DamageType이 Percent 계열이라면 DamageValue가 그 수치(예: LostPercent
 아니면 DamageValue는 그 계수(예: Normal에 Value = 100이라면 공격력의 100%, 즉 1.0 공격력)
 하지만 DamageData는 여전히 넘긴다, 스테이터스로 얻는 피해 증감과 방어 관통을 고려해야 하기 때문이다
 다만 이제 DamageData에 Type은 붙일 필요가 없고, 계수는 모든 DamageMechanism에서 따로따로 붙일 수 있어 좋다
+
++ Area, Projectile, Summon에 대해서 생각해보자
+Area는 Area Entity 주변의 범위를 공격한다
+원형과 사각형으로 구분되는데 일단 사각형은 아직 구현된 적이 없어서 패스
+원형은 이미 Melee(deg 360)이라는 방법이 있다
+Projectile의 경우에도 "알아서 움직인다" 라는 부분에서 Dash와 동일하다고 볼 수도 있다
+즉 Melee와 Dash 등을 다른 엔터티가 사용할 수 있게 만들면?
+
+헌데 방금 생각이 든 부분, Entity가 Mechanism을 발동한다니 전대미문이다
+Root cast든 FollowUp cast든 본질적으로 CommandCollector로 가니까 괜찮을 수도 있다
+물론 그 CommandCollector가 전역 모듈이었다면 말이지
+CommandCollector는 Player에게 귀속된 모듈이다, 적이나 다른 아군 Entity의 Mechanism 발동은 어떻게 처리하는지 잘 모른다
+
+어쩌면 네트워크 통신이 좀 간단해져야 할 수도 있겠다
+적이 나를 공격할 때, 적은 실제로 나에게 피격 검사를 진행한다
+그리고 피격 여부에 따라 결과를 확정하고 나에게 그 결과를 보낸다
+나는 그 피격 검사를 재실행하지 않고, 그냥 이펙트를 실행하고 맞은 걸로 친다
+그럼 실제 Skill Mechanism의 발동이 아니었기 때문에 CommandCollector는 딱히 필요가 없고, 이펙트 및 피격이 수행되기 때문에 상대가 공격을 발동한 건 보인다
+상대 캐릭터 프리셋은 나도 알고 있으므로 이펙트만 연출하는 건 어렵지 않으리라
+
+그렇게 본다면 소환된 Entity가 Melee나 Dash를 사용하는 건 문제가 없다
+Player의 하위 Entity라면 Player의 CommandCollector를 사용 가능하지 않을까 짐작한다
+위험한 아이디어는 맞지만 일단 가능하게 만들면 가능한 기획의 폭이 획기적으로 넓어져서 좋다
+레이저 쏘는 소환수, 밟으면 터지는 소환수(Area와는 조금 다른), 플레이어의 Skill을 따라하는 소환수 등이 가능하다는 거니까
+
+하지만 여기서 하나의 문제점, Dash는 FixedMotor의 Move를 사용할 것이다
+그런데 FixedMotor의 Move는 대상을 지정하는 메서드가 아니다
+즉 이대로 간다면 Dash든 Projectile이든 좀 괴악하게 행동할 것이다
+매 프레임 대상과 나의 위치 차이로 Normalized Vector를 구하기도 번거로운 일 아닌가
+
+그렇다면 Move를 대상으로 만들면 되지 않을까?
+비대상은 전부 앵커를 생성하고 그 앵커를 대상으로 삼도록 구현했다
+일반적으로 이동하는 건 전부 비대상인데, 놀랍게도 우리는 그걸 약간만 수정하면 된다
+앵커를 이동 방향으로 옮기고 그 앵커를 대상으로 움직이면 되는 거 아닌가?
+이 시점에서 타깃 지정 방식으로 TowardsMovement가 있다는 걸 상기해 보자
+TowardsMovement를 구현하고 Move를 그 방법에 맞추면 두 개가 한 번에 구현되는 셈
