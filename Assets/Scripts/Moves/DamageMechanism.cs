@@ -16,7 +16,7 @@ public class DamageMechanism : ScriptableObject, INewMechanism
         if (!ctx.Target.TryGetComponent(out vul)) return;
         double finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - param.defaultAPRatio / 100.0);
         double finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
-        Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");
+        //Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");
         vul.TakeDamage(new DamageData(param.type, ctx.Damage.Attack, param.damageValue, finalAP, finalDA));
         foreach (var followup in param.onHitFollowUps)
         {

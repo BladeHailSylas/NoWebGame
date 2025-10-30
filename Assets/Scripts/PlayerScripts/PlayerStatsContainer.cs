@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using StatsInterfaces;
+using EffectInterfaces;
 
 public sealed class PlayerStatsContainer
 {
@@ -28,6 +29,9 @@ public sealed class PlayerStatsContainer
     public List<byte> DamageReduction { get; private set; } = new();
     public List<byte> ArmorPenetration { get; private set; } = new();
     public List<short> DamageAmplitudes { get; private set; } = new();
+    
+    public Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>> applier;
+    public Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>> remover;
 
     // ===== Constructor =====
     public PlayerStatsContainer(BaseStatsContainer baseCon)
@@ -39,7 +43,7 @@ public sealed class PlayerStatsContainer
         BaseAttackDamage = baseCon.BaseAttack;
         BaseArmor = baseCon.BaseDefense;
         BaseSpeed = baseCon.BaseSpeed;
-
+        CreateBuffers();
         ResetToBase();
     }
 
@@ -150,5 +154,119 @@ public sealed class PlayerStatsContainer
         }
 
         return total;
+    }
+
+    public bool TryApply(BuffData buff)
+    {
+        if (applier.TryGetValue(buff.Type, out var modify))
+        {
+            modify(this, buff);
+            return true;
+        }
+
+        return false;
+    }
+    public bool TryRemove(BuffData buff)
+    {
+        if (remover.TryGetValue(buff.Type, out var modify))
+        {
+            modify(this, buff);
+            return true;
+        }
+
+        return false;
+    }
+    public void CreateBuffers()
+    {
+        applier = new Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>>
+        {
+            // 공격력 상승
+            [EffectType.DamageBoost] = (self, buff) => {
+                int delta = (self.BaseAttackDamage * buff.Value + 50) / 100;
+                self.AttackDamage += delta;
+            },
+
+            // 방어력 상승
+            [EffectType.ArmorBoost] = (self, buff) => {
+                int delta = (self.BaseArmor * buff.Value + 50) / 100;
+                self.Armor += delta;
+            },
+
+            // 방어 관통 (리스트 추가)
+            [EffectType.APBoost] = (self, buff) => {
+                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                self.ArmorPenetration.Add(value);
+            },
+
+            // 피해 감소 (리스트 추가)
+            [EffectType.DRBoost] = (self, buff) => {
+                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                self.DamageReduction.Add(value);
+            },
+
+            // 가속 (Haste)
+            [EffectType.Haste] = (self, buff) => {
+                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                self.Speed += delta;
+            },
+
+            // 감속 (Slow)
+            [EffectType.Slow] = (self, buff) => {
+                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                self.Speed -= delta; // 감속은 감소 방향
+            },
+        };
+        remover = new Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>>
+        {
+            // 공격력 상승
+            [EffectType.DamageBoost] = (self, buff) => {
+                int delta = (self.BaseAttackDamage * buff.Value + 50) / 100;
+                self.AttackDamage -= delta;
+            },
+
+            // 방어력 상승
+            [EffectType.ArmorBoost] = (self, buff) => {
+                int delta = (self.BaseArmor * buff.Value + 50) / 100;
+                self.Armor -= delta;
+            },
+
+            // 방어 관통 (리스트 추가)
+            [EffectType.APBoost] = (self, buff) => {
+                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                self.ArmorPenetration.Remove(value);
+            },
+
+            // 피해 감소 (리스트 추가)
+            [EffectType.DRBoost] = (self, buff) => {
+                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                self.DamageReduction.Remove(value);
+            },
+
+            // 가속 (Haste)
+            [EffectType.Haste] = (self, buff) => {
+                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                self.Speed -= delta;
+            },
+
+            // 감속 (Slow)
+            [EffectType.Slow] = (self, buff) => {
+                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                self.Speed += delta; // 감속은 감소 방향
+            },
+        };
+    }
+}
+
+public readonly struct BuffData
+{
+    public readonly string Name;
+    public readonly EffectType Type;
+    public readonly byte Value;
+
+    public BuffData(string name, EffectType type, byte value)
+    {
+        Name = name;
+        Type = type;
+        Value = value;
     }
 }

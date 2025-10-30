@@ -306,8 +306,8 @@ public struct OnTick
 // - 테스트 더블/모킹이 쉬워집니다.
 public interface IStatModifier
 {
-	void Apply(PlayerStats s);
-	void Remove(PlayerStats s);
+	//void Apply(PlayerStats s);
+	//void Remove(PlayerStats s);
 }
 
 public interface IEffectModifier

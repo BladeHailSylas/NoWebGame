@@ -18,22 +18,22 @@ public sealed class PlayerEffects : IAffectable, IEffectStats
     public bool IsAttackable { get; private set; } = true;
     public float EffectResistance { get; private set; }
 
-    public Dictionary<Effects, EffectState> EffectList { get; } = new();
-    public HashSet<Effects> PositiveEffects { get; } = new() { Effects.Haste, Effects.DamageBoost, Effects.ArmorBoost, Effects.APBoost, Effects.DrBoost, Effects.Invisibility, Effects.Invincible };
-    public HashSet<Effects> NegativeEffects { get; } = new() { Effects.Slow, Effects.Stun, Effects.Suppressed, Effects.Root, Effects.Tumbled, Effects.Damage };
-    public HashSet<Effects> DisturbEffects { get; } = new() { Effects.Slow, Effects.Stun, Effects.Suppressed, Effects.Root, Effects.Tumbled };
-    public HashSet<Effects> CcEffects { get; } = new() { Effects.Stun, Effects.Suppressed, Effects.Root, Effects.Tumbled };
+    public Dictionary<EffectType, EffectState> EffectList { get; } = new();
+    public HashSet<EffectType> PositiveEffects { get; } = new() { EffectType.Haste, EffectType.DamageBoost, EffectType.ArmorBoost, EffectType.APBoost, EffectType.DRBoost, EffectType.Invisibility, EffectType.Invincible };
+    public HashSet<EffectType> NegativeEffects { get; } = new() { EffectType.Slow, EffectType.Stun, EffectType.Suppressed, EffectType.Root, EffectType.Tumbled, EffectType.Damage };
+    public HashSet<EffectType> DisturbEffects { get; } = new() { EffectType.Slow, EffectType.Stun, EffectType.Suppressed, EffectType.Root, EffectType.Tumbled };
+    public HashSet<EffectType> CcEffects { get; } = new() { EffectType.Stun, EffectType.Suppressed, EffectType.Root, EffectType.Tumbled };
 
     public PlayerEffects(PlayerContext context)
     {
         _context = context;
     }
 
-    public bool HasEffect(Effects effect) => EffectList.ContainsKey(effect);
+    public bool HasEffect(EffectType effectType) => EffectList.ContainsKey(effectType);
 
-    public void ApplyEffect(Effects effectType, GameObject effecter, float duration = float.PositiveInfinity, int amp = 0, string name = null)
+    public void ApplyEffect(EffectType effectType, GameObject effecter, float duration = float.PositiveInfinity, int amp = 0, string name = null)
     {
-        if (effectType == Effects.Stack)
+        if (effectType == EffectType.Stack)
         {
             ApplyStack(name, amp, effecter);
             return;
@@ -72,7 +72,7 @@ public sealed class PlayerEffects : IAffectable, IEffectStats
         }
     }
 
-    public void Affection(Effects effectType, float duration, float amplifier = 0)
+    public void Affection(EffectType effectType, float duration, float amplifier = 0)
     {
         if (CcEffects.Contains(effectType))
         {
@@ -81,13 +81,13 @@ public sealed class PlayerEffects : IAffectable, IEffectStats
             return;
         }
 
-        if (effectType == Effects.Invincible)
+        if (effectType == EffectType.Invincible)
         {
             IsImmune = true;
         }
     }
 
-    public void Purify(Effects effectType)
+    public void Purify(EffectType effectType)
     {
         if (EffectList.Remove(effectType))
         {
@@ -104,7 +104,7 @@ public sealed class PlayerEffects : IAffectable, IEffectStats
                 }
             }
 
-            if (effectType == Effects.Invincible)
+            if (effectType == EffectType.Invincible)
             {
                 IsImmune = false;
             }
@@ -113,7 +113,7 @@ public sealed class PlayerEffects : IAffectable, IEffectStats
 
     public void ClearNegative()
     {
-        var toRemove = new List<Effects>();
+        var toRemove = new List<EffectType>();
         foreach (var entry in EffectList)
         {
             if (DisturbEffects.Contains(entry.Key))

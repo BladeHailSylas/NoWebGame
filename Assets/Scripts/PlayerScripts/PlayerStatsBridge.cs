@@ -45,4 +45,13 @@ public sealed class PlayerStatsBridge
     {
         Stats.ReduceStat(stat, amount, apRatio, type);
     }
+
+    public void TryApply(BuffData data)
+    {
+        Stats.TryApply(data);
+    }
+    public void TryRemove(BuffData data)
+    {
+        Stats.TryRemove(data);
+    }
 }

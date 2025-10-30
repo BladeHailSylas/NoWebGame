@@ -6,9 +6,9 @@ using EffectInterfaces;
 #region ===== Effect =====
 namespace EffectInterfaces
 {
-	public enum Effects
+	public enum EffectType
 	{
-		Stack = 0, Haste, DamageBoost, ArmorBoost, APBoost, DrBoost, Invisibility, Invincible, Slow, Stun, Suppressed, Root, Tumbled, Damage //Damage는 지속 피해, duration을 0으로 하면 즉시 피해도 가능함
+		Stack = 0, Haste, DamageBoost, ArmorBoost, APBoost, DRBoost, Invisibility, Invincible, Slow, Stun, Suppressed, Root, Tumbled, Damage //Damage는 지속 피해, duration을 0으로 하면 즉시 피해도 가능함
 	}
 	public class EffectState
 	{
@@ -33,11 +33,11 @@ namespace EffectInterfaces
 	}
 	public interface IEffectStats
 	{
-		Dictionary<Effects, EffectState> EffectList { get; }
+		Dictionary<EffectType, EffectState> EffectList { get; }
 		float EffectResistance { get; }
-		bool HasEffect(Effects e);
-		HashSet<Effects> PositiveEffects { get; }
-		HashSet<Effects> NegativeEffects { get; }
+		bool HasEffect(EffectType e);
+		HashSet<EffectType> PositiveEffects { get; }
+		HashSet<EffectType> NegativeEffects { get; }
 	}
 	public interface IEffectModifier
 	{
@@ -112,9 +112,9 @@ namespace ActInterfaces
 
 	public interface IAffectable
 	{
-		void ApplyEffect(Effects buffType, GameObject effecter, float duration, int amplifier = 0, string name = null);
+		void ApplyEffect(EffectType buffType, GameObject effecter, float duration, int amplifier = 0, string name = null);
 		void ApplyStack(string name, int amp, GameObject go);
-		void Purify(Effects buffType);
+		void Purify(EffectType buffType);
 	}
 	public interface ITargetable
 	{
@@ -204,11 +204,6 @@ namespace StatsInterfaces
 		float Velocity { get; }
 		float JumpTime { get; }
 	}*/
-	public interface IStatModifier
-	{
-		void Apply(PlayerStats stats);
-		void Remove(PlayerStats stats);
-	}
 }
 #endregion
 

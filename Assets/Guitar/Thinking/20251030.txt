@@ -1,0 +1,79 @@
+Effects를 개선해보자
+
+Effects는 대략 두 가지로 나뉜다
+스테이터스에 영향을 주는 타입(P: Haste, DamageBoost, ArmorBoost, APBoost, DRBoost | N: Slow, Damage)
+엔터티 상태에 영향을 주는 타입(P: Invisibility, Invincible | N: Suppressed, Root, Stun, Tumbled)
+
+스테이터스에 영향을 주는 타입은 그냥 Bridge랑 연결해서 적용하면 된다
+대미지처럼 이 또한 틱 단위로 묶어서 적용하는 걸 고려하자
+스테이터스에 영향을 주는 경우는 일괄적으로 durationTick이 지나면 제거하는 것으로 하고, 영구 버프는 durationTick을 65535로 한다
+어차피 overflow 나기 전에 게임 끝이고(10/28 노트를 참조하자) 영구 버프란 게임 끝날 때까지만 지속되면 그만이라서 가능한 방법
+
+반면 상태에 영향을 주는 타입은 조금 귀찮다
+Suppressed: 공격 불가, Root: 이동(Dash도 이동) 불가, Stun: 공격 + 이동 불가, Tumbled: 공격 + 이동 + 해제 불가
+행동 불가의 경우에는 AttackController나 ActController에 Checksum을 집어넣으면 된다
+진짜 문제는 Invisibility가 아닐까? 이건 피해를 받을 수는 있지만 대상으로 지정할 수는 없는 상태이다
+지금 TargetResolver는 LayerMask만 보기 때문에 Invisibility의 대상 면역은 무효다
+
+그리고 스택의 효과도 똑바로 정할 필요가 있다
+스택도 대략 두 가지로 나뉘는데, 효과가 있는 스택과 없는 스택이다
+효과가 있는 스택의 예시는 도전자 중첩(1중첩 당 공격력이 기본 수치의 0.4% 상승)
+효과가 없는 스택의 예시는 강화 공격 준비 시에 쌓이는 중첩(Switch Skill이 중첩 유무를 보고 강화 공격인지 일반 공격인지 판정한다)
+
+그럼 이 스택도 Effect처럼 종류를 구분해야 하는가?
+Effect: PositiveEffect, NegativeEffect, DisturbEffect, CCEffect
+저장은 어디서 하는가? 버프가 있는 스택이라면 Effect에 저장하겠는가? 아니면 그냥 Stats가 Stack을 다 가지는가?
+열상 중첩은 어떻게 할 건가? 내 중첩에 따라 상대가 추가 피해를 받는 형식이라면?
+중첩에 무언가 판정이 들어가야 하는가? 중첩에 따라 추가 피해는 그냥 괴악하게 1.0 AD + Stack으로 쌓아야 하나?
+
+애초에 중첩을 어떻게 다루는가? 중첩을 적용해야 한다면?
+StackMechanism을 만들어서 적용하도록 시키나? 만약 기술 이외로 중첩이 쌓여야 한다면?
+움직인 거리에 따라 중첩이 쌓일 경우에는 어떻게 할 것인가? 움직임도 하나의 Mechanism으로 만들 것인가?
+
+또 Feedback이 필요한 중첩은 어떻게 하나? "가한 최종 피해량의 10%만큼 중첩을 쌓는다" 라면?
+애초에 Feedback이 안 만들어져서 이 경우를 고민하는 것인가?
+그럼 Feedback은 어떻게 만든다는 것인가? event? 아니면 DamageData에 DealtBy를 추가하여 그 사람에게 Feedback을 줘야 하나?
+
+아마 Stack을 개별 모듈에서 관리하는 게 나을 것 같다
+Stack을 Stats나 Effects 중 하나에 놓고자 했기에 갈팡질팡하는 것일 수 있음
+단 Buff stack이라고 해도 Stats를 직접 변경하지 않는다
+Effect에 buff를 전달해서 Effect -> Stats 파이프라인을 유지해야 함
+
+중첩에 대한 정리를 어느 정도 마친 모양이다
+중첩은 게임 내에서 사용할 수 있는 변수로 볼 수 있다
+어떤 중첩은 bool, 어떤 중첩은 int처럼 사용하는 거다
+내가 가장 헷갈렸던 부분은 바로 열상 특성과 Switch Skill인데 이 부분도 정리가 되어가는 느낌
+
+열상 특성은 "상대가" 5중첩 이상이면 중첩을 터뜨린다
+즉 SwitchSkill로는 열상을 터뜨릴 수 없으며(공격자는 IVulnerable과 LayerMask 정도만 알 뿐), 오직 상대의 TakeDamage 호출 시에만 터뜨릴 수 있다
+상대 피격 시에 중첩이 쌓이게 될 텐데(스스로 쌓는 중첩과 나에게서 적용되는 중첩을 포괄한다) 그때 열상이 5 이상이면 터뜨리는 거다
+물론 이런 상대 의존형 중첩이 많아질수록 코드가 길어지기 십상, 그걸 우려한다면 열상 자체에 "5 이상이면 피해를 또 받아라" 라고 서술해야 한다
+하지만 이건 지금껏 열상 하나 뿐이었으므로 일단 그냥 넘어가도록 한다(아쉽지만 시간은 계속 흐르기 때문)
+
+SwitchSkill은 특정 중첩에 따라 서로 다른 효과를 사용하는 기술이다
+그 서로 다른 효과는 FollowUp으로 사용하며, SwitchSkill 자체는 그냥 조건문에 불과하다(아무 기능이 없다)
+그런데 중첩을 어떻게 참조하는지 모호한 게 사실이다, 그럼 어떻게 해야 하는가?
+SwitchParams에 SwitchCondition을 지정해야 하는 걸 알고 있나?
+SwitchCondition은 대략 두 가지로 나눌 것인데, 바로 엔터티의 상태("누가", "어떤 경우")와 스택의 상태("뭐가", "어떤 경우")이다
+이 둘은 서로 다른 params가 필요하므로 ISwitchCondition으로 묶고 SerializeReference 처리할 것이다(AreaType과 함께 Drawer 확장을 생각해야 한다)
+
+그럼 StackCondition에는 어떤 정보가 들어가는가?
+바로 참조해야 할 중첩과 Switch 기준 수치다
+예를 들어 강화 공격을 유발하는 중첩 "Raging Beast"가 있으면 강화 공격 발동을 하려 한다
+그럼 StackCondition에서 {"Raging Beast", 1}을 지정하면 된다
+그리고 AttackController에서 발동할 때 받은 Param이 SwitchParam이고 SwitchCondition이 StackCondition이면 그 중첩을 가져와서 보낸다
+그리고 SwitchSkill에서는 받은 중첩으로 강화 공격을 발동하는지 결정하는 것
+
+공격하거나 공격받을 경우에는 어떻게 중첩을 쌓는가?
+공격할 경우에는 상대가 공격자의(DamageData에 정보를 추가할 거다) Feedback을 호출한다
+Feedback이 왔다면 중첩을 쌓는 것이고, 없다면 안 쌓는 거지
+반면 공격받는 경우에는 TakeDamage에서 중첩을 쌓으면 된다
+중첩을 쌓는 것은 StackManager에게 위임하고 외부에서는 그냥 ApplyStack만 호출하자
+참고로 Feedback으로 피흡도 가능하기에 실제 좋다 모터 얏타!
+
+Effect는 전부 중첩으로 관리한다
+버프는 버프 중첩을 쌓고, 디버프는 디버프 중첩을 쌓자
+Effect가 버려지는 건 아닌데 매 틱 Stack을 읽어서 적용하는 역할만 맡는다
+스택이 새로 생겼을 때 Effect에게 그 정보를 전달해 Effect가 효과를 적용
+스택이 제거되었을 때에도 전달해서 Effect가 효과를 제거
+버프는 전부 백분율이나 %p로 쌓이기에 제거 시에도 문제가 없다(고정 수치 상승이 아예 없음 => 예측 가능하고 평등하게)

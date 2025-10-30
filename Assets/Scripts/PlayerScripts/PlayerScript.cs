@@ -204,8 +204,8 @@ public sealed class PlayerScript : MonoBehaviour
         _actController.TakeDamage(damage, apRatio, type);
     }
 
-    public void ApplyEffect(Effects effect, GameObject effecter, float duration = float.PositiveInfinity, int amp = 0, string name = null)
+    public void ApplyEffect(EffectType effectType, GameObject effecter, float duration = float.PositiveInfinity, int amp = 0, string name = null)
     {
-        _effects.ApplyEffect(effect, effecter, duration, amp, name);
+        _effects.ApplyEffect(effectType, effecter, duration, amp, name);
     }
 }

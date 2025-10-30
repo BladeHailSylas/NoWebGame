@@ -76,10 +76,10 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 			double effectiveArmor = armor * (1.0 - ap);
 			double mitigation = 8000.0 / (8000 + effectiveArmor);
 			double finalDamage = Math.Round(damage * mitigation * reduction);
-			Debug.Log($"Enemy has: 8000 / (8000 + {armor} * (1.0 - {ap})) = {mitigation}");
+			//Debug.Log($"Enemy has: 8000 / (8000 + {armor} * (1.0 - {ap})) = {mitigation}");
 			Health = Math.Max(0D, Health - finalDamage);
 		}
-		Debug.Log($"Enemy took {nowHealth - Health} damage and {Health} left");
+		//Debug.Log($"Enemy took {nowHealth - Health} damage and {Health} left");
 		//_armorIncreaseRate += 0.1f;
 	}
 	public void TakeDamage(float damage, float apratio, StatsInterfaces.DamageType type)
