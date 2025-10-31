@@ -11,6 +11,7 @@ public class AreaEntity : MonoBehaviour
     public List<MechanismRef> onInterval;
     public List<MechanismRef> onExpire;
     public byte activateTick = 15;
+    public byte intervalActivated;
     public void Init(IAreaShapes area, DamageData dmg, List<MechanismRef> interval, List<MechanismRef> expire, ushort life = 0)
     {
         areaShape = area;
@@ -48,9 +49,10 @@ public class AreaEntity : MonoBehaviour
 
     public void ActivateInterval()
     {
+        intervalActivated++;
         if (areaShape is CircleArea circle)
         {
-            Vector2 worldCenter = (Vector3)circle.CenterCoordinate.AsVector2;
+            Vector2 worldCenter = circle.CenterCoordinate.AsVector2;
             float radius = circle.Radius / 1000f;
             // 물리 감지 (Player/Enemy 등 대상 레이어 필터 적용 가능)
             var results = Physics2D.OverlapCircleAll(worldCenter, radius, LayerMask.GetMask("Foe"));
@@ -71,8 +73,8 @@ public class AreaEntity : MonoBehaviour
         }
         else if (areaShape is BoxArea box)
         {
-            Vector2 center = transform.position + (Vector3)box.CenterCoordinate.ToVector2();
-            Vector2 size = new(box.Width / 1000f, box.Height / 1000f);
+            Vector2 center = box.CenterCoordinate.AsVector2;
+            Vector2 size = new(box.Height / 1000f, box.Width / 1000f);
 
             var results = Physics2D.OverlapBoxAll(center, size, 0f, LayerMask.GetMask("Foe"));
             foreach (var col in results)
@@ -101,9 +103,10 @@ public class AreaEntity : MonoBehaviour
             CommandCollector.Instance.EnqueueCommand(cmd);
         }
         Ticker.Instance.OnTick -= TickHandler;
+        Debug.Log($"{intervalActivated} times of activation");
         Destroy(gameObject);
     }
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
         if (areaShape == null) return;
 
@@ -119,8 +122,8 @@ public class AreaEntity : MonoBehaviour
         else if (areaShape is BoxArea box)
         {
             var pos = areaShape.CenterCoordinate.AsVector2;
-            var size = new Vector3(box.Width / 1000f, box.Height / 1000f, 0f);
+            var size = new Vector3(box.Height / 1000f, box.Width / 1000f, 0f);
             Gizmos.DrawWireCube(pos, size);
         }
-    }
+    }*/
 }

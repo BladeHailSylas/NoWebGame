@@ -23,30 +23,56 @@ public class AreaMechanism : ObjectGeneratingMechanism
         // Spawn the area object
         GameObject areaObj = GenerateObject("AreaZone", centerPos);
 
-        // Add collider for detection (temporary visualization)
-        CircleCollider2D collider = areaObj.AddComponent<CircleCollider2D>();
-        collider.isTrigger = true;
+        // Collider 생성 분기
+        Collider2D collider;
 
         if (param.Area is CircleArea circle)
         {
-            collider.radius = circle.Radius / 1000f; // Convert from deterministic unit
             circle.SetCenter(new FixedVector2(centerPos));
+            // 원형 콜라이더 생성
+            var circleCol = areaObj.AddComponent<CircleCollider2D>();
+            circleCol.isTrigger = true;
+            circleCol.radius = circle.Radius / 1000f;
+            collider = circleCol;
         }
         else if (param.Area is BoxArea box)
         {
-            Debug.Log("Box!");
+            box.SetCenter(new FixedVector2(centerPos));
+            // 박스형 콜라이더 생성
+            var boxCol = areaObj.AddComponent<BoxCollider2D>();
+            boxCol.isTrigger = true;
+            boxCol.size = new Vector2(box.Height / 1000f, box.Width / 1000f);
+            // AreaEntity가 Caster를 바라보도록 회전
+            Vector2 areaPos = areaObj.transform.position;
+            Vector2 casterPos = ctx.Caster.position;
+
+            // Area → Caster 방향 벡터
+            Vector2 dir = (casterPos - areaPos).normalized;
+
+            // 방향 각도 계산
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+            // 회전 적용
+            areaObj.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+
+            Debug.Log($"[AreaMechanism] BoxArea rotated toward caster ({angle:F1}°).");
+            
+            collider = boxCol;
         }
-        else {
-            Debug.LogWarning("[AreaMechanism] Unsupported area shape type — default radius used.");
-            collider.radius = 1f;
+        else
+        {
+            Debug.LogWarning("[AreaMechanism] Unsupported area shape type — using default circle.");
+            var circleCol = areaObj.AddComponent<CircleCollider2D>();
+            circleCol.isTrigger = true;
+            circleCol.radius = 1f;
+            collider = circleCol;
         }
 
-        // Add placeholder AreaEntity (to be implemented next)
+        // AreaEntity 구성
         AreaEntity entity = areaObj.AddComponent<AreaEntity>();
         entity.Init(param.Area, ctx.Damage, param.OnAreaEnter, param.OnAreaExpire, param.lifeTick);
-        //entity.Initialize(param.Damage, param.LayerMask);
 
-        Debug.Log($"[AreaMechanism] Spawned area at {centerPos} with radius {collider.radius}");
+        Debug.Log($"[AreaMechanism] Spawned area ({param.Area.GetType().Name}) at {centerPos} with collider {collider.GetType().Name}");
     }
 }
 
@@ -83,8 +109,8 @@ public class CircleArea : IAreaShapes
 public class BoxArea : IAreaShapes
 {
     public FixedVector2 CenterCoordinate { get; private set; }
-    public float Width;
     public float Height;
+    public float Width;
     public void SetCenter(FixedVector2 center)
     {
         CenterCoordinate = center;
