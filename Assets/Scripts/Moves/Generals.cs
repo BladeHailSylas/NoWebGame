@@ -82,7 +82,7 @@ public abstract class ObjectGeneratingMechanism : ScriptableObject, INewMechanis
 
     protected GameObject GenerateObject(string name, Vector2 position)
     {
-        Debug.Log("You are using the GenerateObject method without durationTicks; it will become 0 temporarily");
+        //Debug.Log("You are using the GenerateObject method without durationTicks; it will become 0 temporarily");
         return GenerateObject(name, position, 0);
     }
     /// <summary>

@@ -11,14 +11,14 @@ public sealed class PlayerActController : IVulnerable, IPullable
 {
     private readonly PlayerContext _context;
     private readonly PlayerStatsBridge _stats;
-    private readonly PlayerEffects _effects;
+    private readonly PlayerEffect _effect;
     private readonly FixedMotor _motor;
 
-    public PlayerActController(PlayerContext context, PlayerStatsBridge stats, PlayerEffects effects, Rigidbody2D rb, Collider2D col)
+    public PlayerActController(PlayerContext context, PlayerStatsBridge stats, PlayerEffect effect, Rigidbody2D rb, Collider2D col)
     {
         _context = context;
         _stats = stats;
-        _effects = effects;
+        _effect = effect;
         //_motor = context.Motor;
         _motor = new(rb, col);
     }

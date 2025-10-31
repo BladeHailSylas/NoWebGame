@@ -312,8 +312,8 @@ public interface IStatModifier
 
 public interface IEffectModifier
 {
-	void Apply(PlayerEffects fx);
-	void Remove(PlayerEffects fx);
+	void Apply(PlayerEffect fx);
+	void Remove(PlayerEffect fx);
 }
 
 #endregion

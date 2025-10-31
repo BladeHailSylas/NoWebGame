@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public sealed class PlayerContext
 {
-    public PlayerScript Owner { get; }
+    public PlayerEntity Owner { get; }
     public GameObject GameObject { get; }
     public Transform Transform { get; }
     public TargetResolver TargetResolver { get; }
@@ -15,9 +15,11 @@ public sealed class PlayerContext
     public IPlayerLogger Logger { get; }
 
     public PlayerStatsBridge Stats { get; private set; }
-    public PlayerEffects Effects { get; private set; }
+    public PlayerEffect Effect { get; private set; }
+    
+    public PlayerStackManager StackManager { get; private set; }
 
-    public PlayerContext(PlayerScript owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, IPlayerLogger logger)
+    public PlayerContext(PlayerEntity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, IPlayerLogger logger)
     {
         Owner = owner;
         GameObject = gameObject;
@@ -33,9 +35,14 @@ public sealed class PlayerContext
         Stats = stats;
     }
 
-    public void RegisterEffects(PlayerEffects effects)
+    public void RegisterEffects(PlayerEffect effect)
     {
-        Effects = effects;
+        Effect = effect;
+    }
+
+    public void RegisterStackManager(PlayerStackManager stackManager)
+    {
+        StackManager = stackManager;
     }
 }
 

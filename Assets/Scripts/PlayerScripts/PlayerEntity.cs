@@ -12,22 +12,22 @@ using UnityEngine.InputSystem;
 /// systems for maintainability.
 /// </summary>
 [DisallowMultipleComponent]
-public sealed class PlayerScript : MonoBehaviour
+public sealed class PlayerEntity : Entity
 {
     [Header("Configuration")]
     [SerializeField] private CharacterSpec spec;
     [SerializeField][System.Obsolete] private FixedMotor motor;
     [SerializeField] private TargetResolver targetResolver;
     [SerializeField] private CommandCollector commandCollector;
-
+    private InputSystem_Actions _controls;
     private PlayerLogger _logger;
     private PlayerContext _context;
     private PlayerStatsBridge _statsBridge;
-    private PlayerEffects _effects;
+    private PlayerEffect _effect;
     private PlayerActController _actController;
     private PlayerAttackController _attackController;
-    private InputBinder _inputBinder;
-    private InputSystem_Actions _controls;
+    private PlayerInputBinder _playerInputBinder;
+    private PlayerStackManager _stackManager;
 
     private void Awake()
     {
@@ -55,13 +55,15 @@ public sealed class PlayerScript : MonoBehaviour
         );
 
         _statsBridge = new PlayerStatsBridge(_context, baseStats);
-        _effects = new PlayerEffects(_context);
-        _actController = new PlayerActController(_context, _statsBridge, _effects, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
+        _effect = new PlayerEffect(_context);
+        _actController = new PlayerActController(_context, _statsBridge, _effect, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
         _attackController = new PlayerAttackController(_context, transform, BuildSkillDictionary(), commandCollector);
-        _inputBinder = new InputBinder(_actController, _attackController);
+        _playerInputBinder = new PlayerInputBinder(_actController, _attackController);
+        _stackManager = new();
 
         _context.RegisterStats(_statsBridge);
-        _context.RegisterEffects(_effects);
+        _context.RegisterEffects(_effect);
+        _context.RegisterStackManager(_stackManager);
 
         _controls = new InputSystem_Actions();
     }
@@ -129,7 +131,7 @@ public sealed class PlayerScript : MonoBehaviour
             _controls.Disable();
         }
 
-        _inputBinder?.ClearMovementInput();
+        _playerInputBinder?.ClearMovementInput();
 
         if (Ticker.Instance != null)
         {
@@ -139,44 +141,43 @@ public sealed class PlayerScript : MonoBehaviour
 
     private void TickHandler(ushort tick)
     {
-        _inputBinder.Tick(tick);
+        _playerInputBinder.Tick(tick);
         _statsBridge.Tick(tick);
     }
-
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
         //Debug.Log($"Got {ctx.ReadValue<Vector2>()}");
-        _inputBinder.SetMovementInput(ctx.ReadValue<Vector2>());
+        _playerInputBinder.SetMovementInput(ctx.ReadValue<Vector2>());
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
-        _inputBinder.ClearMovementInput();
+        _playerInputBinder.ClearMovementInput();
     }
 
     private void OnAttackPrepared(InputAction.CallbackContext ctx)
     {
-        _inputBinder.PrepareAttack(SkillSlot.Attack);
+        _playerInputBinder.PrepareAttack(SkillSlot.Attack);
     }
 
     private void OnAttackReleased(InputAction.CallbackContext ctx)
     {
-        _inputBinder.ExecuteAttack(SkillSlot.Attack);
+        _playerInputBinder.ExecuteAttack(SkillSlot.Attack);
     }
 
     private void OnSkill1Released(InputAction.CallbackContext ctx)
     {
-        _inputBinder.ExecuteAttack(SkillSlot.Skill1);
+        _playerInputBinder.ExecuteAttack(SkillSlot.Skill1);
     }
 
     private void OnSkill2Released(InputAction.CallbackContext ctx)
     {
-        _inputBinder.ExecuteAttack(SkillSlot.Skill2);
+        _playerInputBinder.ExecuteAttack(SkillSlot.Skill2);
     }
 
     private void OnUltimateReleased(InputAction.CallbackContext ctx)
     {
-        _inputBinder.ExecuteAttack(SkillSlot.Ultimate);
+        _playerInputBinder.ExecuteAttack(SkillSlot.Ultimate);
     }
 
     private Dictionary<SkillSlot, SkillBinding> BuildSkillDictionary()
@@ -206,6 +207,11 @@ public sealed class PlayerScript : MonoBehaviour
 
     public void ApplyEffect(EffectType effectType, GameObject effecter, float duration = float.PositiveInfinity, int amp = 0, string name = null)
     {
-        _effects.ApplyEffect(effectType, effecter, duration, amp, name);
+        //_effect.ApplyEffect(effectType, effecter, duration, amp, name);
     }
+}
+
+public class Entity : MonoBehaviour, IEntity
+{
+    
 }

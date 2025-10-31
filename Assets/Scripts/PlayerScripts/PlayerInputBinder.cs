@@ -4,16 +4,17 @@ using UnityEngine;
 /// <summary>
 /// Pure C# binder that stores the latest player input values and routes them to
 /// the appropriate player modules. The actual Unity input callbacks are
-/// invoked from <see cref="PlayerScript"/>, keeping this component free from
+/// invoked from <see cref="PlayerEntity"/>, keeping this component free from
 /// Unity lifecycle dependencies for easier testing.
 /// </summary>
-public sealed class InputBinder
+[System.Obsolete]
+public sealed class PlayerInputBinder
 {
     private readonly PlayerActController _actor;
     private readonly PlayerAttackController _attacker;
     private Vector2 _inputVector;
 
-    public InputBinder(PlayerActController actor, PlayerAttackController attacker)
+    public PlayerInputBinder(PlayerActController actor, PlayerAttackController attacker)
     {
         _actor = actor;
         _attacker = attacker;
@@ -36,7 +37,7 @@ public sealed class InputBinder
     }
 
     /// <summary>
-    /// Called every tick by <see cref="PlayerScript"/> to process movement.
+    /// Called every tick by <see cref="PlayerEntity"/> to process movement.
     /// </summary>
     public void Tick(ushort tick)
     {

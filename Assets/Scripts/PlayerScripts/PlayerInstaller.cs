@@ -4,16 +4,16 @@ using UnityEngine;
 public sealed class PlayerInstaller : MonoBehaviour
 {
     [SerializeField] private CharacterSpec spec;
-    [SerializeField] private PlayerScript playerScript;
+    [SerializeField] private PlayerEntity playerEntity;
 
     private void Awake()
     {
-        if (spec == null || playerScript == null)
+        if (spec == null || playerEntity == null)
         {
             Debug.LogError("[PlayerInstaller] Missing spec or player script reference.");
             return;
         }
 
-        playerScript.InstallSpec(spec);
+        playerEntity.InstallSpec(spec);
     }
 }

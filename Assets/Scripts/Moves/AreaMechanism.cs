@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Skills/Mechanisms/Area")]
@@ -28,31 +30,33 @@ public class AreaMechanism : ObjectGeneratingMechanism
         if (param.Area is CircleArea circle)
         {
             collider.radius = circle.Radius / 1000f; // Convert from deterministic unit
+            circle.SetCenter(new FixedVector2(centerPos));
         }
-        else
+        else if (param.Area is BoxArea box)
         {
+            Debug.Log("Box!");
+        }
+        else {
             Debug.LogWarning("[AreaMechanism] Unsupported area shape type — default radius used.");
             collider.radius = 1f;
         }
 
         // Add placeholder AreaEntity (to be implemented next)
-        //AreaEntity entity = areaObj.AddComponent<AreaEntity>();
+        AreaEntity entity = areaObj.AddComponent<AreaEntity>();
+        entity.Init(param.Area, ctx.Damage, param.OnAreaEnter, param.OnAreaExpire, param.lifeTick);
         //entity.Initialize(param.Damage, param.LayerMask);
 
         Debug.Log($"[AreaMechanism] Spawned area at {centerPos} with radius {collider.radius}");
     }
 }
 
-public struct AreaParams : INewParams
+public class AreaParams : INewParams
 {
     public short CooldownTicks { get; private set; }
     [SerializeReference] public IAreaShapes Area;
-
-    public AreaParams(short cooldownTicks, IAreaShapes area)
-    {
-        CooldownTicks = cooldownTicks;
-        Area = area;
-    }
+    public ushort lifeTick;
+    public List<MechanismRef> OnAreaEnter;
+    public List<MechanismRef> OnAreaExpire;
 }
 
 public interface IAreaShapes
@@ -60,28 +64,29 @@ public interface IAreaShapes
     FixedVector2 CenterCoordinate { get; }
 }
 
-public struct CircleArea : IAreaShapes
+public class CircleArea : IAreaShapes
 {
     public FixedVector2 CenterCoordinate { get; private set; }
-    public float Radius { get; private set; }
+    public float Radius;
 
-    public CircleArea(FixedVector2 center, float radius)
+    public void SetCenter(FixedVector2 center)
+    {
+        CenterCoordinate = center;
+    }
+    /*public CircleArea(FixedVector2 center, float radius)
     {
         CenterCoordinate = center;
         Radius = radius;
-    }
+    }*/
 }
 
-public struct BoxArea : IAreaShapes
+public class BoxArea : IAreaShapes
 {
     public FixedVector2 CenterCoordinate { get; private set; }
-    public float Width { get; private set; }
-    public float Height { get; private set; }
-
-    public BoxArea(FixedVector2 center, float width, float height)
+    public float Width;
+    public float Height;
+    public void SetCenter(FixedVector2 center)
     {
         CenterCoordinate = center;
-        Width = width;
-        Height = height;
     }
 }

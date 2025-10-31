@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using EffectInterfaces;
 
+public interface IEntity
+{
+	
+}
+
 #region ===== Effect =====
 namespace EffectInterfaces
 {
@@ -41,8 +46,8 @@ namespace EffectInterfaces
 	}
 	public interface IEffectModifier
 	{
-		void Apply(PlayerEffects effects);
-		void Remove(PlayerEffects effects);
+		void Apply(PlayerEffect effect);
+		void Remove(PlayerEffect effect);
 	}
 }
 #endregion

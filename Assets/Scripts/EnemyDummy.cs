@@ -7,10 +7,10 @@ using StatsInterfaces;
 using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임시 더미, 절대 이렇게 만들면 안 됨(IVulnerable의 구현이 여기서 왜 필요함)
+public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더미, 절대 이렇게 만들면 안 됨(IVulnerable의 구현이 여기서 왜 필요함)
 {
-	public float BasicHealth { get; private set; } = 100000f;
-	public float MaxHealth { get; private set; } = 150000f;
+	public readonly float BasicHealth = 100000f;
+	public float MaxHealth { get; private set; }
 	public double Health { get; private set; }
 
 	public float BasicArmor { get; private set; } = 4000f;
@@ -18,7 +18,7 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 
 	public bool IsDead { get; private set; }
 	//[SerializeField] Transform myTransform;
-	private float _armorIncreaseRate = 0f; //방어력 버프
+	private float _armorIncreaseRate; //방어력 버프
 	private Rigidbody2D _rb;
 	private SpriteRenderer _sr;
 
@@ -26,6 +26,7 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 	{
 		_rb = GetComponent<Rigidbody2D>();
 		_sr = GetComponentInChildren<SpriteRenderer>();
+		MaxHealth = BasicHealth * 1.5f;
 		Health = MaxHealth;
 		Armor = BasicArmor * (1 + _armorIncreaseRate);
 		Debug.Log($"Enemy info: Health {Health}, Armor {Armor}");
@@ -34,14 +35,7 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 	{
 		if (Health <= 0)
 		{
-			Debug.Log("I died");
-			Destroy(this);
-		}
-		float tempArmor = BasicArmor * (1 + _armorIncreaseRate);
-		if (!Mathf.Approximately(Armor, tempArmor))
-		{
-			Armor = tempArmor;
-			Debug.Log($"Enemy info: Health {Health}, Armor {Armor}");
+			Die();
 		}
 	}
 
@@ -75,32 +69,13 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 			double reduction = 1;
 			double effectiveArmor = armor * (1.0 - ap);
 			double mitigation = 8000.0 / (8000 + effectiveArmor);
-			double finalDamage = Math.Round(damage * mitigation * reduction);
+			damage = Math.Round(damage * mitigation * reduction);
 			//Debug.Log($"Enemy has: 8000 / (8000 + {armor} * (1.0 - {ap})) = {mitigation}");
-			Health = Math.Max(0D, Health - finalDamage);
-	}
-		//Debug.Log($"Enemy took {nowHealth - Health} damage and {Health} left");
-		//_armorIncreaseRate += 0.1f;
-	}
-	public void TakeDamage(float damage, float apratio, StatsInterfaces.DamageType type)
-	{
-		if (type == StatsInterfaces.DamageType.Fixed)
-		{
-			Health -= damage;
+			Health = Math.Max(0D, Health - damage);
 		}
-		else
-		{
-			//Health = Math.Max(0, Health - damage * 80 / (80 + Armor * (1 - apratio / 100))); // 대미지 * 피해율, 피해율 산출을 하나의 메서드로 사용? << PlayerStats의 ReduceStat에 구현됨
-			_armorIncreaseRate += 0.1f; // 피격 시마다 방어력 10% 증가(임시 버프, 실제 버프는 이렇게 적용하지 않음)
-			//StartCoroutine(Flash());
-		}
-		Debug.Log($"Enemy took {damage * 80 / (80 + Armor * (1 - apratio / 100))} damage");
-		if (Health <= 0f) Die();
+		//Armor += (float)damage * 0.05f;
+		Debug.Log($"Enemy took {damage} damage, Now Health {Health} Armor {Armor}");
 	}
-	/*public bool TryGetTarget(out Transform target) {
-		target = myTransform;
-		return true;
-	}*/
 	System.Collections.IEnumerator Flash()
 	{
 		var original = _sr.color;
@@ -111,7 +86,7 @@ public class EnemyDummy : MonoBehaviour, IVulnerable//, ITargetable //그냥 임
 	public void Die()
 	{
 		// TODO: 사망 연출
-		Debug.Log("Now that's a LOTTA damage");
+		//Debug.Log("Now that's a LOTTA damage");
 		IsDead = true;
 		Destroy(gameObject);
 	}

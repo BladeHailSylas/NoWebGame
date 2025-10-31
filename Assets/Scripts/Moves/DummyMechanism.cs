@@ -13,7 +13,7 @@ public class DummyMechanism : ScriptableObject, INewMechanism
     public void Execute(CastContext ctx)
     {
         if (ctx.Params is not DummyParams param) return;
-        //Debug.Log($"I live! {ctx.Caster}, {ctx.Target}, do you see me?");
+        Debug.Log($"Hello {ctx.Caster} {ctx.Target}");
         foreach (var followup in param.onHitFollowUps)
         {
             if (followup.mechanism is not INewMechanism mech) continue;
@@ -21,7 +21,7 @@ public class DummyMechanism : ScriptableObject, INewMechanism
                 mech, followup.@params, ctx.Damage, ctx.Target);
             CommandCollector.Instance.EnqueueCommand(cmd);
         }
-        //Debug.Log("Dummy: OnHit FollowUps are casted");
+        //Debug.Log("Dummy: OnHit FollowUps are cast");
         
         foreach (var followup in param.onExpireFollowUps)
         {
@@ -30,7 +30,7 @@ public class DummyMechanism : ScriptableObject, INewMechanism
                 mech, followup.@params, ctx.Damage, ctx.Target);
             CommandCollector.Instance.EnqueueCommand(cmd);
         }
-        //Debug.Log("Dummy: OnExpire FollowUps are casted");
+        //Debug.Log("Dummy: OnExpire FollowUps are cast");
     }
 }
 
