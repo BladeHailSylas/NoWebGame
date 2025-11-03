@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using SkillInterfaces;
 using UnityEngine;
@@ -12,17 +13,22 @@ public class AreaEntity : MonoBehaviour
     public List<MechanismRef> onExpire;
     public byte activateTick = 15;
     public byte intervalActivated;
-    public void Init(IAreaShapes area, DamageData dmg, List<MechanismRef> interval, List<MechanismRef> expire, ushort life = 0)
+    public FixedVector2 location;
+    public Transform originalCaster;
+    public void Init(IAreaShapes area, DamageData dmg, List<MechanismRef> interval, List<MechanismRef> expire, Transform caster, ushort life = 0)
     {
         areaShape = area;
         damage = dmg;
         onInterval = interval;
         onExpire = expire;
         lifeTick = life;
+        location = new FixedVector2(transform.position);
+        originalCaster = caster;
         ActivateInterval();
         if (lifeTick < activateTick)
         {
-            Expire();
+            Debug.Log("lifetime is under 0.25s; instant activation");
+            StartCoroutine(Expire());
         }
         else
         {
@@ -31,14 +37,14 @@ public class AreaEntity : MonoBehaviour
     }
     void OnDisable()
     {
-        Expire();
+        StartCoroutine(Expire());
     }
     void TickHandler(ushort tick)
     {
         lifeTick--; _tickElapsed++;
         if (lifeTick == 0)
         {
-            Expire();
+            StartCoroutine(Expire());
         }
         else if(_tickElapsed >= activateTick)
         {
@@ -49,7 +55,6 @@ public class AreaEntity : MonoBehaviour
 
     public void ActivateInterval()
     {
-        intervalActivated++;
         if (areaShape is CircleArea circle)
         {
             Vector2 worldCenter = circle.CenterCoordinate.AsVector2;
@@ -65,11 +70,12 @@ public class AreaEntity : MonoBehaviour
                 foreach (var followup in onInterval)
                 {
                     if (followup.mechanism is not INewMechanism mech) continue;
-                    SkillCommand cmd = new(transform, TargetMode.TowardsEntity,
-                        new FixedVector2(entity.transform.position), mech, followup.@params, damage);
+                    SkillCommand cmd = new(originalCaster, TargetMode.TowardsEntity,
+                        location, mech, followup.@params, damage, entity.transform);
                     CommandCollector.Instance.EnqueueCommand(cmd);
                 }
             }
+            intervalActivated++;
         }
         else if (areaShape is BoxArea box)
         {
@@ -86,24 +92,27 @@ public class AreaEntity : MonoBehaviour
                 {
                     if (followup.mechanism is not INewMechanism mech) continue;
 
-                    SkillCommand cmd = new(transform, TargetMode.TowardsEntity,
-                        new FixedVector2(entity.transform.position), mech, followup.@params, damage);
+                    SkillCommand cmd = new(originalCaster, TargetMode.TowardsEntity,
+                        location, mech, followup.@params, damage, entity.transform);
                     CommandCollector.Instance.EnqueueCommand(cmd);
                 }
             }
+            intervalActivated++;
         }
     }
-    public void Expire()
+    public IEnumerator Expire()
     {
+        Ticker.Instance.OnTick -= TickHandler;
+        Debug.Log($"{intervalActivated} times of activation");
         foreach (var followup in onExpire)
         {
             if (followup.mechanism is not INewMechanism mech) continue;
-            SkillCommand cmd = new(transform, TargetMode.TowardsCoordinate, new FixedVector2(transform.position),
-                mech, followup.@params, damage);
+
+            SkillCommand cmd = new(originalCaster, TargetMode.TowardsEntity,
+                location, mech, followup.@params, damage);
             CommandCollector.Instance.EnqueueCommand(cmd);
         }
-        Ticker.Instance.OnTick -= TickHandler;
-        Debug.Log($"{intervalActivated} times of activation");
+        yield return null;
         Destroy(gameObject);
     }
     /*private void OnDrawGizmos()

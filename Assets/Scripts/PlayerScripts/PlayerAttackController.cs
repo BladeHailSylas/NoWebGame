@@ -64,7 +64,6 @@ public sealed class PlayerAttackController
             castPosition: FixedVector2.FromVector2(_caster.position),
             mech: mech,
             @params: param,
-            target: null,
             damage: _context.Stats.DamageData()
         );
         //Debug.Log($"Sent Attack damage { _context.Stats.DamageData().Attack}");

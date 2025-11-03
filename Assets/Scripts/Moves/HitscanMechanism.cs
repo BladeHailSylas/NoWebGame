@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using ActInterfaces;
 using UnityEngine;
 using SkillInterfaces;
-using StatsInterfaces;
 
 /// <summary>
 /// Defines how hitscan-based skills behave — instant ray-based hit detection.
@@ -39,7 +37,7 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
             return;
         }
 
-        Vector2 origin = ctx.Caster != null ? ctx.Caster.position : Vector2.zero;
+        Vector2 origin = ctx.Caster?.position ?? Vector2.zero;
         Vector2 direction = ((Vector2)ctx.Target.position - origin).normalized;
         float distance = Vector2.Distance(origin, ctx.Target.position);
 
@@ -56,7 +54,7 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
             Debug.DrawRay(origin, direction * param.maxRange, c, 0.5f);
         }
 
-        if (hit.collider != null)
+        if (hit.collider is not null)
         {
             //Placeholder: actual damage logic handled externally
            // hit.collider.GetComponent<IVulnerable>().TakeDamage(10);

@@ -27,9 +27,9 @@ MonoBehaviour:
       rid: 3203422884986951
   skill1:
     slot: 2
-    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
+    mechanism: {fileID: 11400000, guid: 92846dab9cb5aa64eb9a8eca809422df, type: 2}
     params:
-      rid: 3203489022345287
+      rid: 3203579899805777
   skill2:
     slot: 3
     mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
@@ -37,9 +37,9 @@ MonoBehaviour:
       rid: 3203489022345288
   ultimate:
     slot: 4
-    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
+    mechanism: {fileID: 11400000, guid: 92846dab9cb5aa64eb9a8eca809422df, type: 2}
     params:
-      rid: 3203489022345289
+      rid: 3203579899805808
   references:
     version: 2
     RefIds:
@@ -56,29 +56,9 @@ MonoBehaviour:
         onHitFollowUp:
         - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
           params:
-            rid: 3203534404190470
+            rid: 3203579899805771
           passSameTarget: 0
           respectBusy: 0
-        onExpireFollowUp: []
-        onHitFollowUp:
-        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
-          params:
-            rid: 3203564166709321
-          passSameTarget: 0
-          respectBusy: 0
-        onExpireFollowUp: []
-        debugDraw: 1
-    - rid: 3203489022345287
-      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
-      data:
-        minRange: 0
-        maxRange: 10
-        layerMask:
-          serializedVersion: 2
-          m_Bits: 128
-        hitEffectPrefab: {fileID: 0}
-        cooldownTicks: 0
-        onHitFollowUp: []
         onExpireFollowUp: []
         debugDraw: 1
     - rid: 3203489022345288
@@ -94,61 +74,51 @@ MonoBehaviour:
         onHitFollowUp: []
         onExpireFollowUp: []
         debugDraw: 1
-    - rid: 3203489022345289
-      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
-      data:
-        minRange: 10
-        maxRange: 200
-        layerMask:
-          serializedVersion: 2
-          m_Bits: 128
-        hitEffectPrefab: {fileID: 0}
-        cooldownTicks: 0
-        onHitFollowUp: []
-        onExpireFollowUp: []
-        debugDraw: 1
-    - rid: 3203534404190470
-      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
-    - rid: 3203564166709321
+    - rid: 3203579899805771
       type: {class: DamageParams, ns: , asm: Assembly-CSharp}
       data:
-        damageValue: 8
-        defaultAPRatio: 0
-        defaultAmplitude: 0
-        type: 2
-        onHitFollowUps:
-        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
-          params:
-            rid: 3203534404190471
-          passSameTarget: 0
-          respectBusy: 0
-        onExpireFollowUps: []
-    - rid: 3203534404190471
-      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
-      data:
-        damageValue: 50
+        damageValue: 100
         defaultAPRatio: 0
         defaultAmplitude: 0
         type: 0
         onHitFollowUps: []
         onExpireFollowUps: []
-        damageValue: 6
-        defaultAPRatio: 0
-        defaultAmplitude: 0
-        type: 2
-        onHitFollowUps:
+    - rid: 3203579899805777
+      type: {class: AreaParams, ns: , asm: Assembly-CSharp}
+      data:
+        Area:
+          rid: 3203579899805806
+        lifeTick: 360
+        OnAreaEnter:
         - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
           params:
-            rid: 3203564166709322
+            rid: 3203579899805781
           passSameTarget: 0
           respectBusy: 0
-        onExpireFollowUps: []
-    - rid: 3203564166709322
+        OnAreaExpire: []
+    - rid: 3203579899805781
       type: {class: DamageParams, ns: , asm: Assembly-CSharp}
       data:
-        damageValue: 75
+        damageValue: 12
         defaultAPRatio: 0
         defaultAmplitude: 0
         type: 0
         onHitFollowUps: []
         onExpireFollowUps: []
+    - rid: 3203579899805806
+      type: {class: CircleArea, ns: , asm: Assembly-CSharp}
+      data:
+        Radius: 2000
+    - rid: 3203579899805808
+      type: {class: AreaParams, ns: , asm: Assembly-CSharp}
+      data:
+        Area:
+          rid: 3203579899805809
+        lifeTick: 360
+        OnAreaEnter: []
+        OnAreaExpire: []
+    - rid: 3203579899805809
+      type: {class: BoxArea, ns: , asm: Assembly-CSharp}
+      data:
+        Height: 1000
+        Width: 2000

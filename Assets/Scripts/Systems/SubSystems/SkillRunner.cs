@@ -1,30 +1,6 @@
 ﻿using SkillInterfaces;
 using StatsInterfaces;
 using UnityEngine;
-public readonly struct SkillCommand
-{
-    public readonly Transform Caster;
-    public readonly Transform Target;
-    public readonly TargetMode TargetMode;
-    public readonly FixedVector2 CastPosition;
-    public readonly INewMechanism Mech;
-    public readonly INewParams Params;
-    public readonly DamageData Damage;
-
-    public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
-        INewMechanism mech, INewParams @params, DamageData damage, Transform target = null)
-    {
-        Caster = caster;
-        Target = target;
-        
-        TargetMode = mode;
-        CastPosition = castPosition;
-        Mech = mech;
-        Params = @params;
-        Damage = damage;
-    }
-}
-
 public class SkillRunner
 {
     private TargetResolver _targetResolver;

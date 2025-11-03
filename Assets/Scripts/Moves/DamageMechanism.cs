@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ActInterfaces;
 using SkillInterfaces;
 using StatsInterfaces;
-using Unity.Properties;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "DamageMechanism", menuName = "Skills/Mechanisms/Damage")]
@@ -12,8 +11,7 @@ public class DamageMechanism : ScriptableObject, INewMechanism
     public void Execute(CastContext ctx)
     {
         if (ctx.Params is not DamageParams param) return;
-        IVulnerable vul;
-        if (!ctx.Target.TryGetComponent(out vul)) return;
+        if (!ctx.Target.TryGetComponent(out IVulnerable vul)) return;
         double finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - param.defaultAPRatio / 100.0);
         double finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
         //Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");

@@ -97,7 +97,6 @@ public sealed class PlayerEntity : Entity
         {
             return;
         }
-
         _controls.Enable();
         _controls.Player.Move.performed += OnMovePerformed;
         _controls.Player.Move.canceled += OnMoveCanceled;
@@ -213,5 +212,5 @@ public sealed class PlayerEntity : Entity
 
 public class Entity : MonoBehaviour, IEntity
 {
-    
+    public bool targetable = true;
 }

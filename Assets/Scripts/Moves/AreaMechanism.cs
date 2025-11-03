@@ -70,7 +70,7 @@ public class AreaMechanism : ObjectGeneratingMechanism
 
         // AreaEntity 구성
         AreaEntity entity = areaObj.AddComponent<AreaEntity>();
-        entity.Init(param.Area, ctx.Damage, param.OnAreaEnter, param.OnAreaExpire, param.lifeTick);
+        entity.Init(param.Area, ctx.Damage, param.OnAreaEnter, param.OnAreaExpire, ctx.Caster, param.lifeTick);
 
         Debug.Log($"[AreaMechanism] Spawned area ({param.Area.GetType().Name}) at {centerPos} with collider {collider.GetType().Name}");
     }

@@ -1,4 +1,5 @@
 using System;
+using SkillInterfaces;
 using UnityEngine;
 
 /// <summary>
@@ -49,6 +50,42 @@ public struct CastContext
     }
 }
 
+public readonly struct SkillCommand
+{
+    public readonly Transform Caster;
+    public readonly Transform Target;
+    public readonly TargetMode TargetMode;
+    public readonly FixedVector2 CastPosition;
+    public readonly INewMechanism Mech;
+    public readonly INewParams Params;
+    public readonly DamageData Damage;
+
+    public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
+        INewMechanism mech, INewParams @params, DamageData damage, Transform target = null)
+    {
+        Caster = caster;
+        Target = target;
+        TargetMode = mode;
+        CastPosition = castPosition;
+        Mech = mech;
+        Params = @params;
+        Damage = damage;
+    }
+
+    public SkillCommand(Transform caster1, FixedVector2 castPosition, TargetMode mode, INewMechanism mech,
+        INewParams @params,
+        DamageData damage, Transform caster = null, Transform target = null)
+    {
+        Caster = caster;
+        Target = target;
+        TargetMode = mode;
+        CastPosition = castPosition;
+        Mech = mech;
+        Params = @params;
+        Damage = damage;
+    }
+}
+
 /// <summary>
 /// Base class for any mechanism that needs to spawn objects in the world deterministically.
 /// </summary>
@@ -68,8 +105,8 @@ public abstract class ObjectGeneratingMechanism : ScriptableObject, INewMechanis
             }
         };
 
-        var collider = obj.AddComponent<CircleCollider2D>();
-        collider.isTrigger = true;
+        //var collider = obj.AddComponent<CircleCollider2D>();
+        //collider.isTrigger = true;
         //collider.radius = radius;
 
         if (durationTicks > 0)

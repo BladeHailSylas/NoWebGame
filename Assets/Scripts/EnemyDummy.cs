@@ -19,6 +19,8 @@ public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더
 	public bool IsDead { get; private set; }
 	//[SerializeField] Transform myTransform;
 	private float _armorIncreaseRate; //방어력 버프
+	[SerializeField] private Sprite hitSprite;     // Inspector에서 교체할 스프라이트 지정
+	private Sprite originalSprite;
 	private Rigidbody2D _rb;
 	private SpriteRenderer _sr;
 
@@ -26,6 +28,7 @@ public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더
 	{
 		_rb = GetComponent<Rigidbody2D>();
 		_sr = GetComponentInChildren<SpriteRenderer>();
+		originalSprite = _sr.sprite;
 		MaxHealth = BasicHealth * 1.5f;
 		Health = MaxHealth;
 		Armor = BasicArmor * (1 + _armorIncreaseRate);
@@ -75,19 +78,25 @@ public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더
 		}
 		//Armor += (float)damage * 0.05f;
 		Debug.Log($"Enemy took {damage} damage, Now Health {Health} Armor {Armor}");
+		StartCoroutine(FlashSprite());
 	}
-	System.Collections.IEnumerator Flash()
+	
+	private System.Collections.IEnumerator FlashSprite()
 	{
-		var original = _sr.color;
-		_sr.color = Color.white;
+		// 스프라이트 교체
+		_sr.sprite = hitSprite;
+
+		// 약간의 시간 대기 (피격 시간)
 		yield return new WaitForSeconds(0.06f);
-		_sr.color = original;
+
+		// 원래 스프라이트로 복귀
+		_sr.sprite = originalSprite;
 	}
 	public void Die()
 	{
 		// TODO: 사망 연출
 		//Debug.Log("Now that's a LOTTA damage");
 		IsDead = true;
-		Destroy(gameObject);
+		gameObject.SetActive(false);
 	}
 }
