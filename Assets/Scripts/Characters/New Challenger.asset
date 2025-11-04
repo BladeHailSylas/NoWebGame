@@ -32,9 +32,9 @@ MonoBehaviour:
       rid: 3203579899805777
   skill2:
     slot: 3
-    mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
+    mechanism: {fileID: 11400000, guid: c6f30aff2aa354742807b8eb6a66fab3, type: 2}
     params:
-      rid: 3203489022345288
+      rid: 669456414455365715
   ultimate:
     slot: 4
     mechanism: {fileID: 11400000, guid: 92846dab9cb5aa64eb9a8eca809422df, type: 2}
@@ -61,19 +61,6 @@ MonoBehaviour:
           respectBusy: 0
         onExpireFollowUp: []
         debugDraw: 1
-    - rid: 3203489022345288
-      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
-      data:
-        minRange: 0
-        maxRange: 20
-        layerMask:
-          serializedVersion: 2
-          m_Bits: 128
-        hitEffectPrefab: {fileID: 0}
-        cooldownTicks: 0
-        onHitFollowUp: []
-        onExpireFollowUp: []
-        debugDraw: 1
     - rid: 3203579899805771
       type: {class: DamageParams, ns: , asm: Assembly-CSharp}
       data:
@@ -87,8 +74,8 @@ MonoBehaviour:
       type: {class: AreaParams, ns: , asm: Assembly-CSharp}
       data:
         Area:
-          rid: 3203579899805806
-        lifeTick: 360
+          rid: 669456414455365711
+        lifeTick: 0
         OnAreaEnter:
         - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
           params:
@@ -99,16 +86,12 @@ MonoBehaviour:
     - rid: 3203579899805781
       type: {class: DamageParams, ns: , asm: Assembly-CSharp}
       data:
-        damageValue: 12
+        damageValue: 125
         defaultAPRatio: 0
         defaultAmplitude: 0
         type: 0
         onHitFollowUps: []
         onExpireFollowUps: []
-    - rid: 3203579899805806
-      type: {class: CircleArea, ns: , asm: Assembly-CSharp}
-      data:
-        Radius: 2000
     - rid: 3203579899805808
       type: {class: AreaParams, ns: , asm: Assembly-CSharp}
       data:
@@ -122,3 +105,27 @@ MonoBehaviour:
       data:
         Height: 1000
         Width: 2000
+    - rid: 669456414455365711
+      type: {class: BoxArea, ns: , asm: Assembly-CSharp}
+      data:
+        Height: 1000
+        Width: 2000
+    - rid: 669456414455365715
+      type: {class: LaserParams, ns: , asm: Assembly-CSharp}
+      data:
+        rangeMultiplier: 1
+        onHitFollowUps:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 669456414455365716
+          passSameTarget: 0
+          respectBusy: 0
+    - rid: 669456414455365716
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 100
+        defaultAPRatio: 25
+        defaultAmplitude: 0
+        type: 0
+        onHitFollowUps: []
+        onExpireFollowUps: []
