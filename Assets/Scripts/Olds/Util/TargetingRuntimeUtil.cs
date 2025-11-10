@@ -39,7 +39,7 @@ public static class TargetingRuntimeUtil {
 			{
 				offset = owner.right;
 			}
-			float distance = offset.magnitude;
+			var distance = offset.magnitude;
 			var dir = offset.sqrMagnitude > MinDirectionSqr ? offset.normalized : (Vector2)owner.right;
 			return new TargetingResult(explicitTarget, dir, distance, (Vector2)explicitTarget.position, null, false);
 		}
@@ -54,10 +54,10 @@ public static class TargetingRuntimeUtil {
 			return new TargetingResult(owner, dirSelf.normalized, 0f, owner.position, null, false);
 		}
 
-		Vector2 desiredPoint = origin;
+		var desiredPoint = origin;
 		Vector2 fallbackDir = owner.right;
-		float fallbackDistance = data != null ? Mathf.Max(0f, data.FallbackRange) : 0f;
-		bool needsAnchor = createAnchor;
+		var fallbackDistance = data != null ? Mathf.Max(0f, data.FallbackRange) : 0f;
+		var needsAnchor = createAnchor;
 
 		if (data != null)
 		{
@@ -72,7 +72,7 @@ public static class TargetingRuntimeUtil {
 						{
 							offset = ownerRight.sqrMagnitude > MinDirectionSqr ? ownerRight : Vector2.right;
 						}
-						float distance = offset.magnitude;
+						var distance = offset.magnitude;
 						var dir = offset.sqrMagnitude > MinDirectionSqr ? offset.normalized : ownerRight;
 						if (dir.sqrMagnitude <= MinDirectionSqr)
 						{
@@ -144,7 +144,7 @@ public static class TargetingRuntimeUtil {
 		}
 
 		Transform anchor = null;
-		bool synthetic = false;
+		var synthetic = false;
 		if (needsAnchor)
 		{
 			var anchorObj = new GameObject(AnchorName);
@@ -189,7 +189,7 @@ public static class TargetingRuntimeUtil {
 			mouse.z = owner.position.z;
 		}
 		Vector2 cursor = mouse;
-		Vector2 origin = owner ? (Vector2)owner.position : cursor;
+		var origin = owner ? (Vector2)owner.position : cursor;
 
 		var hits = Physics2D.OverlapPointAll(cursor, data.TargetMask);
 		if (hits.Length == 0)
@@ -201,22 +201,22 @@ public static class TargetingRuntimeUtil {
 			return false;
 		}
 
-		float maxRange = data.FallbackRange > 0f ? data.FallbackRange : float.PositiveInfinity;
+		var maxRange = data.FallbackRange > 0f ? data.FallbackRange : float.PositiveInfinity;
 		Transform best = null;
-		float bestDist = float.PositiveInfinity;
+		var bestDist = float.PositiveInfinity;
 
 		foreach (var h in hits)
 		{
 			var collider = h;
 			var candidate = collider.transform;
 			var closest = collider.bounds.ClosestPoint(origin);
-			float distance = Vector2.Distance(origin, closest);
+			var distance = Vector2.Distance(origin, closest);
 			if (distance > maxRange)
 			{
 				continue;
 			}
 
-			bool blocked = false;
+			var blocked = false;
 			if (data.WallsMask.value != 0)
 			{
 				var hit = Physics2D.Linecast(origin, closest, data.WallsMask);

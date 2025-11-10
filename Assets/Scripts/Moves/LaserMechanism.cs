@@ -10,9 +10,9 @@ public class LaserMechanism : ScriptableObject, INewMechanism
         if (ctx.Params is not LaserParams param) return;
         Vector2 origin = ctx.Caster.position;
         Vector2 target = ctx.Target.position;
-        Vector2 dist = target - origin;
-        Vector2 direction = dist.normalized;
-        float distance = dist.magnitude * param.rangeMultiplier;
+        var dist = target - origin;
+        var direction = dist.normalized;
+        var distance = dist.magnitude * param.rangeMultiplier;
 
         // 감지: 적과 장애물 모두 탐색
         var hits = Physics2D.RaycastAll(origin, direction, distance, LayerMask.GetMask("Foe", "Walls&Obstacles"));
@@ -20,7 +20,7 @@ public class LaserMechanism : ScriptableObject, INewMechanism
 
         foreach (var hit in hits)
         {
-            int layer = hit.collider.gameObject.layer;
+            var layer = hit.collider.gameObject.layer;
 
             // 벽을 만나면 중단
             if (layer == LayerMask.NameToLayer("Walls&Obstacles"))

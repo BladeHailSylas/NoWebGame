@@ -89,18 +89,18 @@ public sealed class PlayerStatsContainer
             damage = (int)(damage * DamageReductionCalc(Armor, apRatio, TotalDamageReduction()));
 
         // -- Apply shield layers --
-        int remaining = damage;
+        var remaining = damage;
 
         if (SpecialShield > 0)
         {
-            int used = Math.Min(SpecialShield, remaining);
+            var used = Math.Min(SpecialShield, remaining);
             SpecialShield -= used;
             remaining -= used;
         }
 
         if (remaining > 0 && Shield > 0)
         {
-            int used = Math.Min(Shield, remaining);
+            var used = Math.Min(Shield, remaining);
             Shield -= used;
             remaining -= used;
         }
@@ -129,7 +129,7 @@ public sealed class PlayerStatsContainer
 
     public double TotalDamageReduction()
     {
-        double total = 1.0;
+        var total = 1.0;
         foreach (var dr in DamageReduction)
             total *= (1 - dr / 100.0);
 
@@ -182,37 +182,37 @@ public sealed class PlayerStatsContainer
         {
             // 공격력 상승
             [EffectType.DamageBoost] = (self, buff) => {
-                int delta = (self.BaseAttackDamage * buff.Value + 50) / 100;
+                var delta = (self.BaseAttackDamage * buff.Value + 50) / 100;
                 self.AttackDamage += delta;
             },
 
             // 방어력 상승
             [EffectType.ArmorBoost] = (self, buff) => {
-                int delta = (self.BaseArmor * buff.Value + 50) / 100;
+                var delta = (self.BaseArmor * buff.Value + 50) / 100;
                 self.Armor += delta;
             },
 
             // 방어 관통 (리스트 추가)
             [EffectType.APBoost] = (self, buff) => {
-                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
                 self.ArmorPenetration.Add(value);
             },
 
             // 피해 감소 (리스트 추가)
             [EffectType.DRBoost] = (self, buff) => {
-                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
                 self.DamageReduction.Add(value);
             },
 
             // 가속 (Haste)
             [EffectType.Haste] = (self, buff) => {
-                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                var delta = (self.BaseSpeed * buff.Value + 50) / 100;
                 self.Speed += delta;
             },
 
             // 감속 (Slow)
             [EffectType.Slow] = (self, buff) => {
-                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                var delta = (self.BaseSpeed * buff.Value + 50) / 100;
                 self.Speed -= delta; // 감속은 감소 방향
             },
         };
@@ -220,37 +220,37 @@ public sealed class PlayerStatsContainer
         {
             // 공격력 상승
             [EffectType.DamageBoost] = (self, buff) => {
-                int delta = (self.BaseAttackDamage * buff.Value + 50) / 100;
+                var delta = (self.BaseAttackDamage * buff.Value + 50) / 100;
                 self.AttackDamage -= delta;
             },
 
             // 방어력 상승
             [EffectType.ArmorBoost] = (self, buff) => {
-                int delta = (self.BaseArmor * buff.Value + 50) / 100;
+                var delta = (self.BaseArmor * buff.Value + 50) / 100;
                 self.Armor -= delta;
             },
 
             // 방어 관통 (리스트 추가)
             [EffectType.APBoost] = (self, buff) => {
-                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
                 self.ArmorPenetration.Remove(value);
             },
 
             // 피해 감소 (리스트 추가)
             [EffectType.DRBoost] = (self, buff) => {
-                byte value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
                 self.DamageReduction.Remove(value);
             },
 
             // 가속 (Haste)
             [EffectType.Haste] = (self, buff) => {
-                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                var delta = (self.BaseSpeed * buff.Value + 50) / 100;
                 self.Speed -= delta;
             },
 
             // 감속 (Slow)
             [EffectType.Slow] = (self, buff) => {
-                int delta = (self.BaseSpeed * buff.Value + 50) / 100;
+                var delta = (self.BaseSpeed * buff.Value + 50) / 100;
                 self.Speed += delta; // 감속은 감소 방향
             },
         };

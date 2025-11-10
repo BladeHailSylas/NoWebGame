@@ -46,7 +46,7 @@ public struct CoreTransform
             return default;
         }
 
-        Vector3 pos = transform.position;
+        var pos = transform.position;
         return new CoreTransform(new FixedVector2(pos.x, pos.y), transform.eulerAngles.z);
     }
 }

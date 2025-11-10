@@ -60,19 +60,19 @@ public class AimLine : MonoBehaviour
         if (_cam == null) return;
 
         // 1) 시작점: 플레이어(현재 오브젝트) 위치
-        Vector3 start = transform.position;
+        var start = transform.position;
 
         // 2) 마우스 스크린좌표 → 월드좌표
-        Vector3 mouseWorld = _cam.ScreenToWorldPoint(Input.mousePosition);
+        var mouseWorld = _cam.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = start.z; // 2D 평면(z 고정) 정렬
 
         // 3) 최대 길이 적용
-        Vector3 dir = (mouseWorld - start);
-        float dist = dir.magnitude;
+        var dir = (mouseWorld - start);
+        var dist = dir.magnitude;
         if (dist > Mathf.Epsilon) dir /= dist;
 
-        float length = Mathf.Min(dist, maxLength);
-        Vector3 end = start + dir * length;
+        var length = Mathf.Min(dist, maxLength);
+        var end = start + dir * length;
 
         // 4) 장애물에 부딪히면 그 지점까지로 잘라내기(선택)
         if (clampToObstacle)

@@ -1,4 +1,3 @@
-using ActInterfaces;
 using StatsInterfaces;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ using UnityEngine;
 /// logic is kept free from MonoBehaviour dependencies so it can be simulated in
 /// unit tests.
 /// </summary>
-public sealed class PlayerActController : IVulnerable, IPullable
+public sealed class PlayerActController
 {
     private readonly PlayerContext _context;
     private readonly PlayerStatsBridge _stats;
@@ -20,7 +19,7 @@ public sealed class PlayerActController : IVulnerable, IPullable
         _stats = stats;
         _effect = effect;
         //_motor = context.Motor;
-        _motor = new(rb, col);
+        _motor = new FixedMotor(rb, col);
     }
 
     /// <summary>
@@ -59,7 +58,7 @@ public sealed class PlayerActController : IVulnerable, IPullable
 
     public void ApplyKnockback(Vector2 direction, float force)
     {
-        /** Future hook: integrate with locomotion buffer when implemented. */
+        //Future hook: integrate with locomotion buffer when implemented.
         _context.Logger.Info($"Knockback requested direction={direction}, force={force}.");
     }
 }

@@ -231,7 +231,7 @@ public class SwitchControllerParams : ISkillParams, ISwitchPolicy
 		if (steps == null || steps.Count == 0) return false;
 
 		if (_idx < 0) _idx = Mathf.Clamp(startIndex, 0, steps.Count - 1);
-		int cur = _idx;
+		var cur = _idx;
 		if (advanceOnCast) _idx = (_idx + 1) % steps.Count;
 
 		reference = steps[cur];

@@ -28,9 +28,9 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 		get
 		{
 			if (RawX == 0 && RawY == 0) return Zero;
-			long len = LongSqrt(RawX * RawX + RawY * RawY);
-			long normX = (RawX * UnitsPerFloat) / len;
-			long normY = (RawY * UnitsPerFloat) / len;
+			var len = LongSqrt(RawX * RawX + RawY * RawY);
+			var normX = (RawX * UnitsPerFloat) / len;
+			var normY = (RawY * UnitsPerFloat) / len;
 
 			return new FixedVector2((int)normX, (int)normY);
 		}
@@ -112,7 +112,7 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 			return 0;
 
 		long result = 0;
-		long bit = 1L << 62; // Start from the highest bit possible
+		var bit = 1L << 62; // Start from the highest bit possible
 
 		// Shift 'bit' down until it's <= value
 		while (bit > value)
@@ -139,8 +139,8 @@ public readonly struct FixedVector2 : IEquatable<FixedVector2>
 	/// </summary>
 	public static int DistanceSquared(FixedVector2 a, FixedVector2 b)
 	{
-		long dx = (long)a._rawX - b._rawX;
-		long dy = (long)a._rawY - b._rawY;
+		var dx = (long)a._rawX - b._rawX;
+		var dy = (long)a._rawY - b._rawY;
 		return (int)Math.Sqrt(dx * dx + dy * dy);
 	}
 	public bool Equals(FixedVector2 other)

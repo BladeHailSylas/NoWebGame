@@ -84,7 +84,7 @@ public static class EventBus
         lock (Gate)
         {
             if (!Map.TryGetValue(key, out var list)) return;
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (var i = list.Count - 1; i >= 0; i--)
             {
                 if (list[i].Matches(handler, context))
                     list.RemoveAt(i);
@@ -102,7 +102,7 @@ public static class EventBus
         {
             if (Map.TryGetValue(key, out var list) && list.Count > 0)
             {
-                for (int i = list.Count - 1; i >= 0; i--)
+                for (var i = list.Count - 1; i >= 0; i--)
                     if (!list[i].IsAlive) list.RemoveAt(i);
                 
                 if (list.Count > 0) snapshot = new List<ISub>(list);
@@ -119,7 +119,7 @@ public static class EventBus
         {
             if (Map.TryGetValue(key, out var list))
             {
-                for (int i = list.Count - 1; i >= 0; i--)
+                for (var i = list.Count - 1; i >= 0; i--)
                     if (!list[i].IsAlive) list.RemoveAt(i);
                 if (list.Count == 0) Map.Remove(key);
             }

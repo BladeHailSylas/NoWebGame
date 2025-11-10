@@ -96,7 +96,7 @@ public sealed class TheWorld
 			throw new ArgumentNullException(nameof(system));
 		}
 
-		for (int i = 0; i < _systems.Count; i++)
+		for (var i = 0; i < _systems.Count; i++)
 		{
 			if (ReferenceEquals(_systems[i].System, system))
 			{
@@ -118,7 +118,7 @@ public sealed class TheWorld
 			return false;
 		}
 
-		for (int i = 0; i < _systems.Count; i++)
+		for (var i = 0; i < _systems.Count; i++)
 		{
 			if (!ReferenceEquals(_systems[i].System, system))
 			{
@@ -169,7 +169,7 @@ public sealed class TheWorld
                 int index;
                 if (_freeIds.Count > 0)
                 {
-                        int last = _freeIds.Count - 1;
+                        var last = _freeIds.Count - 1;
                         index = _freeIds[last];
                         _freeIds.RemoveAt(last);
                 }
@@ -206,7 +206,7 @@ public sealed class TheWorld
 
                 entity.isActive = false;
                 entity.version++;
-                int index = id.ToIndex();
+                var index = id.ToIndex();
                 _entities[index] = entity;
                 ActiveEntityCount--;
                 _freeIds.Add(index);
@@ -225,7 +225,7 @@ public sealed class TheWorld
                         return false;
                 }
 
-                int index = id.ToIndex();
+                var index = id.ToIndex();
                 if ((uint)index >= (uint)_entities.Count)
                 {
                         entity = default;
@@ -245,7 +245,7 @@ public sealed class TheWorld
                 {
                         throw new ArgumentException("Entity must have a valid identifier before writing.", nameof(entity));
                 }
-                int index = entity.id.ToIndex();
+                var index = entity.id.ToIndex();
                 if ((uint)index >= (uint)_entities.Count)
                 {
                         throw new IndexOutOfRangeException("Entity identifier exceeds buffer capacity.");
@@ -263,7 +263,7 @@ public sealed class TheWorld
 	{
 		CurrentTick++;
 
-                for (int i = 0; i < _entities.Count; i++)
+                for (var i = 0; i < _entities.Count; i++)
                 {
                         var entity = _entities[i];
 			if (!entity.isActive)
@@ -277,7 +277,7 @@ public sealed class TheWorld
 			_entities[i] = entity;
 		}
 
-		for (int i = 0; i < _systems.Count; i++)
+		for (var i = 0; i < _systems.Count; i++)
 		{
 			_systems[i].System.Execute(this);
 		}
@@ -311,7 +311,7 @@ public sealed class TheWorld
 		_entities.Clear();
 		_entities.AddRange(snapshot.entities);
 		_freeIds.Clear();
-		for (int i = 0; i < _entities.Count; i++)
+		for (var i = 0; i < _entities.Count; i++)
 		{
 			if (!_entities[i].isActive)
 			{
@@ -329,7 +329,7 @@ public sealed class TheWorld
 	/// </summary>
 	public IEnumerable<EntityId> EnumerateActiveEntities()
 	{
-                for (int i = 0; i < _entities.Count; i++)
+                for (var i = 0; i < _entities.Count; i++)
                 {
                         if (_entities[i].isActive)
                         {

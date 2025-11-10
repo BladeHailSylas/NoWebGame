@@ -27,7 +27,7 @@ public sealed class Ticker
 		{
 			throw new ArgumentOutOfRangeException(nameof(ticksFromNow), "Must be greater than zero.");
 		}
-		ushort targetTick = (TickCount + ticksFromNow < TickCount) ? (ushort)(TickCount + ticksFromNow) : (ushort)1;
+		var targetTick = (TickCount + ticksFromNow < TickCount) ? (ushort)(TickCount + ticksFromNow) : (ushort)1;
 		OnTick += Handler;
 		return;
 

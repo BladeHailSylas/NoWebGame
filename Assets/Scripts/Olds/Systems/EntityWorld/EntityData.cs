@@ -240,7 +240,7 @@ public struct EntityData
 	/// </summary>
 	public void ApplyDamage(int delta)
 	{
-		int newValue = hitPoints + delta;
+		var newValue = hitPoints + delta;
 		if (newValue < 0)
 		{
 			newValue = 0;

@@ -1,11 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using ActInterfaces;
 using UnityEngine;
 using EffectInterfaces;
 
-public interface IEntity
+public interface IEntity : IVulnerable, IStackable
 {
 	
+}
+
+public interface IStackable
+{
+
+	public void ApplyStack();
 }
 
 #region ===== Effect =====

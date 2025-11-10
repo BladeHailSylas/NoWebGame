@@ -21,7 +21,7 @@ public class AreaMechanism : ObjectGeneratingMechanism
         var centerPos = ctx.Target?.position ?? ctx.Caster.position;
 
         // Spawn the area object
-        GameObject areaObj = GenerateObject("AreaZone", centerPos);
+        var areaObj = GenerateObject("AreaZone", centerPos);
 
         // Collider 생성 분기
         Collider2D collider;
@@ -47,10 +47,10 @@ public class AreaMechanism : ObjectGeneratingMechanism
             Vector2 casterPos = ctx.Caster.position;
 
             // Area → Caster 방향 벡터
-            Vector2 dir = (casterPos - areaPos).normalized;
+            var dir = (casterPos - areaPos).normalized;
 
             // 방향 각도 계산
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
             // 회전 적용
             areaObj.transform.rotation = Quaternion.Euler(0f, 0f, angle);
@@ -69,7 +69,7 @@ public class AreaMechanism : ObjectGeneratingMechanism
         }
 
         // AreaEntity 구성
-        AreaEntity entity = areaObj.AddComponent<AreaEntity>();
+        var entity = areaObj.AddComponent<AreaEntity>();
         entity.Init(param.Area, ctx.Damage, param.OnAreaEnter, param.OnAreaExpire, ctx.Caster, param.lifeTick);
 
         Debug.Log($"[AreaMechanism] Spawned area ({param.Area.GetType().Name}) at {centerPos} with collider {collider.GetType().Name}");

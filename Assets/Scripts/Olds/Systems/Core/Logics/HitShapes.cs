@@ -37,18 +37,18 @@ public struct HitBox : IHitShape
 	}
 	public readonly bool Overlaps(HitBox box)
 	{
-		long dx = Math.Abs((long)center.RawX - box.center.RawX);
-		long dy = Math.Abs((long)center.RawY - box.center.RawY);
-		long limitX = (long)halfSize.RawX + box.halfSize.RawX;
-		long limitY = (long)halfSize.RawY + box.halfSize.RawY;
-		bool separated = dx > limitX || dy > limitY;
+		var dx = Math.Abs((long)center.RawX - box.center.RawX);
+		var dy = Math.Abs((long)center.RawY - box.center.RawY);
+		var limitX = (long)halfSize.RawX + box.halfSize.RawX;
+		var limitY = (long)halfSize.RawY + box.halfSize.RawY;
+		var separated = dx > limitX || dy > limitY;
 		return !separated;
 	}
 
 	public readonly bool Overlaps(HitCircle circle)
 	{
-		int clampedX = Mathf.Clamp(circle.center.RawX, MinX, MaxX);
-		int clampedY = Mathf.Clamp(circle.center.RawY, MinY, MaxY);
+		var clampedX = Mathf.Clamp(circle.center.RawX, MinX, MaxX);
+		var clampedY = Mathf.Clamp(circle.center.RawY, MinY, MaxY);
 
 		long dx = circle.center.RawX - clampedX;
 		long dy = circle.center.RawY - clampedY;
@@ -86,7 +86,7 @@ public struct HitCircle : IHitShape
 	}
 	public readonly bool Overlaps(HitCircle circle)
 	{
-		long radii = (long)radius + circle.radius;
+		var radii = (long)radius + circle.radius;
 		return FixedVector2.DistanceSquared(center, circle.center) <= radii * radii;
 	}
 
@@ -132,16 +132,16 @@ public sealed class FixedCollision
 
 	private static ContactInfo? ComputeCircleCircle(HitCircle a, HitCircle b)
 	{
-		FixedVector2 diff = b.center - a.center;
-		long distSq = (long)diff.RawX * diff.RawX + (long)diff.RawY * diff.RawY;
-		long radii = (long)a.radius + b.radius;
-		long radiiSq = radii * radii;
+		var diff = b.center - a.center;
+		var distSq = (long)diff.RawX * diff.RawX + (long)diff.RawY * diff.RawY;
+		var radii = (long)a.radius + b.radius;
+		var radiiSq = radii * radii;
 		if (distSq >= radiiSq)
 			return null;
 
-		double dist = Math.Sqrt(distSq);
-		double depth = radii - dist;
-		FixedVector2 normal = (dist > 1e-6)
+		var dist = Math.Sqrt(distSq);
+		var depth = radii - dist;
+		var normal = (dist > 1e-6)
 			? new FixedVector2((int)(diff.RawX / dist), (int)(diff.RawY / dist))
 			: new FixedVector2(0, 0);
 
@@ -155,18 +155,18 @@ public sealed class FixedCollision
 
 	private static ContactInfo? ComputeCircleBox(HitCircle circle, HitBox box)
 	{
-		int clampedX = Math.Max(box.MinX, Math.Min(circle.center.RawX, box.MaxX));
-		int clampedY = Math.Max(box.MinY, Math.Min(circle.center.RawY, box.MaxY));
-		FixedVector2 closest = new FixedVector2(clampedX, clampedY);
-		FixedVector2 diff = circle.center - closest;
+		var clampedX = Math.Max(box.MinX, Math.Min(circle.center.RawX, box.MaxX));
+		var clampedY = Math.Max(box.MinY, Math.Min(circle.center.RawY, box.MaxY));
+		var closest = new FixedVector2(clampedX, clampedY);
+		var diff = circle.center - closest;
 
-		long distSq = (long)diff.RawX * diff.RawX + (long)diff.RawY * diff.RawY;
+		var distSq = (long)diff.RawX * diff.RawX + (long)diff.RawY * diff.RawY;
 		if (distSq > (long)circle.radius * circle.radius)
 			return null;
 
-		double dist = Math.Sqrt(distSq);
-		double depth = circle.radius - dist;
-		FixedVector2 normal = (dist > 1e-6)
+		var dist = Math.Sqrt(distSq);
+		var depth = circle.radius - dist;
+		var normal = (dist > 1e-6)
 			? new FixedVector2((int)(diff.RawX / dist), (int)(diff.RawY / dist))
 			: new FixedVector2(0, 0);
 

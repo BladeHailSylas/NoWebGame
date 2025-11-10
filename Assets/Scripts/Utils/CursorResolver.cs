@@ -38,7 +38,7 @@ public class CursorResolver : MonoBehaviour
         fixedPos = default;
 
         // 1️⃣ 입력 좌표 가져오기
-        Vector3 screenPos = Input.mousePosition;
+        var screenPos = Input.mousePosition;
         if (mainCamera == null)
         {
             if (debugLog)
@@ -47,11 +47,11 @@ public class CursorResolver : MonoBehaviour
         }
 
         // 2️⃣ 스크린 → 월드 변환
-        Vector3 world = mainCamera.ScreenToWorldPoint(screenPos);
+        var world = mainCamera.ScreenToWorldPoint(screenPos);
         world.z = 0f;
 
         // 3️⃣ 커서가 Ground 위에 있는지 검사
-        RaycastHit2D hit = Physics2D.Raycast(world, Vector2.zero, rayDistance, groundMask);
+        var hit = Physics2D.Raycast(world, Vector2.zero, rayDistance, groundMask);
 
         if (hit.collider != null)
         {

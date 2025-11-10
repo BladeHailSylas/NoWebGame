@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using ActInterfaces;
 using EffectInterfaces;
 using SkillInterfaces;
 using StatsInterfaces;
 using Unity.Properties;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// MonoBehaviour entry point that orchestrates all player-related modules. It
@@ -12,7 +15,7 @@ using UnityEngine.InputSystem;
 /// systems for maintainability.
 /// </summary>
 [DisallowMultipleComponent]
-public sealed class PlayerEntity : Entity
+public sealed class PlayerEntity : Entity, IEntity
 {
     [Header("Configuration")]
     [SerializeField] private CharacterSpec spec;
@@ -105,7 +108,6 @@ public sealed class PlayerEntity : Entity
         _controls.Player.Skill1.canceled += OnSkill1Released;
         _controls.Player.Skill2.canceled += OnSkill2Released;
         _controls.Player.Ultimate.canceled += OnUltimateReleased;
-
         if (Ticker.Instance != null)
         {
             Ticker.Instance.OnTick += TickHandler;
@@ -142,6 +144,16 @@ public sealed class PlayerEntity : Entity
     {
         _playerInputBinder.Tick(tick);
         _statsBridge.Tick(tick);
+
+        if (tick % 60 == 0)
+        {
+            Dev(tick);
+        }
+    }
+
+    private void Dev(ushort tick)
+    {
+        _stackManager.ApplyStack(new StackProperty(StackRegistry.Instance.Stacks[0]), 1, tick);
     }
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
@@ -204,13 +216,28 @@ public sealed class PlayerEntity : Entity
         _actController.TakeDamage(damage, apRatio, type);
     }
 
-    public void ApplyEffect(EffectType effectType, GameObject effecter, float duration = float.PositiveInfinity, int amp = 0, string name = null)
+    public void TakeDamage(DamageData damage)
     {
-        //_effect.ApplyEffect(effectType, effecter, duration, amp, name);
+        _actController.TakeDamage(damage);
+    }
+    public void Die()
+    {
+        Debug.Log("Oof");
+        gameObject.SetActive(false);
+    }
+
+    public void ApplyStack()
+    {
+        Debug.Log("Stakataka");
+    }
+
+    public void ApplyStack(StackProperty stackProperty)
+    {
+        Debug.Log($"Staka{stackProperty.def.displayName}taka");
     }
 }
 
-public class Entity : MonoBehaviour, IEntity
+public class Entity : MonoBehaviour
 {
     public bool targetable = true;
 }

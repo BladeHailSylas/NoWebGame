@@ -38,8 +38,8 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
         }
 
         Vector2 origin = ctx.Caster?.position ?? Vector2.zero;
-        Vector2 direction = ((Vector2)ctx.Target.position - origin).normalized;
-        float distance = Vector2.Distance(origin, ctx.Target.position);
+        var direction = ((Vector2)ctx.Target.position - origin).normalized;
+        var distance = Vector2.Distance(origin, ctx.Target.position);
 
         if (distance > param.maxRange || distance < param.minRange)
         {
@@ -47,10 +47,10 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
             return;
         }
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction, param.maxRange, param.layerMask);
+        var hit = Physics2D.Raycast(origin, direction, param.maxRange, param.layerMask);
         if (param.debugDraw)
         {
-            Color c = hit ? Color.red : Color.yellow;
+            var c = hit ? Color.red : Color.yellow;
             Debug.DrawRay(origin, direction * param.maxRange, c, 0.5f);
         }
 

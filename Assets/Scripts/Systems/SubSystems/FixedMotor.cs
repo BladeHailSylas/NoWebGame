@@ -46,7 +46,7 @@ public class FixedMotor
     /// </summary>
     public void Move(FixedVector2 desiredDelta)
     {
-        Vector2 delta = desiredDelta.ToVector2() / 60f;
+        var delta = desiredDelta.ToVector2() / 60f;
         if (delta.sqrMagnitude <= 0f)
             return;
 
@@ -58,7 +58,7 @@ public class FixedMotor
             delta = RemoveNormalComponent(delta, Policy.enemyMask);
 
         // 3️⃣ Apply movement
-        Vector2 target = _rb.position + delta;
+        var target = _rb.position + delta;
         _rb.MovePosition(target);
         _pos = new FixedVector2(target);
         _needsSync = true;
@@ -66,15 +66,15 @@ public class FixedMotor
 
     private Vector2 RemoveNormalComponent(Vector2 vector, LayerMask mask, bool treatedAsBlocker = true)
     {
-        Vector2 vFinal = vector;
-        float magnitude = vFinal.magnitude;
+        var vFinal = vector;
+        var magnitude = vFinal.magnitude;
         if (magnitude <= 0f)
             return Vector2.zero;
 
-        Vector2 origin = _rb.position;
-        Vector2 direction = vFinal.normalized;
-        float skinRadius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
-        float distance = vector.magnitude;
+        var origin = _rb.position;
+        var direction = vFinal.normalized;
+        var skinRadius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
+        var distance = vector.magnitude;
 
         var hits = Physics2D.CircleCastAll(origin, skinRadius, direction, distance, mask);
         foreach (var hit in hits)
@@ -82,8 +82,8 @@ public class FixedMotor
             if (!hit.collider) continue;
             if (mask == Policy.enemyMask && !Policy.enemyAsBlocker) continue;
 
-            Vector2 n = hit.normal.normalized;
-            float dot = Vector2.Dot(vFinal, n);
+            var n = hit.normal.normalized;
+            var dot = Vector2.Dot(vFinal, n);
             if (Mathf.Abs(dot) > 0f && treatedAsBlocker)
                 vFinal -= dot * n;
         }
@@ -96,20 +96,20 @@ public class FixedMotor
     /// </summary>
     public void Depenetrate()
     {
-        LayerMask blockers = Policy.wallsMask;
+        var blockers = Policy.wallsMask;
         if (Policy.enemyAsBlocker)
             blockers |= Policy.enemyMask;
 
         ContactFilter2D filter = new() { useLayerMask = true, useTriggers = false };
         filter.SetLayerMask(blockers);
 
-        Collider2D[] overlaps = new Collider2D[8];
-        int count = _col.Overlap(filter, overlaps);
+        var overlaps = new Collider2D[8];
+        var count = _col.Overlap(filter, overlaps);
         if (count == 0)
             return;
 
-        Vector2 correction = Vector2.zero;
-        for (int i = 0; i < count; i++)
+        var correction = Vector2.zero;
+        for (var i = 0; i < count; i++)
         {
             var other = overlaps[i];
             if (!other) continue;
@@ -123,7 +123,7 @@ public class FixedMotor
         if (correction.sqrMagnitude < 1e-6f)
             return;
 
-        Vector2 newPos = _rb.position + correction;
+        var newPos = _rb.position + correction;
         _rb.MovePosition(newPos);
         _pos = new FixedVector2(newPos);
         _needsSync = true;

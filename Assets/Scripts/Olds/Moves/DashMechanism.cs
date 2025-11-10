@@ -34,9 +34,9 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 		var solution = TargetingRuntimeUtil.Resolve(owner, cam, p, explicitTarget, createAnchor: false, targetAlly: p.TargetSelf);
 		try
 		{
-			Transform dashTarget = solution.IsSyntheticTarget ? null : solution.Target;
-			Vector2 fallbackDir = solution.Direction.sqrMagnitude > 0f ? solution.Direction.normalized : (Vector2)owner.right;
-			float desiredDist = dashTarget ? Vector2.Distance(owner.position, dashTarget.position) : solution.Distance;
+			var dashTarget = solution.IsSyntheticTarget ? null : solution.Target;
+			var fallbackDir = solution.Direction.sqrMagnitude > 0f ? solution.Direction.normalized : (Vector2)owner.right;
+			var desiredDist = dashTarget ? Vector2.Distance(owner.position, dashTarget.position) : solution.Distance;
 			Debug.Log($"DashMechanism: 대시 대상 {dashTarget?.name ?? "null"}, fallbackDir {fallbackDir}, desiredDist {desiredDist}");
 			if (dashTarget && p.FallbackRange > 0f)
 			{
@@ -60,8 +60,8 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 				// Publish(new EffectApplyReq(Create(owner,"combat"), owner, new IFrameEffect(), p.iFrameDuration));
 			}
 
-			Vector2 dir0 = fallbackDir.sqrMagnitude > 1e-4f ? fallbackDir : (Vector2)owner.right;
-			float remaining = desiredDist;
+			var dir0 = fallbackDir.sqrMagnitude > 1e-4f ? fallbackDir : (Vector2)owner.right;
+			var remaining = desiredDist;
 
 			var basePolicy = motor.CurrentPolicy;
 			var dashPolicy = basePolicy;
@@ -75,10 +75,10 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 			using (motor.With(dashPolicy))
 			{
 				var hitIds = new HashSet<int>();
-				float elapsed = 0f;
-				float total = Mathf.Max(0.01f, p.duration);
+				var elapsed = 0f;
+				var total = Mathf.Max(0.01f, p.duration);
 
-				float tickDuration = 1f / Ticker.TicksPerSecond;
+				var tickDuration = 1f / Ticker.TicksPerSecond;
 
 				while (remaining > 0f)
 				{
@@ -87,16 +87,16 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 						// 센서 기반 확장을 위한 placeholder입니다.
 					}
 
-					float tNorm = Mathf.Clamp01(elapsed / total);
-					float nominalSpeed = (desiredDist / total) * p.speedCurve.Evaluate(tNorm);
-					float stepDist = Mathf.Min(remaining, nominalSpeed / Ticker.TicksPerSecond);
+					var tNorm = Mathf.Clamp01(elapsed / total);
+					var nominalSpeed = (desiredDist / total) * p.speedCurve.Evaluate(tNorm);
+					var stepDist = Mathf.Min(remaining, nominalSpeed / Ticker.TicksPerSecond);
 
 					Vector2 pos = owner.position;
-					Vector2 aim = dashTarget ? (Vector2)dashTarget.position - pos : fallbackDir;
-					Vector2 dir = aim.sqrMagnitude > 1e-4f ? aim.normalized : dir0;
+					var aim = dashTarget ? (Vector2)dashTarget.position - pos : fallbackDir;
+					var dir = aim.sqrMagnitude > 1e-4f ? aim.normalized : dir0;
 
 					motor.Depenetration();
-					int awaitedTick = motor.LastProcessedTick;
+					var awaitedTick = motor.LastProcessedTick;
 					motor.Move(new FixedVector2(dir * stepDist));
 					yield return new WaitUntil(() => motor.LastProcessedTick > awaitedTick);
 					motor.Depenetration();
@@ -108,7 +108,7 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 						var hits = Physics2D.OverlapCircleAll(owner.position, p.radius, p.enemyMask);
 						foreach (var c in hits)
 						{
-							int id = c.GetInstanceID();
+							var id = c.GetInstanceID();
 							if (hitIds.Contains(id)) continue;
 							if (c.TryGetComponent(out ActInterfaces.IVulnerable v))
 							{
@@ -129,7 +129,7 @@ public class DashMechanism : SkillMechanismBase<DashParams>, ITargetedMechanic
 
 					if (dashTarget && dashTarget.TryGetComponent<Collider2D>(out _))
 					{
-						float arrive = p.radius + p.skin;
+						var arrive = p.radius + p.skin;
 						if (((Vector2)dashTarget.position - (Vector2)owner.position).sqrMagnitude <= arrive * arrive)
 							break;
 					}

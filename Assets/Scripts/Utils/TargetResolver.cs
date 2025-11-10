@@ -88,11 +88,11 @@ public class TargetResolver : MonoBehaviour
     private TargetResolveResult ResolveTowardsEntity(TargetRequest req)
     {
         // 커서 위치에서 Collider 검색
-        Vector3 screenPos = Input.mousePosition;
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
+        var screenPos = Input.mousePosition;
+        var worldPos = Camera.main.ScreenToWorldPoint(screenPos);
         worldPos.z = 0f;
 
-        Collider2D hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
+        var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
         if (hit is null)
         {
             if (debugLog)
@@ -101,7 +101,7 @@ public class TargetResolver : MonoBehaviour
         }
 
         // 사거리 계산
-        float distance = Vector2.Distance(req.CasterPos.AsVector2, hit.transform.position);
+        var distance = Vector2.Distance(req.CasterPos.AsVector2, hit.transform.position);
         if (distance > req.MaxRange || distance < req.MinRange)
         {
             if (debugLog)
@@ -133,7 +133,7 @@ public class TargetResolver : MonoBehaviour
         }
 
         // 사거리 검사
-        float distance = Vector2.Distance(req.CasterPos.AsVector2, worldPos);
+        var distance = Vector2.Distance(req.CasterPos.AsVector2, worldPos);
         if (distance > req.MaxRange || distance < req.MinRange)
         {
             if (debugLog)
@@ -142,7 +142,7 @@ public class TargetResolver : MonoBehaviour
         }
 
         // 임시 Anchor 오브젝트 생성
-        GameObject anchor = anchorPrefab is null
+        var anchor = anchorPrefab is null
             ? Instantiate(anchorPrefab, worldPos, Quaternion.identity)
             : new GameObject("Anchor_Temp");
 

@@ -44,13 +44,6 @@ Teleport
 그런데 이게 너무 강해서 비대상 Teleport는 없었으면 좋겠음
 추가로 attackWidth가 있으면 순간이동 경로 상의 적을 공격하는 것
 
-Effect
-효과를 부여한다
-고유 params는 EffectType, endTick
-이건 아마 OnHit FollowUp으로 보는 게 가장 일반적인 기술이리라
-하지만 Damage Effect가 따로 있기 때문에(지딜이다) Attackable Skill로 분류되었다
-예전에는 분류에 따라 Priority가 있었고 Effect는 Priority 1000이었지만 지금은 없는 일
-
 #endregion
 
 #region ===== Util Skills =====
@@ -66,6 +59,22 @@ Gain
 대상에게 체력/마나/보호막/특수 보호막을 제공한다
 고유 params는 gainType, amount
 변동이 잦은 체력/마나 관련은 따로 빼어 경량화 알고리즘을 적용하는 게 나은 것 같았다
+
+#endregion
+
+#region ===== Interact Skills =====
+
+Damage
+피해를 직접 가한다
+고유 params는 value, apratio, amplitude, type
+다른 Mechanism은 일단 "타깃을 식별" 하는 것이고, 피해는 Damage가 따로 준다
+이렇게 하면 계수 설정하기도 좋고 일반화도 더 잘 돼서(피해가 없는 기술의 경우 간단하게 Damage를 안 붙이면 됨) 좋은 듯
+한 Mechanism이 여러 개의 Damage FollowUp을 동시에 가질 경우에는 Param을 다르게 적용할 수 없는 문제가 있다(특히 복합 피해가 문제)
+
+Stack
+중첩을 적용한다
+고유 params는 stack, amount
+Effect를 Stack의 하위로 두기로 결정하였기에 Effect Mechanism도 Stack Mechanism으로 확장되었다
 
 #endregion
 

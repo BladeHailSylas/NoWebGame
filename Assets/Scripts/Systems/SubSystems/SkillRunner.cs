@@ -13,8 +13,8 @@ public class SkillRunner
     {
         //Enforce maximum chain depth
         //Determine target
-        Transform target = cmd.Target;
-        FixedVector2 anchor = cmd.CastPosition;
+        var target = cmd.Target;
+        var anchor = cmd.CastPosition;
 
         if (target is null)
         {
@@ -43,8 +43,8 @@ public class SkillRunner
         //Enforce maximum chain depth
 
         //Determine target
-        Transform target = cmd.Target;
-        FixedVector2 anchor = cmd.CastPosition;
+        var target = cmd.Target;
+        var anchor = cmd.CastPosition;
 
         if (target is null)
         {

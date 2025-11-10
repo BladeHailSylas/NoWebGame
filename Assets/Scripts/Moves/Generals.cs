@@ -29,6 +29,11 @@ public interface INewMechanism
     void Execute(CastContext ctx);
 }
 
+public interface ISystemMechanism : INewMechanism
+{
+    
+}
+
 public interface INewParams
 {
     short CooldownTicks { get; }

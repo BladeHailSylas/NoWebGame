@@ -57,13 +57,13 @@ public class AreaEntity : MonoBehaviour
     {
         if (areaShape is CircleArea circle)
         {
-            Vector2 worldCenter = circle.CenterCoordinate.AsVector2;
-            float radius = circle.Radius / 1000f;
+            var worldCenter = circle.CenterCoordinate.AsVector2;
+            var radius = circle.Radius / 1000f;
             // 물리 감지 (Player/Enemy 등 대상 레이어 필터 적용 가능)
             var results = Physics2D.OverlapCircleAll(worldCenter, radius, LayerMask.GetMask("Foe"));
             foreach (var col in results)
             {
-                var entity = col.GetComponent<Entity>();
+                col.TryGetComponent<Entity>(out var entity);
                 if (entity is null) continue;
 
                 // OnHit FollowUp 실행
@@ -79,13 +79,13 @@ public class AreaEntity : MonoBehaviour
         }
         else if (areaShape is BoxArea box)
         {
-            Vector2 center = box.CenterCoordinate.AsVector2;
+            var center = box.CenterCoordinate.AsVector2;
             Vector2 size = new(box.Height / 1000f, box.Width / 1000f);
 
             var results = Physics2D.OverlapBoxAll(center, size, 0f, LayerMask.GetMask("Foe"));
             foreach (var col in results)
             {
-                var entity = col.GetComponent<Entity>();
+                col.TryGetComponent<Entity>(out var entity);
                 if (entity is null) continue;
 
                 foreach (var followup in onInterval)
@@ -103,7 +103,7 @@ public class AreaEntity : MonoBehaviour
     public IEnumerator Expire()
     {
         Ticker.Instance.OnTick -= TickHandler;
-        Debug.Log($"{intervalActivated} times of activation");
+        //Debug.Log($"{intervalActivated} times of activation");
         foreach (var followup in onExpire)
         {
             if (followup.mechanism is not INewMechanism mech) continue;

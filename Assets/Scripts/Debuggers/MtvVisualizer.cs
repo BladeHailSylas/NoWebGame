@@ -37,13 +37,13 @@ public sealed class NormalMtvVisualizer2D : MonoBehaviour
         _avgNormal = Vector2.zero; _mtvDir = Vector2.zero; _intruding = false; _minDist = float.PositiveInfinity;
 
         var cols = Physics2D.OverlapCircleAll(pos, probeRadius, wallsMask);
-        int n = 0; float best = float.PositiveInfinity;
+        var n = 0; var best = float.PositiveInfinity;
 
         foreach (var c in cols)
         {
-            Vector2 p = c.ClosestPoint(pos);
-            Vector2 v = (Vector2)pos - p;
-            float d = v.magnitude;
+            var p = c.ClosestPoint(pos);
+            var v = (Vector2)pos - p;
+            var d = v.magnitude;
 
             if (d <= nearThreshold) _intruding = true;
             if (d < best) best = d;
@@ -84,8 +84,8 @@ public sealed class NormalMtvVisualizer2D : MonoBehaviour
     {
         var a = (Vector3)dir.normalized * len;
         Gizmos.DrawLine(o, o + a);
-        Vector3 right = Quaternion.Euler(0, 0, +25f) * (-a.normalized);
-        Vector3 left = Quaternion.Euler(0, 0, -25f) * (-a.normalized);
+        var right = Quaternion.Euler(0, 0, +25f) * (-a.normalized);
+        var left = Quaternion.Euler(0, 0, -25f) * (-a.normalized);
         Gizmos.DrawLine(o + a, o + a + right * (len * 0.25f));
         Gizmos.DrawLine(o + a, o + a + left * (len * 0.25f));
     }

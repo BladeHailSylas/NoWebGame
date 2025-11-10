@@ -49,8 +49,8 @@ public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더
 
 	public void TakeDamage(DamageData data)
 	{
-		double nowHealth = Health;
-		double damage = data.Attack * data.Value / 100.0;
+		var nowHealth = Health;
+		var damage = data.Attack * data.Value / 100.0;
 		switch (data.Type)
 		{
 			case DamageType.MaxPercent:
@@ -68,10 +68,10 @@ public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더
 		else
 		{
 			double armor = Armor;                      // Defender’s armor stat
-			double ap = data.APRatio;          // Convert % to 0–1
+			var ap = data.APRatio;          // Convert % to 0–1
 			double reduction = 1;
-			double effectiveArmor = armor * (1.0 - ap);
-			double mitigation = 8000.0 / (8000 + effectiveArmor);
+			var effectiveArmor = armor * (1.0 - ap);
+			var mitigation = 8000.0 / (8000 + effectiveArmor);
 			damage = Math.Round(damage * mitigation * reduction);
 			//Debug.Log($"Enemy has: 8000 / (8000 + {armor} * (1.0 - {ap})) = {mitigation}");
 			Health = Math.Max(0D, Health - damage);
