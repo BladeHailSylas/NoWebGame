@@ -1,10 +1,5 @@
 using System.Collections.Generic;
-using System.Diagnostics;
-using ActInterfaces;
-using EffectInterfaces;
 using SkillInterfaces;
-using StatsInterfaces;
-using Unity.Properties;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
@@ -62,7 +57,7 @@ public sealed class PlayerEntity : Entity, IEntity
         _actController = new PlayerActController(_context, _statsBridge, _effect, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
         _attackController = new PlayerAttackController(_context, transform, BuildSkillDictionary(), commandCollector);
         _playerInputBinder = new PlayerInputBinder(_actController, _attackController);
-        _stackManager = new();
+        _stackManager = new(_context);
 
         _context.RegisterStats(_statsBridge);
         _context.RegisterEffects(_effect);
@@ -144,8 +139,8 @@ public sealed class PlayerEntity : Entity, IEntity
     {
         _playerInputBinder.Tick(tick);
         _statsBridge.Tick(tick);
-
-        if (tick % 60 == 0)
+        _stackManager.Tick(tick);
+        if (tick % 60 is 0)
         {
             Dev(tick);
         }
@@ -153,7 +148,10 @@ public sealed class PlayerEntity : Entity, IEntity
 
     private void Dev(ushort tick)
     {
-        
+        if (StackRegistry.Instance.StackStorage.TryGetValue("아누비스신", out var stack))
+        {
+            ApplyStack(new StackKey(stack, gameObject.name), tick);
+        }
     }
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
@@ -225,9 +223,9 @@ public sealed class PlayerEntity : Entity, IEntity
         Debug.Log("Stakataka");
     }
 
-    public void ApplyStack(StackKey stackKey)
+    public void ApplyStack(StackKey stackKey, ushort tick, int amount = 1)
     {
-        Debug.Log($"Staka{stackKey.def.displayName}taka");
+        _stackManager.ApplyStack(stackKey, amount, tick);
     }
 }
 

@@ -1,64 +1,128 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class PlayerStackManager
 {
-    public readonly Dictionary<StackKey, StackStatus> StackStorage = new();
-    public readonly Dictionary<ushort, List<StackKey>> ExpirableStacks = new();
+    private ushort _lastTick;
+    private readonly PlayerContext _context;
+    public PlayerStackManager(PlayerContext ctx)
+    {
+        _context = ctx;
+    }
+
+    private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
+    private Dictionary<ushort, List<StackKey>> _expirable = new();
+
+    public void Tick(ushort tick)
+    {
+        if (_lastTick < tick)
+        {
+            for (ushort t = (ushort)(_lastTick + 1); t <= tick; t++)
+                CacheStack(t);
+        }
+        else // overflow 발생
+        {
+            for (ushort t = (ushort)(_lastTick + 1); t != 0; t++)
+                CacheStack(t);
+            for (ushort t = 0; t <= tick; t++)
+                CacheStack(t);
+        }
+        _lastTick = tick;
+    }
+    
+    #region ===== Apply =====
     public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort duration = 0)
     {
-        var endAt = endTick(tick, duration == 0 ? stackKey.def.defaultDuration : duration);
-        var total = totalStack(stackKey.def.maxStacks, amount);
+        var endAt = EndTick(tick, duration == 0 ? stackKey.def.duration : duration);
+        var total = TotalStack(stackKey.def.maxStacks, amount);
         AddExpiration(stackKey, endAt);
-        if (StackStorage.ContainsKey(stackKey))
+        if (_stackStorage.ContainsKey(stackKey))
         {
             //total = Math.Min(total + CurrentStacks[stackKey].amount, stackKey.def.maxStacks);
-            total = totalStack(stackKey.def.maxStacks, total, StackStorage[stackKey].Amount);
-            StackStorage[stackKey] = new StackStatus(total, tick, endAt);
+            total = TotalStack(stackKey.def.maxStacks, total, _stackStorage[stackKey].Amount);
+            _stackStorage[stackKey] = new StackStatus(total, tick, endAt);
         }
         else
         {
-            StackStorage.Add(stackKey, new StackStatus(total, tick, endAt));
+            _stackStorage.Add(stackKey, new StackStatus(total, tick, endAt));
         }
+        ResolveApply(stackKey, amount);
     }
-
-    public void CacheStack(ushort tick)
-    {
-        if (!ExpirableStacks.TryGetValue(tick, out var list)) return;
-        foreach (var key in list)
-        {
-            ExpirableStacks[tick].Remove(key);
-            StackStorage[key] = new StackStatus(0, tick, 0);
-        }
-    }
-
-    public void AddExpiration(StackKey key, ushort expireTick)
+    
+    private void AddExpiration(StackKey key, ushort expireTick)
     {
         if (expireTick == 65535) return;
         // 1️⃣ 기존 만료 tick이 존재하는가?
-        if (StackStorage.TryGetValue(key, out var status))
+        if (_stackStorage.TryGetValue(key, out var status))
         {
             ushort oldExpireTick = status.ExpireAt;
 
-            if (ExpirableStacks.TryGetValue(oldExpireTick, out var oldList))
+            if (_expirable.TryGetValue(oldExpireTick, out var oldList))
             {
                 oldList.Remove(key);
                 if (oldList.Count == 0)
-                    ExpirableStacks.Remove(oldExpireTick);
+                    _expirable.Remove(oldExpireTick);
             }
         }
 
         // 2️⃣ 새 tick으로 재등록
-        if (!ExpirableStacks.TryGetValue(expireTick, out var list))
-            ExpirableStacks[expireTick] = list = new List<StackKey>();
+        if (!_expirable.TryGetValue(expireTick, out var list))
+            _expirable[expireTick] = list = new List<StackKey>();
 
         list.Add(key);
     }
+    #endregion
+    
+    #region ===== Cache =====
 
+    private void CacheStack(ushort tick)
+    {
+        if (!_expirable.TryGetValue(tick, out var list)) 
+            return;
+
+        foreach (var key in list)
+        {
+            ResolveCache(key);
+            _stackStorage[key] = new StackStatus(0, tick, 0);
+        }
+        list.Clear();
+        _expirable.Remove(tick);
+    }
+    #endregion
+    
+    #region ===== Stack Resolve =====
+
+    private void ResolveApply(StackKey stack, int amp = 1)
+    {
+        switch (stack.def)
+        {
+            case VariableDefinition:
+                break;
+            case BuffStackDefinition buff:
+                _context.Stats.TryApply(new BuffData(buff.Type, buff.Value * amp, buff.displayName));
+                break;
+        }
+    }
+
+    private void ResolveCache(StackKey stack)
+    {
+        switch (stack.def)
+        {
+            case VariableDefinition:
+                break;
+            case BuffStackDefinition buff:
+                _context.Stats.TryRemove(new BuffData(buff.Type, buff.Value * _stackStorage[stack].Amount, buff.displayName));
+                break;
+        }
+    }
+    
+    #endregion
+    
     #region ===== Utils =====
-    public ushort endTick(ushort tick, ushort duration)
+    
+
+    private ushort EndTick(ushort tick, ushort duration)
     {
         if (duration == 65535 || tick + duration < tick) //tick + duration < tick => overflow
         {
@@ -68,7 +132,7 @@ public class PlayerStackManager
         return (ushort)(tick + duration);
     }
 
-    public int totalStack(int max, params int[] applies)
+    private int TotalStack(int max, params int[] applies)
     {
         int total = 0;
         foreach (var n in applies)

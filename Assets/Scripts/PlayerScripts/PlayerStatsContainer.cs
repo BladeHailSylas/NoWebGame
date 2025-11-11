@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using StatsInterfaces;
 using EffectInterfaces;
+using JetBrains.Annotations;
 using UnityEngine;
 
 public sealed class PlayerStatsContainer
@@ -209,13 +210,13 @@ public sealed class PlayerStatsContainer
 
             // 방어 관통 (리스트 추가)
             [EffectType.APBoost] = (self, buff) => {
-                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp(buff.Value, 0, 100);
                 self.ArmorPenetration.Add(value);
             },
 
             // 피해 감소 (리스트 추가)
             [EffectType.DRBoost] = (self, buff) => {
-                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp(buff.Value, 0, 100);
                 self.DamageReduction.Add(value);
             },
 
@@ -247,13 +248,13 @@ public sealed class PlayerStatsContainer
 
             // 방어 관통 (리스트 추가)
             [EffectType.APBoost] = (self, buff) => {
-                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp(buff.Value, 0, 100);
                 self.ArmorPenetration.Remove(value);
             },
 
             // 피해 감소 (리스트 추가)
             [EffectType.DRBoost] = (self, buff) => {
-                var value = (byte)Math.Clamp((int)buff.Value, 0, 100);
+                var value = (byte)Math.Clamp(buff.Value, 0, 100);
                 self.DamageReduction.Remove(value);
             },
 
@@ -276,9 +277,9 @@ public readonly struct BuffData
 {
     public readonly string Name;
     public readonly EffectType Type;
-    public readonly byte Value;
+    public readonly int Value;
 
-    public BuffData(string name, EffectType type, byte value)
+    public BuffData(EffectType type, int value, string name = "Buff")
     {
         Name = name;
         Type = type;

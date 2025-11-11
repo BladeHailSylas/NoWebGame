@@ -46,11 +46,13 @@ public sealed class PlayerStatsBridge
 
     public void TryApply(BuffData data)
     {
+        //Debug.Log($"I am applying {data.Name}({data.Type}, {data.Value}%)");
         Stats.TryApply(data);
     }
 
     public void TryRemove(BuffData data)
     {
+        //Debug.Log($"I am removing {data.Name}({data.Type}, {data.Value}%)");
         Stats.TryRemove(data);
     }
 }
