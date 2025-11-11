@@ -1,18 +1,18 @@
 using System;
 using UnityEngine;
 
-public readonly struct StackProperty : IEquatable<StackProperty>
+public readonly struct StackKey : IEquatable<StackKey>
 {
     public readonly StackDefinition def;
     public readonly string applierName;
 
-    public StackProperty(StackDefinition defi, string applier = "The World")
+    public StackKey(StackDefinition defi, string applier = "The World")
     {
         def = defi;
         applierName = applier;
     }
 
-    public bool Equals(StackProperty other)
+    public bool Equals(StackKey other)
     {
         return Equals(def, other.def) && Equals(applierName,  other.applierName);
     }
@@ -25,13 +25,13 @@ public readonly struct StackProperty : IEquatable<StackProperty>
 
 public readonly struct StackStatus
 {
-    public readonly int amount;
-    public readonly ushort appliedAt;
-    public readonly ushort expireAt;
+    public readonly int Amount;
+    public readonly ushort AppliedAt;
+    public readonly ushort ExpireAt;
     public StackStatus(int amounts, ushort appliedTick, ushort expireTick)
     {
-        amount = amounts;
-        appliedAt = appliedTick;
-        expireAt = expireTick;
+        Amount = amounts;
+        AppliedAt = appliedTick;
+        ExpireAt = expireTick;
     }
 }

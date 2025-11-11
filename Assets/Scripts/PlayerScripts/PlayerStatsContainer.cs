@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using StatsInterfaces;
 using EffectInterfaces;
+using UnityEngine;
 
 public sealed class PlayerStatsContainer
 {
@@ -66,57 +67,71 @@ public sealed class PlayerStatsContainer
         if (stat == ReduceType.Mana)
         {
             Mana = Math.Max(0, Mana - amount);
-            return;
         }
-
-        ApplyDamage(amount, apRatio, type);
     }
 
-    private void ApplyDamage(int damage, int apRatio = 0, DamageType type = DamageType.Normal)
+    public void ReduceStat(ReduceType stat, DamageData data)
     {
-        if (IsDead || damage <= 0) return;
+        if (stat == ReduceType.Health)
+        {
+            ApplyDamage(data);
+        }
+    }
+
+    private void ApplyDamage(DamageData data)
+    {
+        if (IsDead || data.Value <= 0) return;
 
         // -- Percent damage types --
-        switch (type)
+        var damage = data.Attack * data.Value / 100.0;
+        switch (data.Type)
         {
-            case DamageType.CurrentPercent: damage = Health * damage / 100; break;
-            case DamageType.LostPercent: damage = (MaxHealth - Health) * damage / 100; break;
-            case DamageType.MaxPercent: damage = MaxHealth * damage / 100; break;
+            case DamageType.MaxPercent:
+                damage = Math.Round((double)MaxHealth * data.Value / 100);
+                break;
+            case DamageType.CurrentPercent:
+                damage = Math.Round((double)Health * data.Value / 100);
+                break;
+            case DamageType.LostPercent:
+                damage = Math.Round(((double)MaxHealth - Health) * data.Value / 100);
+                break;
         }
 
         // -- Armor & reduction --
-        if (type != DamageType.Fixed)
-            damage = (int)(damage * DamageReductionCalc(Armor, apRatio, TotalDamageReduction()));
+        if (data.Type != DamageType.Fixed)
+            damage = (int)(damage * DamageReductionCalc(Armor, data.APRatio, TotalDamageReduction() * data.Amplitude));
 
         // -- Apply shield layers --
         var remaining = damage;
 
         if (SpecialShield > 0)
         {
-            var used = Math.Min(SpecialShield, remaining);
+            var used = (int)Math.Min(SpecialShield, remaining);
             SpecialShield -= used;
             remaining -= used;
         }
 
         if (remaining > 0 && Shield > 0)
         {
-            var used = Math.Min(Shield, remaining);
+            var used = (int)Math.Min(Shield, remaining);
             Shield -= used;
             remaining -= used;
         }
 
         if (remaining > 0)
         {
-            Health = Math.Max(0, Health - remaining);
+            Health = (int)Math.Max(0, Health - remaining);
             if (Health <= 0)
                 IsDead = true;
         }
+
+        Debug.Log($"{damage} oof, {SpecialShield} {Shield} {Health}");
     }
 
     // ===== Math Helpers =====
-    private double DamageReductionCalc(int armor, int apRatio = 0, double damageRatio = 1)
+    private double DamageReductionCalc(int armor, double apRatio = 0, double damageRatio = 1)
     {
-        return (80.0 / (80.0 + armor * (1 - apRatio / 100.0))) * damageRatio;
+        return 8000 / (8000 + armor * (1 - apRatio)) * damageRatio;
     }
 
     public double TotalArmorPenetration()

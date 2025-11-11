@@ -8,7 +8,7 @@ public sealed class PlayerInstaller : MonoBehaviour
 
     private void Awake()
     {
-        if (spec == null || playerEntity == null)
+        if (spec is null || playerEntity is null)
         {
             Debug.LogError("[PlayerInstaller] Missing spec or player script reference.");
             return;

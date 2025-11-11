@@ -1,4 +1,6 @@
+using System;
 using StatsInterfaces;
+using UnityEngine;
 
 /// <summary>
 /// Maintains the player's runtime statistics and exposes helper methods for
@@ -20,13 +22,6 @@ public sealed class PlayerStatsBridge
     {
         Stats.TickRegen(deltaMs);
     }
-
-    public void ApplyDamage(int amount, int apRatio = 0, DamageType type = DamageType.Normal)
-    {
-        Stats.ReduceStat(ReduceType.Health, amount, apRatio, type);
-        _context.Logger.Info($"Damage applied: {amount}, HP {Stats.Health}/{Stats.MaxHealth}.");
-    }
-
     public double AP() => Stats.TotalArmorPenetration();
     public double DR() => Stats.TotalDamageReduction();
     public double DA() => Stats.TotalDamageAmplitude();
@@ -35,13 +30,16 @@ public sealed class PlayerStatsBridge
     {
         Stats.ReduceStat(ReduceType.Mana, amount);
     }
-
+    public void TakeDamage(DamageData data)
+    {
+        Stats.ReduceStat(ReduceType.Health, data);
+    }
     public void ResetStats()
     {
         Stats.ResetToBase();
     }
 
-    public void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
+    private void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
     {
         Stats.ReduceStat(stat, amount, apRatio, type);
     }
@@ -50,6 +48,7 @@ public sealed class PlayerStatsBridge
     {
         Stats.TryApply(data);
     }
+
     public void TryRemove(BuffData data)
     {
         Stats.TryRemove(data);

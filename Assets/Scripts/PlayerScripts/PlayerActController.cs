@@ -39,18 +39,6 @@ public sealed class PlayerActController
         _motor.Move(move.Normalized * speed);
         _motor.Depenetrate();
     }
-
-    public void TakeDamage(int damage, int apratio, DamageType type)
-    {
-        _stats.ReduceStat(ReduceType.Health, damage, apratio, type);
-        _context.Logger.Info($"Damage taken: {damage} ({type}).");
-    }
-
-    public void TakeDamage(DamageData data)
-    {
-        //TakeDamage(data.Value, data.APRatio, data.Type);
-    }
-
     public void Die()
     {
         _context.Logger.Warn("Player death triggered. Implement respawn flow when ready.");

@@ -13,7 +13,7 @@ public readonly struct DamageData
     public readonly double APRatio;
     public readonly double Amplitude;
 
-    public DamageData(StatsInterfaces.DamageType type, int attack, int value = 1, double apRatio = 0, double amplitude = 100)
+    public DamageData(StatsInterfaces.DamageType type, int attack, int value = 1, double apRatio = 0, double amplitude = 1)
     {
         Type = type;
         Attack = attack;

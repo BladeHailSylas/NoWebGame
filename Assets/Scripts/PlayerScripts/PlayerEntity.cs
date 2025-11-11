@@ -153,7 +153,7 @@ public sealed class PlayerEntity : Entity, IEntity
 
     private void Dev(ushort tick)
     {
-        _stackManager.ApplyStack(new StackProperty(StackRegistry.Instance.Stacks[0]), 1, tick);
+        
     }
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
@@ -210,15 +210,9 @@ public sealed class PlayerEntity : Entity, IEntity
     {
         spec = newSpec;
     }
-
-    public void TakeDamage(int damage, int apRatio = 0, DamageType type = DamageType.Normal)
-    {
-        _actController.TakeDamage(damage, apRatio, type);
-    }
-
     public void TakeDamage(DamageData damage)
     {
-        _actController.TakeDamage(damage);
+        _statsBridge.TakeDamage(damage);
     }
     public void Die()
     {
@@ -231,9 +225,9 @@ public sealed class PlayerEntity : Entity, IEntity
         Debug.Log("Stakataka");
     }
 
-    public void ApplyStack(StackProperty stackProperty)
+    public void ApplyStack(StackKey stackKey)
     {
-        Debug.Log($"Staka{stackProperty.def.displayName}taka");
+        Debug.Log($"Staka{stackKey.def.displayName}taka");
     }
 }
 
