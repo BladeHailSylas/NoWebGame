@@ -56,3 +56,25 @@ public sealed class PlayerStatsBridge
         Stats.TryRemove(data);
     }
 }
+
+public readonly struct BaseStatsContainer
+{
+    public readonly int BaseHp;
+    public readonly int BaseHpGen;
+    public readonly int BaseMana;
+    public readonly int BaseManaGen;
+    public readonly int BaseAttack;
+    public readonly int BaseDefense;
+    public readonly int BaseSpeed;
+
+    public BaseStatsContainer(int bhp, int hpg, int bmp, int mpg, int bad, int bar, int bsp)
+    {
+        BaseHp = bhp;
+        BaseHpGen = hpg;
+        BaseMana = bmp;
+        BaseManaGen = mpg;
+        BaseAttack = bad;
+        BaseDefense = bar;
+        BaseSpeed = bsp;
+    }
+}

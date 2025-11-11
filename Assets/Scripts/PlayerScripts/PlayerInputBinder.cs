@@ -10,11 +10,11 @@ using UnityEngine;
 [System.Obsolete]
 public sealed class PlayerInputBinder
 {
-    private readonly PlayerActController _actor;
-    private readonly PlayerAttackController _attacker;
+    private readonly PlayerMover _actor;
+    private readonly PlayerAttacker _attacker;
     private Vector2 _inputVector;
 
-    public PlayerInputBinder(PlayerActController actor, PlayerAttackController attacker)
+    public PlayerInputBinder(PlayerMover actor, PlayerAttacker attacker)
     {
         _actor = actor;
         _attacker = attacker;

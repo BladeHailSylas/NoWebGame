@@ -7,13 +7,13 @@ using UnityEngine;
 /// Coordinates player attacks by resolving skill bindings and enqueueing
 /// commands to the shared command collector.
 /// </summary>
-public sealed class PlayerAttackController
+public sealed class PlayerAttacker
 {
     private readonly PlayerContext _context;
     private readonly CommandCollector _collector;
     private readonly Transform _caster;
     private readonly Dictionary<SkillSlot, SkillBinding> _skills;
-    public PlayerAttackController(PlayerContext context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
+    public PlayerAttacker(PlayerContext context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
     {
         _context = context;
         _caster = caster;

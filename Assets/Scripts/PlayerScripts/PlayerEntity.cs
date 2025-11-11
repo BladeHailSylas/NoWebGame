@@ -22,8 +22,8 @@ public sealed class PlayerEntity : Entity, IEntity
     private PlayerContext _context;
     private PlayerStatsBridge _statsBridge;
     private PlayerEffect _effect;
-    private PlayerActController _actController;
-    private PlayerAttackController _attackController;
+    private PlayerMover _mover;
+    private PlayerAttacker _attacker;
     private PlayerInputBinder _playerInputBinder;
     private PlayerStackManager _stackManager;
 
@@ -54,9 +54,9 @@ public sealed class PlayerEntity : Entity, IEntity
 
         _statsBridge = new PlayerStatsBridge(_context, baseStats);
         _effect = new PlayerEffect(_context);
-        _actController = new PlayerActController(_context, _statsBridge, _effect, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
-        _attackController = new PlayerAttackController(_context, transform, BuildSkillDictionary(), commandCollector);
-        _playerInputBinder = new PlayerInputBinder(_actController, _attackController);
+        _mover = new PlayerMover(_context, _statsBridge, _effect, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
+        _attacker = new PlayerAttacker(_context, transform, BuildSkillDictionary(), commandCollector);
+        _playerInputBinder = new PlayerInputBinder(_mover, _attacker);
         _stackManager = new(_context);
 
         _context.RegisterStats(_statsBridge);
