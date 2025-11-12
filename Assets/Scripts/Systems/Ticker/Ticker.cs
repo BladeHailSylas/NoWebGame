@@ -18,7 +18,7 @@ public sealed class Ticker
 	public Ticker()
 	{
 		Reset();
-		Debug.Log("Ticker here");
+		//Debug.Log("Ticker here");
 		Instance ??= this;
 	}
 	public void Schedule(byte ticksFromNow, Action<int> action) //ticksFromNow is byte since max delay is 120 ticks(2 seconds), the smaller the better for memory and packet size

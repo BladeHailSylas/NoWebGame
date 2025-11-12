@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[DefaultExecutionOrder(-100)]
+[DefaultExecutionOrder(-100), System.Obsolete]
 public sealed class PlayerInstaller : MonoBehaviour
 {
     [SerializeField] private CharacterSpec spec;

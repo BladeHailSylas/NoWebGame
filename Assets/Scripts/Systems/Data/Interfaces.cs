@@ -20,7 +20,7 @@ namespace EffectInterfaces
 {
 	public enum EffectType
 	{
-		Stack = 0, Haste, DamageBoost, ArmorBoost, APBoost, DRBoost, Invisibility, Invincible, Slow, Stun, Suppressed, Root, Tumbled, Damage //Damage는 지속 피해, duration을 0으로 하면 즉시 피해도 가능함
+		Stack = 0, Haste, DamageBoost, ArmorBoost, APBoost, DRBoost, Invisibility, Invincible, Slow, Stunned, Suppressed, Rooted, Tumbled, Damage //Damage는 지속 피해, duration을 0으로 하면 즉시 피해도 가능함
 	}
 	public class EffectState
 	{

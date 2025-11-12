@@ -15,7 +15,7 @@ public sealed class PlayerContext
     public IPlayerLogger Logger { get; }
 
     public PlayerStatsBridge Stats { get; private set; }
-    public PlayerEffect Effect { get; private set; }
+    public PlayerActBridge Act { get; private set; }
     
     public PlayerStackManager StackManager { get; private set; }
 
@@ -35,9 +35,9 @@ public sealed class PlayerContext
         Stats = stats;
     }
 
-    public void RegisterEffects(PlayerEffect effect)
+    public void RegisterAct(PlayerActBridge bridge)
     {
-        Effect = effect;
+        Act = bridge;
     }
 
     public void RegisterStackManager(PlayerStackManager stackManager)

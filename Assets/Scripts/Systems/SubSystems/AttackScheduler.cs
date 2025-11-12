@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerStackManager
+public class AttackScheduler
 {
     private ushort _lastTick;
     private readonly PlayerContext _context;
-    public PlayerStackManager(PlayerContext ctx)
+    public AttackScheduler(PlayerContext ctx)
     {
         _context = ctx;
     }
@@ -25,7 +25,8 @@ public class PlayerStackManager
         {
             for (ushort t = (ushort)(_lastTick + 1); t != 0; t++)
                 CacheStack(t);
-            for (ushort t = 0; t <= tick; t++)
+            CacheStack(0); // overflow 직후 tick 0 처리
+            for (ushort t = 1; t <= tick; t++)
                 CacheStack(t);
         }
         _lastTick = tick;
@@ -80,8 +81,8 @@ public class PlayerStackManager
     {
         if (!_expirable.TryGetValue(tick, out var list)) 
             return;
-
-        foreach (var key in list)
+        var cached = new List<StackKey>(list);
+        foreach (var key in cached)
         {
             ResolveCache(key);
             _stackStorage[key] = new StackStatus(0, tick, 0);

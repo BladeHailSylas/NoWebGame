@@ -24,7 +24,7 @@ public sealed class PlayerEntity : Entity, IEntity
     private PlayerEffect _effect;
     private PlayerMover _mover;
     private PlayerAttacker _attacker;
-    private PlayerInputBinder _playerInputBinder;
+    private PlayerActBridge _playerActBridge;
     private PlayerStackManager _stackManager;
 
     private void Awake()
@@ -56,11 +56,11 @@ public sealed class PlayerEntity : Entity, IEntity
         _effect = new PlayerEffect(_context);
         _mover = new PlayerMover(_context, _statsBridge, _effect, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
         _attacker = new PlayerAttacker(_context, transform, BuildSkillDictionary(), commandCollector);
-        _playerInputBinder = new PlayerInputBinder(_mover, _attacker);
+        _playerActBridge = new PlayerActBridge(_mover, _attacker);
         _stackManager = new(_context);
 
         _context.RegisterStats(_statsBridge);
-        _context.RegisterEffects(_effect);
+        _context.RegisterAct(_playerActBridge);
         _context.RegisterStackManager(_stackManager);
 
         _controls = new InputSystem_Actions();
@@ -127,7 +127,7 @@ public sealed class PlayerEntity : Entity, IEntity
             _controls.Disable();
         }
 
-        _playerInputBinder?.ClearMovementInput();
+        _playerActBridge?.ClearMovementInput();
 
         if (Ticker.Instance != null)
         {
@@ -137,9 +137,9 @@ public sealed class PlayerEntity : Entity, IEntity
 
     private void TickHandler(ushort tick)
     {
-        _playerInputBinder.Tick(tick);
-        _statsBridge.Tick(tick);
         _stackManager.Tick(tick);
+        _playerActBridge.Tick(tick);
+        _statsBridge.Tick(tick);
         if (tick % 60 is 0)
         {
             Dev(tick);
@@ -148,45 +148,41 @@ public sealed class PlayerEntity : Entity, IEntity
 
     private void Dev(ushort tick)
     {
-        if (StackRegistry.Instance.StackStorage.TryGetValue("아누비스신", out var stack))
-        {
-            ApplyStack(new StackKey(stack, gameObject.name), tick);
-        }
     }
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
         //Debug.Log($"Got {ctx.ReadValue<Vector2>()}");
-        _playerInputBinder.SetMovementInput(ctx.ReadValue<Vector2>());
+        _playerActBridge.SetMovementInput(ctx.ReadValue<Vector2>());
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
-        _playerInputBinder.ClearMovementInput();
+        _playerActBridge.ClearMovementInput();
     }
 
     private void OnAttackPrepared(InputAction.CallbackContext ctx)
     {
-        _playerInputBinder.PrepareAttack(SkillSlot.Attack);
+        _playerActBridge.PrepareAttack(SkillSlot.Attack);
     }
 
     private void OnAttackReleased(InputAction.CallbackContext ctx)
     {
-        _playerInputBinder.ExecuteAttack(SkillSlot.Attack);
+        _playerActBridge.ExecuteAttack(SkillSlot.Attack);
     }
 
     private void OnSkill1Released(InputAction.CallbackContext ctx)
     {
-        _playerInputBinder.ExecuteAttack(SkillSlot.Skill1);
+        _playerActBridge.ExecuteAttack(SkillSlot.Skill1);
     }
 
     private void OnSkill2Released(InputAction.CallbackContext ctx)
     {
-        _playerInputBinder.ExecuteAttack(SkillSlot.Skill2);
+        _playerActBridge.ExecuteAttack(SkillSlot.Skill2);
     }
 
     private void OnUltimateReleased(InputAction.CallbackContext ctx)
     {
-        _playerInputBinder.ExecuteAttack(SkillSlot.Ultimate);
+        _playerActBridge.ExecuteAttack(SkillSlot.Ultimate);
     }
 
     private Dictionary<SkillSlot, SkillBinding> BuildSkillDictionary()

@@ -20,9 +20,9 @@ public sealed class PlayerEffect
 
     public Dictionary<EffectType, EffectState> EffectList { get; } = new();
     public HashSet<EffectType> PositiveEffects { get; } = new() { EffectType.Haste, EffectType.DamageBoost, EffectType.ArmorBoost, EffectType.APBoost, EffectType.DRBoost, EffectType.Invisibility, EffectType.Invincible };
-    public HashSet<EffectType> NegativeEffects { get; } = new() { EffectType.Slow, EffectType.Stun, EffectType.Suppressed, EffectType.Root, EffectType.Tumbled, EffectType.Damage };
-    public HashSet<EffectType> DisturbEffects { get; } = new() { EffectType.Slow, EffectType.Stun, EffectType.Suppressed, EffectType.Root, EffectType.Tumbled };
-    public HashSet<EffectType> CcEffects { get; } = new() { EffectType.Stun, EffectType.Suppressed, EffectType.Root, EffectType.Tumbled };
+    public HashSet<EffectType> NegativeEffects { get; } = new() { EffectType.Slow, EffectType.Stunned, EffectType.Suppressed, EffectType.Rooted, EffectType.Tumbled, EffectType.Damage };
+    public HashSet<EffectType> DisturbEffects { get; } = new() { EffectType.Slow, EffectType.Stunned, EffectType.Suppressed, EffectType.Rooted, EffectType.Tumbled };
+    public HashSet<EffectType> CcEffects { get; } = new() { EffectType.Stunned, EffectType.Suppressed, EffectType.Rooted, EffectType.Tumbled };
 
     public PlayerEffect(PlayerContext context)
     {

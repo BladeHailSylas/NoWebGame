@@ -1904,7 +1904,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StackRegistryObject
   stacks:
-  - {fileID: 11400000, guid: c3ef2d5cb6553394c86f9579009d1d26, type: 2}
+  - {fileID: 11400000, guid: 693bf776b88db9d459c4c477ce27b86d, type: 2}
+  - {fileID: 11400000, guid: 55d514eb9c2f65942a8818829644fa93, type: 2}
+  - {fileID: 11400000, guid: 7d65004afff06f54d8471d960445a8c5, type: 2}
 --- !u!4 &1611561276
 Transform:
   m_ObjectHideFlags: 0
@@ -1914,7 +1916,7 @@ Transform:
   m_GameObject: {fileID: 1611561274}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.74265, y: 0.03164, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

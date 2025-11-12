@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using SkillInterfaces;
-using StatsInterfaces;
 using UnityEngine;
 
 /// <summary>
@@ -29,7 +28,7 @@ public sealed class PlayerAttacker
                 continue;
             }
 
-            if (binding.@params is not INewParams)
+            if (binding.@params is not null)
             {
                 _context.Logger.Error($"Invalid params in slot {kvp.Key}.");
             }
@@ -52,7 +51,7 @@ public sealed class PlayerAttacker
             return;
         }
 
-        if (binding.@params is not INewParams param)
+        if (binding.@params is not { } param)
         {
             _context.Logger.Error($"Skill in slot {slot} has invalid params.");
             return;
@@ -85,7 +84,7 @@ public sealed class PlayerAttacker
             return;
         }
 
-        if (binding.@params is not INewParams param)
+        if (binding.@params is not { } param)
         {
             _context.Logger.Error($"Skill in slot {slot} has invalid params.");
             return;
