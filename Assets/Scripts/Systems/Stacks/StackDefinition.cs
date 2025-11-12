@@ -1,5 +1,3 @@
-using System;
-using EffectInterfaces;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;

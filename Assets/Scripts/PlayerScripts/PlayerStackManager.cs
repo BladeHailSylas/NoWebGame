@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class PlayerStackManager
 {
@@ -112,7 +111,8 @@ public class PlayerStackManager
     {
         switch (stack.def)
         {
-            case VariableDefinition:
+            case VariableDefinition va:
+                //TODO: Add Variable period here
                 break;
             case BuffStackDefinition buff:
                 _context.Stats.TryRemove(new BuffData(buff.Type, buff.Value * _stackStorage[stack].Amount, buff.displayName));

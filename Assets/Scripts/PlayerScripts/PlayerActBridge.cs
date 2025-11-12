@@ -109,6 +109,16 @@ public sealed class PlayerActBridge
                 break;
         }
     }
+    private void Immovable()
+    {
+        _immovableCount += 1;
+        //Nevermore
+    }
+
+    private void Innoxious()
+    {
+        _innoxiousCount += 1;
+    }
 }
 
 public readonly struct CCData
