@@ -7,15 +7,15 @@ using UnityEngine;
 /// other modules. This bridge keeps the heavy lifting out of MonoBehaviours,
 /// improving testability.
 /// </summary>
-public sealed class PlayerStatsBridge
+public sealed class StatsBridge
 {
-    public PlayerStatsContainer Stats { get; }
-    private readonly PlayerContext _context;
+    public StatsContainer Stats { get; }
+    private readonly Context _context;
 
-    public PlayerStatsBridge(PlayerContext context, BaseStatsContainer baseStats)
+    public StatsBridge(Context context, BaseStatsContainer baseStats)
     {
         _context = context;
-        Stats = new PlayerStatsContainer(baseStats);
+        Stats = new StatsContainer(baseStats);
     }
 
     public void Tick(ushort deltaMs)

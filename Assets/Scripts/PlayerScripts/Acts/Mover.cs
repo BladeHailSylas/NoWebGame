@@ -6,18 +6,16 @@ using UnityEngine;
 /// logic is kept free from MonoBehaviour dependencies so it can be simulated in
 /// unit tests.
 /// </summary>
-public sealed class PlayerMover
+public sealed class Mover
 {
-    private readonly PlayerContext _context;
-    private readonly PlayerStatsBridge _stats;
-    private readonly PlayerEffect _effect;
+    private readonly Context _context;
+    private readonly StatsBridge _stats;
     private readonly FixedMotor _motor;
 
-    public PlayerMover(PlayerContext context, PlayerStatsBridge stats, PlayerEffect effect, Rigidbody2D rb, Collider2D col)
+    public Mover(Context context, StatsBridge stats, Rigidbody2D rb, Collider2D col)
     {
         _context = context;
         _stats = stats;
-        _effect = effect;
         //_motor = context.Motor;
         _motor = new FixedMotor(rb, col);
     }

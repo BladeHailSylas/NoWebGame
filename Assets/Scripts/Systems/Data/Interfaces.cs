@@ -51,11 +51,6 @@ namespace EffectInterfaces
 		HashSet<EffectType> PositiveEffects { get; }
 		HashSet<EffectType> NegativeEffects { get; }
 	}
-	public interface IEffectModifier
-	{
-		void Apply(PlayerEffect effect);
-		void Remove(PlayerEffect effect);
-	}
 }
 #endregion
 

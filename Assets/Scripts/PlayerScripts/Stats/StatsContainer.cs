@@ -5,7 +5,7 @@ using EffectInterfaces;
 using JetBrains.Annotations;
 using UnityEngine;
 
-public sealed class PlayerStatsContainer
+public sealed class StatsContainer
 {
     // ===== Base and Current Stats =====
     public int BaseHealth { get; private set; }
@@ -32,11 +32,11 @@ public sealed class PlayerStatsContainer
     public List<byte> ArmorPenetration { get; private set; } = new();
     public List<short> DamageAmplitudes { get; private set; } = new();
     
-    public Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>> applier;
-    public Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>> remover;
+    public Dictionary<EffectType, Action<StatsContainer, BuffData>> applier;
+    public Dictionary<EffectType, Action<StatsContainer, BuffData>> remover;
 
     // ===== Constructor =====
-    public PlayerStatsContainer(BaseStatsContainer baseCon)
+    public StatsContainer(BaseStatsContainer baseCon)
     {
         BaseHealth = baseCon.BaseHp;
         BaseHealthRegen = baseCon.BaseHpGen;
@@ -194,7 +194,7 @@ public sealed class PlayerStatsContainer
     }
     public void CreateBuffers()
     {
-        applier = new Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>>
+        applier = new Dictionary<EffectType, Action<StatsContainer, BuffData>>
         {
             // 공격력 상승
             [EffectType.DamageBoost] = (self, buff) => {
@@ -232,7 +232,7 @@ public sealed class PlayerStatsContainer
                 self.Speed -= delta; // 감속은 감소 방향
             },
         };
-        remover = new Dictionary<EffectType, Action<PlayerStatsContainer, BuffData>>
+        remover = new Dictionary<EffectType, Action<StatsContainer, BuffData>>
         {
             // 공격력 상승
             [EffectType.DamageBoost] = (self, buff) => {

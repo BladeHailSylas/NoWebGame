@@ -6,13 +6,13 @@ using UnityEngine;
 /// Coordinates player attacks by resolving skill bindings and enqueueing
 /// commands to the shared command collector.
 /// </summary>
-public sealed class PlayerAttacker
+public sealed class Attacker
 {
-    private readonly PlayerContext _context;
+    private readonly Context _context;
     private readonly CommandCollector _collector;
     private readonly Transform _caster;
     private readonly Dictionary<SkillSlot, SkillBinding> _skills;
-    public PlayerAttacker(PlayerContext context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
+    public Attacker(Context context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
     {
         _context = context;
         _caster = caster;
@@ -28,7 +28,7 @@ public sealed class PlayerAttacker
                 continue;
             }
 
-            if (binding.@params is not null)
+            if (binding.@params is null)
             {
                 _context.Logger.Error($"Invalid params in slot {kvp.Key}.");
             }
@@ -56,7 +56,7 @@ public sealed class PlayerAttacker
             _context.Logger.Error($"Skill in slot {slot} has invalid params.");
             return;
         }
-
+        //TODO: Implement switch skill condition
         var cmd = new SkillCommand(
             caster: _caster,
             mode: TargetMode.TowardsEntity,

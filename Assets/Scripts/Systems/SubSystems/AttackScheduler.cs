@@ -5,8 +5,8 @@ using UnityEngine;
 public class AttackScheduler
 {
     private ushort _lastTick;
-    private readonly PlayerContext _context;
-    public AttackScheduler(PlayerContext ctx)
+    private readonly Context _context;
+    public AttackScheduler(Context ctx)
     {
         _context = ctx;
     }

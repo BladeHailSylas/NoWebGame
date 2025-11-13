@@ -14,23 +14,20 @@ public sealed class PlayerEntity : Entity, IEntity
 {
     [Header("Configuration")]
     [SerializeField] private CharacterSpec spec;
-    [SerializeField][System.Obsolete] private FixedMotor motor;
     [SerializeField] private TargetResolver targetResolver;
     [SerializeField] private CommandCollector commandCollector;
     private InputSystem_Actions _controls;
-    private PlayerLogger _logger;
-    private PlayerContext _context;
-    private PlayerStatsBridge _statsBridge;
-    private PlayerEffect _effect;
-    private PlayerMover _mover;
-    private PlayerAttacker _attacker;
-    private PlayerActBridge _playerActBridge;
-    private PlayerStackManager _stackManager;
+    private Logger _logger;
+    private Context _context;
+    private StatsBridge _statsBridge;
+    private Mover _mover;
+    private Attacker _attacker;
+    private ActBridge _actBridge;
+    private StackManager _stackManager;
 
     private void Awake()
     {
-        _logger = new PlayerLogger(gameObject.name);
-        //motor ??= GetComponent<FixedMotor>();
+        _logger = new Logger(gameObject.name);
         targetResolver ??= GetComponent<TargetResolver>();
         commandCollector ??= GetComponent<CommandCollector>();
 
@@ -40,7 +37,7 @@ public sealed class PlayerEntity : Entity, IEntity
             return;
         }
 
-        _context = new PlayerContext(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
+        _context = new Context(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
 
         var baseStats = new BaseStatsContainer(
             spec.baseHp,
@@ -52,15 +49,14 @@ public sealed class PlayerEntity : Entity, IEntity
             spec.baseSpeed
         );
 
-        _statsBridge = new PlayerStatsBridge(_context, baseStats);
-        _effect = new PlayerEffect(_context);
-        _mover = new PlayerMover(_context, _statsBridge, _effect, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
-        _attacker = new PlayerAttacker(_context, transform, BuildSkillDictionary(), commandCollector);
-        _playerActBridge = new PlayerActBridge(_mover, _attacker);
-        _stackManager = new(_context);
+        _statsBridge = new StatsBridge(_context, baseStats);
+        _mover = new Mover(_context, _statsBridge, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
+        _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
+        _actBridge = new ActBridge(_mover, _attacker);
+        _stackManager = new StackManager(_context);
 
         _context.RegisterStats(_statsBridge);
-        _context.RegisterAct(_playerActBridge);
+        _context.RegisterAct(_actBridge);
         _context.RegisterStackManager(_stackManager);
 
         _controls = new InputSystem_Actions();
@@ -127,7 +123,7 @@ public sealed class PlayerEntity : Entity, IEntity
             _controls.Disable();
         }
 
-        _playerActBridge?.ClearMovementInput();
+        _actBridge?.ClearMovementInput();
 
         if (Ticker.Instance != null)
         {
@@ -138,9 +134,13 @@ public sealed class PlayerEntity : Entity, IEntity
     private void TickHandler(ushort tick)
     {
         _stackManager.Tick(tick);
-        _playerActBridge.Tick(tick);
+        _actBridge.Tick(tick);
         _statsBridge.Tick(tick);
         if (tick % 60 is 0)
+        {
+            Debug.Log($"현재 {tick} 틱입니다.");
+        }
+        if (tick % 240 is 0)
         {
             Dev(tick);
         }
@@ -148,41 +148,42 @@ public sealed class PlayerEntity : Entity, IEntity
 
     private void Dev(ushort tick)
     {
+        RemoveStack(new StackKey(StackRegistry.Instance.StackStorage["나가"]), tick);
     }
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
         //Debug.Log($"Got {ctx.ReadValue<Vector2>()}");
-        _playerActBridge.SetMovementInput(ctx.ReadValue<Vector2>());
+        _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
-        _playerActBridge.ClearMovementInput();
+        _actBridge.ClearMovementInput();
     }
 
     private void OnAttackPrepared(InputAction.CallbackContext ctx)
     {
-        _playerActBridge.PrepareAttack(SkillSlot.Attack);
+        _actBridge.PrepareAttack(SkillSlot.Attack);
     }
 
     private void OnAttackReleased(InputAction.CallbackContext ctx)
     {
-        _playerActBridge.ExecuteAttack(SkillSlot.Attack);
+        _actBridge.ExecuteAttack(SkillSlot.Attack);
     }
 
     private void OnSkill1Released(InputAction.CallbackContext ctx)
     {
-        _playerActBridge.ExecuteAttack(SkillSlot.Skill1);
+        _actBridge.ExecuteAttack(SkillSlot.Skill1);
     }
 
     private void OnSkill2Released(InputAction.CallbackContext ctx)
     {
-        _playerActBridge.ExecuteAttack(SkillSlot.Skill2);
+        _actBridge.ExecuteAttack(SkillSlot.Skill2);
     }
 
     private void OnUltimateReleased(InputAction.CallbackContext ctx)
     {
-        _playerActBridge.ExecuteAttack(SkillSlot.Ultimate);
+        _actBridge.ExecuteAttack(SkillSlot.Ultimate);
     }
 
     private Dictionary<SkillSlot, SkillBinding> BuildSkillDictionary()
@@ -219,13 +220,32 @@ public sealed class PlayerEntity : Entity, IEntity
         Debug.Log("Stakataka");
     }
 
-    public void ApplyStack(StackKey stackKey, ushort tick, int amount = 1)
+    public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1)
     {
         _stackManager.ApplyStack(stackKey, amount, tick);
     }
+
+    public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)
+    {
+        //TODO: Get response from the CommandCollector and remove VariableStack
+        if (stackKey.def is not VariableDefinition)
+        {
+            Debug.Log($"{stackKey.def.displayName} 은(는) Variable이 아닙니다.");
+            return;
+        }
+        _stackManager.DetachVariable(stackKey, tick, amount);
+    }
 }
 
-public class Entity : MonoBehaviour
+public abstract class Entity : MonoBehaviour
 {
     public bool targetable = true;
+
+    public void ApplyStack(StackKey key, ushort tick, int amount = 1)
+    {
+    }
+
+    public void RemoveStack(StackKey key, ushort tick, int amount = 0)
+    {
+    }
 }

@@ -8,10 +8,10 @@ using UnityEngine;
 /// invoked from <see cref="PlayerEntity"/>, keeping this component free from
 /// Unity lifecycle dependencies for easier testing.
 /// </summary>
-public sealed class PlayerActBridge
+public sealed class ActBridge
 {
-    private readonly PlayerMover _mover;
-    private readonly PlayerAttacker _attacker;
+    private readonly Mover _mover;
+    private readonly Attacker _attacker;
     private Vector2 _inputVector;
     private Vector2 _tempVector;
     private byte _innoxiousCount;
@@ -21,7 +21,7 @@ public sealed class PlayerActBridge
     public byte ImmovableCount => _immovableCount;
     public bool CanMove => _immovableCount == 0;
     
-    public PlayerActBridge(PlayerMover mover, PlayerAttacker attacker)
+    public ActBridge(Mover mover, Attacker attacker)
     {
         _mover = mover;
         _attacker = attacker;
@@ -48,7 +48,7 @@ public sealed class PlayerActBridge
     /// </summary>
     public void Tick(ushort tick)
     {
-        _inputVector = (_immovableCount > 0) ? _tempVector : Vector2.zero;
+        _inputVector = (_immovableCount == 0) ? _tempVector : Vector2.zero;
         if (_inputVector.sqrMagnitude > 1e-6f)
         {
             //Debug.Log($"Sending {_inputVector}");
@@ -72,7 +72,10 @@ public sealed class PlayerActBridge
     /// </summary>
     public void ExecuteAttack(SkillSlot slot)
     {
-        if(_innoxiousCount > 0) _attacker.TryCast(slot);
+        if (_innoxiousCount == 0)
+        {
+            _attacker.TryCast(slot);
+        }
     }
 
     public void ApplyCC(CCData cc)

@@ -4,7 +4,7 @@ using UnityEngine;
 /// Shared dependency container for all player modules. It bundles Unity
 /// specific references and exposes a centralised logger.
 /// </summary>
-public sealed class PlayerContext
+public sealed class Context
 {
     public PlayerEntity Owner { get; }
     public GameObject GameObject { get; }
@@ -12,14 +12,14 @@ public sealed class PlayerContext
     public TargetResolver TargetResolver { get; }
     public CommandCollector CommandCollector { get; }
     public CharacterSpec Spec { get; }
-    public IPlayerLogger Logger { get; }
+    public ILogger Logger { get; }
 
-    public PlayerStatsBridge Stats { get; private set; }
-    public PlayerActBridge Act { get; private set; }
+    public StatsBridge Stats { get; private set; }
+    public ActBridge Act { get; private set; }
     
-    public PlayerStackManager StackManager { get; private set; }
+    public StackManager StackManager { get; private set; }
 
-    public PlayerContext(PlayerEntity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, IPlayerLogger logger)
+    public Context(PlayerEntity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, ILogger logger)
     {
         Owner = owner;
         GameObject = gameObject;
@@ -30,17 +30,17 @@ public sealed class PlayerContext
         Logger = logger;
     }
 
-    public void RegisterStats(PlayerStatsBridge stats)
+    public void RegisterStats(StatsBridge stats)
     {
         Stats = stats;
     }
 
-    public void RegisterAct(PlayerActBridge bridge)
+    public void RegisterAct(ActBridge bridge)
     {
         Act = bridge;
     }
 
-    public void RegisterStackManager(PlayerStackManager stackManager)
+    public void RegisterStackManager(StackManager stackManager)
     {
         StackManager = stackManager;
     }
@@ -50,18 +50,18 @@ public sealed class PlayerContext
 /// Logger abstraction that can later be replaced with in-game consoles or
 /// analytics hooks.
 /// </summary>
-public interface IPlayerLogger
+public interface ILogger
 {
     void Info(string message);
     void Warn(string message);
     void Error(string message);
 }
 
-public sealed class PlayerLogger : IPlayerLogger
+public sealed class Logger : ILogger
 {
     private readonly string _prefix;
 
-    public PlayerLogger(string prefix)
+    public Logger(string prefix)
     {
         _prefix = prefix;
     }

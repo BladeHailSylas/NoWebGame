@@ -11,7 +11,7 @@ public abstract class StackDefinition : ScriptableObject
     [Header("Metadata")]
     public string displayName;
     public int maxStacks = 1000000;
-    public ushort duration;
+    public ushort duration = 65535;
     public GameObject visualPrefab;
 
 #if UNITY_EDITOR
