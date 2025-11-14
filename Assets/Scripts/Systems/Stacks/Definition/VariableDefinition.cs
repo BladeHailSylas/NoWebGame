@@ -6,6 +6,7 @@ public class VariableDefinition : StackDefinition
     public bool isPeriodic;
     public bool isExclusive;
     public ushort periodTick; // Don't need to change if not periodic
-    public VariableDefinition exclusiveVariable;
+    public ExclusiveGroup[] exclusiveGroup;
     public byte exclusivePriority;
+
 }

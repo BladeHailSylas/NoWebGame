@@ -34,8 +34,9 @@ public class SkillRunner
 
         //Debug.Log($"Let's apply damage {cmd.Damage.Attack}");
         //Execute skill mechanism
+        Debug.Log($"Variable은 {cmd.Var.Variable?.displayName}");
         cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
-            cmd.Damage));
+            cmd.Damage, cmd.Var));
         
     }
     public void Activate(in SkillCommand cmd, in DamageData data)

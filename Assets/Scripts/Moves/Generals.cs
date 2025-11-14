@@ -45,13 +45,15 @@ public struct CastContext
     public readonly Transform Caster;
     public readonly Transform Target;
     public DamageData Damage;
+    public SwitchVariable Var;
 
-    public CastContext(INewParams param, Transform caster, Transform target, DamageData damage)
+    public CastContext(INewParams param, Transform caster, Transform target, DamageData damage, SwitchVariable va = default)
     {
         Params = param;
         Caster = caster;
         Target = target;
         Damage = damage;
+        Var = va;
     }
 }
 
@@ -64,9 +66,10 @@ public readonly struct SkillCommand
     public readonly INewMechanism Mech;
     public readonly INewParams Params;
     public readonly DamageData Damage;
+    public readonly SwitchVariable Var;
 
     public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
-        INewMechanism mech, INewParams @params, DamageData damage, Transform target = null)
+        INewMechanism mech, INewParams @params, DamageData damage, Transform target = null, SwitchVariable va = default)
     {
         Caster = caster;
         Target = target;
@@ -75,11 +78,12 @@ public readonly struct SkillCommand
         Mech = mech;
         Params = @params;
         Damage = damage;
+        Var = va;
     }
 
-    public SkillCommand(Transform caster1, FixedVector2 castPosition, TargetMode mode, INewMechanism mech,
+    public SkillCommand(Transform _, FixedVector2 castPosition, TargetMode mode, INewMechanism mech,
         INewParams @params,
-        DamageData damage, Transform caster = null, Transform target = null)
+        DamageData damage, Transform caster = null, Transform target = null, SwitchVariable va = default)
     {
         Caster = caster;
         Target = target;
@@ -88,6 +92,19 @@ public readonly struct SkillCommand
         Mech = mech;
         Params = @params;
         Damage = damage;
+        Var = va;
+    }
+}
+
+public readonly struct SwitchVariable
+{
+    public readonly VariableDefinition Variable;
+    public readonly int Amount;
+
+    public SwitchVariable(VariableDefinition va, int amount)
+    {
+        Variable = va;
+        Amount = amount;
     }
 }
 

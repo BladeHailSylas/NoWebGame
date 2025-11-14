@@ -6,9 +6,11 @@ public class StackManager
 {
     private ushort _lastTick;
     private readonly Context _context;
+    public VariableStorage Storage;
     public StackManager(Context ctx)
     {
         _context = ctx;
+        Storage = new VariableStorage();
     }
 
     private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
@@ -45,16 +47,23 @@ public class StackManager
 
     public void DetachVariable(StackKey key, ushort tick, int amount = 0)
     {
+        //Debug.Log($"{key.def.displayName} 을 받았습니다.");
         // Variable이 아니면 관심 없음
         if (key.def is not VariableDefinition va)
+        {
+            //Debug.Log($"{key.def.displayName}이(가) VariableDefinition이 아닙니다.");
             return;
+        }
 
         if (!_stackStorage.TryGetValue(key, out var status) || status.Amount <= 0)
+        {
+            //Debug.Log($"{key.def.displayName}이(가) 존재하지 않거나({_stackStorage.TryGetValue(key, out _)}) 이미 제거되었습니다({status.Amount}).");
             return;
+        }
 
         // 현재는 "전부 제거"만 지원한다고 가정 (amount는 확장용)
         _stackStorage[key] = default;  // new StackStatus() 와 동일
-
+        Storage.RemoveStorage(key);
         // periodic Variable이면 "다시 차오를 수 있는 상태"가 되었으니 스케줄 등록
         if (va.isPeriodic)
         {
@@ -78,13 +87,14 @@ public class StackManager
         {
             _stackStorage.Add(stackKey, new StackStatus(total, tick, endAt));
         }
+        Storage.AddStorage(stackKey, new VariableState(total, tick));
         ResolveApply(stackKey, tick, amount);
     }
     
     private void AddExpiration(StackKey key, ushort expireTick)
     {
         if (expireTick == 65535) return;
-        // 1️⃣ 기존 만료 tick이 존재하는가?
+        // 기존 만료 tick이 존재하는가?
         if (_stackStorage.TryGetValue(key, out var status))
         {
             ushort oldExpireTick = status.ExpireAt;
@@ -97,7 +107,7 @@ public class StackManager
             }
         }
 
-        // 2️⃣ 새 tick으로 재등록
+        // 새 tick으로 재등록
         if (!_expirable.TryGetValue(expireTick, out var list))
             _expirable[expireTick] = list = new List<StackKey>();
 
@@ -116,6 +126,7 @@ public class StackManager
         {
             ResolveCache(key, tick);
             _stackStorage[key] = new StackStatus(0, tick, 0);
+            Storage.RemoveStorage(key);
         }
         list.Clear();
         _expirable.Remove(tick);
@@ -139,7 +150,6 @@ public class StackManager
                 _context.Act.ApplyCC(new CCData(cc.Type, cc.Value));
                 break;
         }
-        Debug.Log($"{stack.def.displayName} 이(가) {_stackStorage[stack].Amount} 적용되었습니다.");
     }
 
     private void ResolveCache(StackKey stack, ushort tick)
@@ -164,7 +174,7 @@ public class StackManager
     private bool CanReapply(ReapplySchedule schd, ushort tick)
     {
         // Variable이 아니면 재적용 대상이 아님
-        if (schd.key.def is not VariableDefinition va || !va.isPeriodic)
+        if (schd.key.def is not VariableDefinition { isPeriodic: true })
             return false;
 
         // tick + delta 가 관찰자의 "체감 시간"
@@ -216,7 +226,6 @@ public class StackManager
             }
         }
         _reapplicable.Add(new ReapplySchedule(key, reapplyAt, 0));
-        Debug.Log($"{key.def.displayName} 이(가) {reapplyAt} 에 적용될 것입니다.");
     }
 
     private void HandlePeriodic(ushort tick)

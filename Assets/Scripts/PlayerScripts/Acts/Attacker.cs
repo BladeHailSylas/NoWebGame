@@ -56,15 +56,31 @@ public sealed class Attacker
             _context.Logger.Error($"Skill in slot {slot} has invalid params.");
             return;
         }
+
+        SkillCommand cmd = default;
         //TODO: Implement switch skill condition
-        var cmd = new SkillCommand(
+        if (binding.@params is SwitchParams switcher)
+        {
+            var sv = VariableStorage.Instance.GetVariable(switcher.variable);
+            cmd = new SkillCommand(
+                caster: _caster,
+                mode: TargetMode.TowardsEntity,
+                castPosition: FixedVector2.FromVector2(_caster.position),
+                mech: mech,
+                @params: param,
+                damage: _context.Stats.DamageData(),
+                va : sv
+            );
+        }
+        else {
+            cmd = new SkillCommand(
             caster: _caster,
             mode: TargetMode.TowardsEntity,
             castPosition: FixedVector2.FromVector2(_caster.position),
             mech: mech,
             @params: param,
             damage: _context.Stats.DamageData()
-        );
+        );}
         //Debug.Log($"Sent Attack damage { _context.Stats.DamageData().Attack}");
         _collector?.EnqueueCommand(cmd);
         _context.Logger.Info($"Casted skill from slot {slot} ({mech.GetType().Name}).");

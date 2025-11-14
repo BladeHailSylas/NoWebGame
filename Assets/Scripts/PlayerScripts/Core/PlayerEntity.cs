@@ -16,6 +16,7 @@ public sealed class PlayerEntity : Entity, IEntity
     [SerializeField] private CharacterSpec spec;
     [SerializeField] private TargetResolver targetResolver;
     [SerializeField] private CommandCollector commandCollector;
+    private List<VariableDefinition> characterVariables;
     private InputSystem_Actions _controls;
     private Logger _logger;
     private Context _context;
@@ -107,6 +108,8 @@ public sealed class PlayerEntity : Entity, IEntity
         {
             _logger.Warn("Ticker instance missing. Movement tick updates disabled.");
         }
+        characterVariables = spec.CharacterVariables;
+        InitStacks();
     }
 
     private void OnDisable()
@@ -136,10 +139,6 @@ public sealed class PlayerEntity : Entity, IEntity
         _stackManager.Tick(tick);
         _actBridge.Tick(tick);
         _statsBridge.Tick(tick);
-        if (tick % 60 is 0)
-        {
-            Debug.Log($"현재 {tick} 틱입니다.");
-        }
         if (tick % 240 is 0)
         {
             Dev(tick);
@@ -148,7 +147,9 @@ public sealed class PlayerEntity : Entity, IEntity
 
     private void Dev(ushort tick)
     {
-        RemoveStack(new StackKey(StackRegistry.Instance.StackStorage["나가"]), tick);
+        _stackManager.Storage.Tell();
+        RemoveStack(new StackKey(characterVariables[0]), tick);
+        _stackManager.Storage.Tell();
     }
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
@@ -197,6 +198,14 @@ public sealed class PlayerEntity : Entity, IEntity
         };
     }
 
+    private void InitStacks()
+    {
+        foreach (var stack in characterVariables)
+        {
+            ApplyStack(new StackKey(stack), 0, stack.maxStacks);
+        }
+    }
+
     /// <summary>
     /// Allows installers to inject a character specification before the player
     /// is initialised.
@@ -230,7 +239,6 @@ public sealed class PlayerEntity : Entity, IEntity
         //TODO: Get response from the CommandCollector and remove VariableStack
         if (stackKey.def is not VariableDefinition)
         {
-            Debug.Log($"{stackKey.def.displayName} 은(는) Variable이 아닙니다.");
             return;
         }
         _stackManager.DetachVariable(stackKey, tick, amount);

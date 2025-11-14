@@ -1,4 +1,5 @@
-﻿using SkillInterfaces;
+﻿using System.Collections.Generic;
+using SkillInterfaces;
 using UnityEngine;
 
 [System.Serializable]
@@ -14,5 +15,6 @@ public class CharacterSpec : ScriptableObject
 {
 	public string displayName;
 	public int baseHp, baseHpGen, baseMana, baseManaGen, baseAttack, baseDefense, baseSpeed;
+	public List<VariableDefinition> CharacterVariables;
 	public SkillBinding attack, skill1, skill2, ultimate;
 }
