@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Intents
+/*namespace Intents
 {
     /// <summary>
     ///     Deterministic dispatcher that forwards intents to the correct gameplay subsystem.
@@ -13,7 +13,7 @@ namespace Intents
         //private readonly SkillRunner _skillRunner;
         private readonly IntentValidator _validator;
         public static IntentRouter Instance { get; private set; }
-        public IntentRouter(CoreMotor coreMotor/*, SkillRunner skillRunner*/)
+        public IntentRouter(CoreMotor coreMotor, SkillRunner skillRunner)
         {
             _coreMotor = coreMotor ?? throw new ArgumentNullException(nameof(coreMotor));
             //_skillRunner = skillRunner ?? throw new ArgumentNullException(nameof(skillRunner));
@@ -89,4 +89,4 @@ namespace Intents
             //_skillRunner.Cast(castIntent);
         }
     }
-}
+}*/

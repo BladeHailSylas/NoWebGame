@@ -1,76 +1,84 @@
 # Goal
-Create an **IntentRouter system** for a Unity project that receives multiple `IIntent` objects and routes them to appropriate subsystems (`CoreMotor2D`, `SkillRunner`) using a simple switch-based routing mechanism.  
-Also, extend the existing `IntentType` enumeration and intent definitions to include a new `CastIntent`.
+Refactor the Player system into a **centralized, modular, and maintainable structure** where `PlayerScript` acts as the **root orchestrator** of all Player-related modules.  
+All logic-bearing modules (e.g., `InputBinder`, `PlayerActController`, `PlayerAttackController`, `PlayerStatsBridge`, `PlayerEffects`) become **pure C# objects** without MonoBehaviour dependencies.  
 
 ---
 
 # Context
-The project uses an intent-driven architecture where subsystems act upon specific `IIntent` types.  
+Currently:
+- Each module operates somewhat independently.
+- `InputBinder` instantiates all modules but doesn’t coordinate them.
+- Debugging is difficult due to scattered entry points.
 
-Each intent carries metadata such as its `OwnerID`, `IntentID`, and `GeneratedTick`.  
-Currently, `MoveIntent` and `CastIntent` exist as concrete implementations.  
-
-Routing rules:  
-- `IntentType.Move` → handled by **CoreMotor2D** subsystem.  
-- `IntentType.Cast` → handled by **SkillRunner** subsystem.  
-- Any unrecognized or invalid intent type → **throw an exception** (non-critical) and skip that intent.
-
-The `SkillRunner` exposes a single `Cast(CastIntent intent)` method.  
-`CastIntent` contains both target references and skill metadata encapsulated in a `SkillInfo` struct.  
-
-`SkillInfo` holds information about a skill’s mechanism and parameters.
+Target design:
+- `PlayerScript` (MonoBehaviour) is the **only runtime entry point** for the Player.
+- It initializes, updates, and partially delegates logic to the modules.
+- Modules communicate through a **shared PlayerContext** or controlled references.
+- Only `PlayerScript` is responsible for Unity-specific callbacks (`Awake`, `OnEnable`, `OnDestroy`).
+- If a module(except the PlayerScript) is a MonoBehaviour script, remove the MonoBehaviour; Especially about PlayerEffects, you can(even recommended) freely remove the current code since it's outdated.
 
 ---
 
 # Input
-**Provided interfaces and components:**
-- `IIntent` interface and `IntentType` enum (`None`, `Move`, `Cast`).
-- Subsystems: `CoreMotor2D` and `SkillRunner`.
+Existing modules (as pure C# classes):
+- `InputBinder`
+- `PlayerActController`
+- `PlayerAttackController`
+- `PlayerStatsBridge`
+- `PlayerEffects`
 
-**Routing requirements:**
-- Each intent specifies an `IntentType`.
-- The router should use a switch-case approach to determine routing.
-- Subsystems are injected through the `IntentRouter` constructor.
+Desired features:
+- One `PlayerScript` orchestrating initialization, updates, and destruction.
+- Controlled logic delegation (PlayerScript can call specific module methods like `TakeDamage`).
+- Modules remain testable and independent of Unity.
 
 ---
 
 # Output
-**Deliverables:**
-1. Add `Cast` to the `IntentType` enumeration.
-2. Implement a new `CastIntent` class that:
-   - Implements `IIntent`.
-   - Contains `OwnerID`, `IntentID`, `GeneratedTick`, `TargetID`, `TargetPosition`, and `SkillInfo` properties.
-   - Uses `FixedVector2D` instead of Unity’s `Vector2`.
-3. Implement an `IntentRouter` class that:
-   - Has a single public method `RouteIntent(IIntent[] intents)`.
-   - Routes each intent based on its `IntentType`.
-   - Delegates to the appropriate subsystem (`CoreMotor2D.Move()` or `SkillRunner.Cast()`).
-   - Logs warnings for any failed intent routing attempts but continues processing others.
+A refactored, orchestrated Player system with:
+- A single MonoBehaviour entry point (`PlayerScript`).
+- A shared `PlayerContext` passed to each module.
+- Controlled lifecycle and partial delegation.
+- Simplified debugging and centralized logging.
 
 ---
 
 # Constraints
-- Must be deterministic and Unity-friendly.  
-- Do **not** use Unity engine types like `Vector2` inside intents.  
-- `FixedVector2D` should be used for positional data.  
-- The router must remain simple and non-reflective (use switch-case).  
-- Should log warnings using `Debug.LogWarning()` when an intent fails to route.  
-- Throw a non-critical exception when an unknown `IntentType` is encountered but continue processing remaining intents.
+- **Only `PlayerScript`** is a `MonoBehaviour`.  
+- All modules must be **pure C#**, containing no Unity engine dependencies except through `PlayerContext`.  
+- Modules can only communicate **through `PlayerContext`** or **explicit method calls from `PlayerScript`**.  
+- `PlayerScript` is the **sole owner** of lifecycle events (Awake, Update, OnDestroy).  
+- The design must remain **debuggable**, i.e., logs and exceptions traceable from `PlayerScript`.  
+- Avoid circular dependencies between modules.
 
 ---
 
 # Procedure
-1. Extend the `IntentType` enum to include a `Cast` type.  
-2. Define a `SkillInfo` struct containing `Mechanism` and `Param` fields.  
-3. Implement the `CastIntent` class that carries `SkillInfo` and target information.  
-4. Implement the `IntentRouter` class:
-   - Accept `CoreMotor2D` and `SkillRunner` through its constructor.
-   - Implement the `RouteIntent(IIntent[] intents)` method.
-   - Use a switch on `IntentType` to delegate intent handling.
-   - Catch any exceptions, log warnings, and safely continue.  
-5. Integrate the router into your intent-handling pipeline so that all received intents are passed into `RouteIntent()` for dispatch.
+1. **Define the PlayerContext**
+   - Holds references to root `PlayerScript` and commonly accessed Unity elements (`Transform`, `GameObject`, etc.).
+   - Optionally include a `Logger` or `DebugProxy` for unified logging.
+
+2. **Refactor Modules**
+   - Convert all modules into pure C# classes with a `PlayerContext` dependency.
+   - Replace any Unity API calls (like `transform.position`) with equivalents via `context.Transform`.
+
+3. **Implement PlayerScript**
+   - Initialize all modules in `Awake()`.
+   - Centralize their update calls inside `Update()`.
+   - Delegate specific public logic (e.g., `TakeDamage`) as needed.
+
+4. **Add Centralized Debugging**
+   - Implement a shared `Logger` accessible through `PlayerContext`.
+   - Optionally expose module states in the Unity inspector for debugging.
+
+5. **Test Lifecycle**
+   - Verify that all modules initialize, update, and dispose correctly.
+   - Ensure modules remain functional when tested in isolation (without Unity runtime).
 
 ---
 
-# Summary
-This specification defines how to implement a deterministic, subsystem-based `IntentRouter` that cleanly distributes intents to the correct Unity gameplay systems. It also introduces the `CastIntent` for skill activation and integrates clean error handling for robustness.
+# Notes
+- The `PlayerContext` serves as the single point of dependency injection.
+- Each module follows a simple lifecycle pattern (`Initialize`, `Tick`, `Dispose`).
+- The `PlayerScript` update loop determines the execution order for consistent and deterministic player behavior.
+- Centralized orchestration improves maintainability and debugging by consolidating logic flow under a single control point.

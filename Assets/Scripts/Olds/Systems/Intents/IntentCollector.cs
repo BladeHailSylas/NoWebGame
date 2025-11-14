@@ -34,7 +34,6 @@ namespace Intents
             Debug.Log($"Resolving Garbage at {tick}");
             if (_intentCluster.Count > 0)
             {
-                BattleCore.Validator.GetFlush(_intentCluster.ToArray());
             }
             _intentCluster.Clear();
         }

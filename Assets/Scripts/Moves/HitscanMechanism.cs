@@ -10,15 +10,19 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
 {
     public void Execute(INewParams @params, Transform caster, Transform target)
     {
-        if (target == null)
+    }
+
+    public void Execute(CastContext ctx)
+    {
+        if (ctx.Target is null)
         {
-            Debug.LogWarning("[HitscanMechanism] No target provided — skipping.");
+            //Debug.LogWarning("[HitscanMechanism] No target provided — skipping.");
             return;
         }
 
-        if (@params is not HitscanParams param)
+        if (ctx.Params is not HitscanParams param)
         {
-            Debug.LogError("Wrong Parameter");
+            //Debug.LogError("Wrong Parameter");
             return;
         }
         //Transform caster = null;
@@ -27,49 +31,61 @@ public class HitscanMechanism : ScriptableObject, INewMechanism
         // Fallback: SkillRunner provides caster via SkillCommand; params may evolve later.
 
         // Validate target layer
-        if ((param.layerMask.value & (1 << target.gameObject.layer)) == 0)
+        if ((param.layerMask.value & (1 << ctx.Target.gameObject.layer)) == 0)
         {
-            Debug.Log("[HitscanMechanism] Target layer not allowed — skipping.");
+            //Debug.Log("[HitscanMechanism] Target layer not allowed — skipping.");
             return;
         }
 
-        Vector2 origin = caster != null ? caster.position : Vector2.zero;
-        Vector2 direction = ((Vector2)target.position - origin).normalized;
-        float distance = Vector2.Distance(origin, target.position);
+        Vector2 origin = ctx.Caster?.position ?? Vector2.zero;
+        var direction = ((Vector2)ctx.Target.position - origin).normalized;
+        var distance = Vector2.Distance(origin, ctx.Target.position);
 
         if (distance > param.maxRange || distance < param.minRange)
         {
-            Debug.Log($"[HitscanMechanism] Target out of range ({distance:F2}) — skipping.");
+            //Debug.Log($"[HitscanMechanism] Target out of range ({distance:F2}) — skipping.");
             return;
         }
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction, param.maxRange, param.layerMask);
+        var hit = Physics2D.Raycast(origin, direction, param.maxRange, param.layerMask);
         if (param.debugDraw)
         {
-            Color c = hit ? Color.red : Color.yellow;
+            var c = hit ? Color.red : Color.yellow;
             Debug.DrawRay(origin, direction * param.maxRange, c, 0.5f);
         }
 
-        if (hit.collider != null)
+        if (hit.collider is not null)
         {
             //Placeholder: actual damage logic handled externally
-            Debug.Log($"[HitscanMechanism] Hit detected on {hit.collider.name}");
-            OnHit(hit.collider.transform);
+           // hit.collider.GetComponent<IVulnerable>().TakeDamage(10);
+            //Debug.Log($"[HitscanMechanism] Hit detected on {hit.collider.name}");
+            OnHit(ctx);
         }
 
-        OnFinished();
+        OnFinished(ctx.Target);
     }
-
-    protected virtual void OnHit(Transform hitTarget)
+    protected virtual void OnHit(CastContext ctx)
     {
+        if (ctx.Params is not HitscanParams param) return;
         // Placeholder for EffectSkill or damage pipeline.
-        Debug.Log($"[HitscanMechanism] OnHit triggered on {hitTarget.name}");
+        foreach (var followup in param.onHitFollowUp)
+        {
+            //Debug.Log($"I got {ctx.Damage.Attack}");
+            if (followup.mechanism is not INewMechanism mech) continue;
+            //Debug.Log($"[HitscanMechanism] Now enqueuing {mech.GetType().Name}");
+            SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
+                mech, followup.@params, ctx.Damage, ctx.Target);
+            CommandCollector.Instance.EnqueueCommand(cmd);
+            //Debug.Log($"You are casting {mech.GetType().Name} as a followup to {hitTarget.name}");
+        }
+
+        //Debug.Log($"[HitscanMechanism] OnHit triggered on {ctx.Target.name}");
     }
 
-    protected virtual void OnFinished()
+    protected virtual void OnFinished(Transform prevTarget)
     {
         // Placeholder for completion callbacks or follow-ups.
-        Debug.Log("[HitscanMechanism] OnFinished triggered.");
+        //Debug.Log("[HitscanMechanism] OnFinished triggered.");
     }
 }
 
@@ -79,14 +95,15 @@ public class HitscanParams : INewParams
     [Header("Hitscan Settings")]
     public float minRange;
     public float maxRange = 10f;
-    public DamageData damage = new DamageData(StatsInterfaces.DamageType.Normal, 1000, 0);
+    [Header("Entity Settings")]
     public LayerMask layerMask = 1 << 8; // Default "Foe" layer
     public GameObject hitEffectPrefab;   // Placeholder — not used yet
     [Header("Ticker")] 
     [SerializeField] private short cooldownTicks;
     public short CooldownTicks => cooldownTicks;
     [Header("FollowUp")] 
-    public INewMechanism FollowUp;
+    public List<MechanismRef> onHitFollowUp;
+    public List<MechanismRef> onExpireFollowUp;
     [Header("Debug")]
     public bool debugDraw = true;
 }

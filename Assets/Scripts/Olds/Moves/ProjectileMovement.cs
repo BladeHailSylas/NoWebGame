@@ -19,7 +19,7 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 	{
 		_p = p; this._owner = owner; this._target = target;
 		Vector2 start = owner.position;
-		Vector2 tgt = target ? (Vector2)target.position : start + Vector2.right;
+		var tgt = target ? (Vector2)target.position : start + Vector2.right;
 		_dir = (tgt - start).normalized;
 		_speed = _p.speed;
 
@@ -32,7 +32,7 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 
 	void Update()
 	{
-		float dt = Time.deltaTime;
+		var dt = Time.deltaTime;
 		_life += dt; if (_life > _p.maxLife) { Expire(); }
 
 		// °¡¼Ó
@@ -46,12 +46,12 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 
 		// ¿øÇÏ´Â ¹æÇâ(À¯µµ)
 		//Vector2 desired = target ? ((Vector2)target.position - pos).normalized : dir;
-		Vector2 desired = _target != null && _target.name == TargetingRuntimeUtil.AnchorName ? _dir : ((Vector2)_target.position - pos).normalized;
-		float maxTurnRad = _p.maxTurnDegPerSec * Mathf.Deg2Rad * dt;
+		var desired = _target != null && _target.name == TargetingRuntimeUtil.AnchorName ? _dir : ((Vector2)_target.position - pos).normalized;
+		var maxTurnRad = _p.maxTurnDegPerSec * Mathf.Deg2Rad * dt;
 		_dir = Vector3.RotateTowards(_dir, desired, maxTurnRad, 0f).normalized;
 
 		// === ÀÌµ¿/Ãæµ¹(¿©·¯ ¹ø) Ã³¸® ===
-		float remaining = _speed * dt;
+		var remaining = _speed * dt;
 
 		while (remaining > 0f)
 		{
@@ -74,7 +74,7 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 				var c = enemyHit.collider;
 
 				// °°Àº ÄÝ¶óÀÌ´õ Áßº¹ Å¸°Ý ¹æÁö
-				int id = c.GetInstanceID();
+				var id = c.GetInstanceID();
 				if (!_hitIds.Contains(id))
 				{
 					// Ãæµ¹Á¡±îÁö ÀÌµ¿
@@ -82,7 +82,7 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 
 					// ÇÇÇØ/³Ë¹é Àû¿ë
 					if (c.TryGetComponent(out IVulnerable v))
-						v.TakeDamage(_p.damage, _p.apRatio);
+						//v.TakeDamage(_p.damage, _p.apRatio);
 					if (c.attachedRigidbody)
 						c.attachedRigidbody.AddForce(_dir * _p.knockback, ForceMode2D.Impulse);
 
@@ -127,10 +127,10 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 	void TryRetarget()
 	{
 		var hits = Physics2D.OverlapCircleAll(transform.position, _p.retargetRadius, _p.enemyMask);
-		float best = float.PositiveInfinity; Transform bestT = null;
+		var best = float.PositiveInfinity; Transform bestT = null;
 		foreach (var h in hits)
 		{
-			float d = Vector2.SqrMagnitude((Vector2)h.bounds.center - (Vector2)transform.position);
+			var d = Vector2.SqrMagnitude((Vector2)h.bounds.center - (Vector2)transform.position);
 			if (d < best) { best = d; bestT = h.transform; }
 		}
 		if (bestT) _target = bestT;
@@ -138,8 +138,8 @@ public class ProjectileMovement : MonoBehaviour, IExpirable
 
 	Sprite GenerateDotSprite()
 	{
-		int s = 8; var tex = new Texture2D(s, s, TextureFormat.RGBA32, false);
-		var col = new Color32[s * s]; for (int i = 0; i < col.Length; i++) col[i] = new Color32(255, 255, 255, 255);
+		var s = 8; var tex = new Texture2D(s, s, TextureFormat.RGBA32, false);
+		var col = new Color32[s * s]; for (var i = 0; i < col.Length; i++) col[i] = new Color32(255, 255, 255, 255);
 		tex.SetPixels32(col); tex.Apply();
 		return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
 	}

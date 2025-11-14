@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: New Challenger
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSpec
   displayName: New Challenger
-  baseHp: 0
-  baseHpGen: 0
-  baseMana: 640
-  baseManaGen: 6
-  baseAttack: 121
-  baseDefense: 20
+  baseHp: 128000
+  baseHpGen: 1000
+  baseMana: 64000
+  baseManaGen: 6000
+  baseAttack: 12100
+  baseDefense: 2000
   baseSpeed: 8
+  CharacterVariables:
+  - {fileID: 11400000, guid: 693bf776b88db9d459c4c477ce27b86d, type: 2}
+  - {fileID: 11400000, guid: 76e7fdf08d75afb46b826f48e580f652, type: 2}
   attack:
     slot: 0
     mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
@@ -27,32 +30,154 @@ MonoBehaviour:
       rid: 3203422884986951
   skill1:
     slot: 2
-    mechanism: {fileID: 11400000, guid: 8eac857f8e9b7ac4e8dfb345295b3ca3, type: 2}
+    mechanism: {fileID: 11400000, guid: 92846dab9cb5aa64eb9a8eca809422df, type: 2}
     params:
-      rid: -2
+      rid: 3203579899805777
   skill2:
     slot: 3
-    mechanism: {fileID: 11400000, guid: 8cd4bfe941aac2f4aa7c5fe05d78363b, type: 2}
+    mechanism: {fileID: 11400000, guid: c6f30aff2aa354742807b8eb6a66fab3, type: 2}
     params:
-      rid: -2
+      rid: 669456414455365715
   ultimate:
     slot: 4
-    mechanism: {fileID: 0}
+    mechanism: {fileID: 11400000, guid: 833cba88f8fc82247b93bab132a767c2, type: 2}
     params:
-      rid: -2
+      rid: 669456663354277962
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
     - rid: 3203422884986951
       type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
       data:
         minRange: 0
-        maxRange: 10
+        maxRange: 15
         layerMask:
           serializedVersion: 2
           m_Bits: 128
         hitEffectPrefab: {fileID: 0}
         cooldownTicks: 0
+        onHitFollowUp:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 3203579899805771
+          passSameTarget: 0
+          respectBusy: 0
+        onExpireFollowUp: []
         debugDraw: 1
+    - rid: 3203579899805771
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 100
+        defaultAPRatio: 0
+        defaultAmplitude: 0
+        type: 0
+        onHitFollowUps: []
+        onExpireFollowUps: []
+    - rid: 3203579899805777
+      type: {class: AreaParams, ns: , asm: Assembly-CSharp}
+      data:
+        Area:
+          rid: 669456414455365711
+        lifeTick: 0
+        OnAreaEnter:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 3203579899805781
+          passSameTarget: 0
+          respectBusy: 0
+        OnAreaExpire: []
+    - rid: 3203579899805781
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 125
+        defaultAPRatio: 0
+        defaultAmplitude: 0
+        type: 0
+        onHitFollowUps: []
+        onExpireFollowUps: []
+    - rid: 669456414455365711
+      type: {class: BoxArea, ns: , asm: Assembly-CSharp}
+      data:
+        Height: 1000
+        Width: 2000
+    - rid: 669456414455365715
+      type: {class: LaserParams, ns: , asm: Assembly-CSharp}
+      data:
+        rangeMultiplier: 1
+        onHitFollowUps:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 669456414455365716
+          passSameTarget: 0
+          respectBusy: 0
+    - rid: 669456414455365716
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 100
+        defaultAPRatio: 25
+        defaultAmplitude: 0
+        type: 0
+        onHitFollowUps: []
+        onExpireFollowUps: []
+    - rid: 669456663354277962
+      type: {class: SwitchParams, ns: , asm: Assembly-CSharp}
+      data:
+        variable: {fileID: 11400000, guid: 693bf776b88db9d459c4c477ce27b86d, type: 2}
+        points: 01000000
+        switchFollowUps:
+        - mechanism: {fileID: 11400000, guid: c6f30aff2aa354742807b8eb6a66fab3, type: 2}
+          params:
+            rid: 669456663354277967
+          passSameTarget: 0
+          respectBusy: 0
+        - mechanism: {fileID: 11400000, guid: 5ab358e8ab1db344395c018d5644677e, type: 2}
+          params:
+            rid: 669456663354277965
+          passSameTarget: 0
+          respectBusy: 0
+    - rid: 669456663354277965
+      type: {class: HitscanParams, ns: , asm: Assembly-CSharp}
+      data:
+        minRange: 0
+        maxRange: 255
+        layerMask:
+          serializedVersion: 2
+          m_Bits: 128
+        hitEffectPrefab: {fileID: 0}
+        cooldownTicks: 0
+        onHitFollowUp:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 669456663354277966
+          passSameTarget: 0
+          respectBusy: 0
+        onExpireFollowUp: []
+        debugDraw: 1
+    - rid: 669456663354277966
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 100
+        defaultAPRatio: 100
+        defaultAmplitude: 0
+        type: 4
+        onHitFollowUps: []
+        onExpireFollowUps: []
+    - rid: 669456663354277967
+      type: {class: LaserParams, ns: , asm: Assembly-CSharp}
+      data:
+        rangeMultiplier: 1
+        onHitFollowUps:
+        - mechanism: {fileID: 11400000, guid: 1bede443468194148a98f2cc92b69f8f, type: 2}
+          params:
+            rid: 669456663354277968
+          passSameTarget: 0
+          respectBusy: 0
+    - rid: 669456663354277968
+      type: {class: DamageParams, ns: , asm: Assembly-CSharp}
+      data:
+        damageValue: 100
+        defaultAPRatio: 100
+        defaultAmplitude: 0
+        type: 0
+        onHitFollowUps: []
+        onExpireFollowUps: []

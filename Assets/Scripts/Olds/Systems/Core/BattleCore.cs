@@ -1,4 +1,4 @@
-﻿using Intents;
+﻿/*using Intents;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,10 +15,10 @@ public static class BattleCore
 {
 	private static bool _initialized;
 	private static GameObject _runner;
-	/*static BattleCore()
+	static BattleCore()
 	{
 		Initialize(); //Initialize doesn't work I think
-	}*/
+	}
 	/// <summary>
 	/// Global entity controller, it applies the updated status into every entity.
 	/// </summary>
@@ -51,4 +51,4 @@ public static class BattleCore
 		Debug.Log("BattleCore initialized.");
 	}
 }
-#endregion
+#endregion*/

@@ -1,12 +1,12 @@
 대상을 지정할 수 있는("Targeted:"로 표시) 모든 기술은 앵커를 대상으로 삼아 비대상 기술로 만들 수 있다
 Melee(정면 부채꼴 방향을 공격, deg가 360이면 원형 공격도 가능)
-Projectile(Targeted: 투사체를 발사)
+Projectile(Targeted, Summoning: 투사체를 발사)
 ㄴ지금은 ProjectileMovement 코드가 따로 있는데 이걸 Mechanism에 통합하는 것도(Projectile의 Prefab이 Movement를 가져가게 하는 등) 괜찮을 듯
   ㄴ사실 지금도 projectile에 AddComponent를 적용하여 통합하고는 있지만 의존도가 조금 있는 것 같음, 근데 이대로도 괜찮다면 그냥 남기고
 ㄴ벽은 통과 못 하는 게 좋을 듯, 개나소나 벽을 넘기면 밸런스 잡기가 어려워지는 느낌
 Hitscan(Targeted: 대상을 즉시 공격, 이 기술은 비대상으로 사용하지 않게 조심한다)
 ㄴ대상에게 레이저 쏘는 기술도 Hitscan, 단일 근접 공격도 Hitscan으로 시각 효과만 좀 달리하면 된다
-Area(Targeted: 특정 지점으로부터 일정 범위를 공격, AreaType을 통해 사각형/원형 등을 구분한다)
+Area(Targeted, Summoning: 특정 지점으로부터 일정 범위를 공격, AreaType을 통해 사각형/원형 등을 구분한다)
 ㄴ duration을 지정하여(기본값은 0) 장판 기술도 만들 수 있을 듯
 Dash(Targeted: 돌진, 적을 관통할 수도 있다)
 ㄴ기본적으로 Move와 동일한 구조를 갖기 때문에 벽은 넘을 수가 없다
@@ -36,7 +36,7 @@ Delay(FollowUp(Switch처럼 이게 실제 발동하는 기술)의 사용 타이�
 Channel(Targeted: Delay/Hold와 다르게 누르고 있는 동안에 FollowUp의 효과를 유지)
 ㄴFollowUp을 주기적으로 호출하게 만들기
   ㄴ더 나은 방법이 있을지도 모르겠지만 일단은 이 방법이 떠올랐음
-Summon(Targeted: GameObject를 특정 위치에 소환)
+Summon(Targeted, Summoning: GameObject를 특정 위치에 소환)
 ㄴ뭔가를 대상으로 GameObject를 소환하게 만들 거라면 소환 시에 Depenetration을 잊지 말기
   ㄴ소환되는 GameObject는 Prefab을 이용하면 좋을지도?
 Toggle(특정 효과의 사용 여부를 전환)

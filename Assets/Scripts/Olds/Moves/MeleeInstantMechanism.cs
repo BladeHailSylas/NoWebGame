@@ -22,8 +22,8 @@ public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
         }
 
         Vector2 origin = owner.position;
-        Vector2 fwd = GetMouseDir(cam, origin);
-        float half = p.angleDeg * 0.5f;
+        var fwd = GetMouseDir(cam, origin);
+        var half = p.angleDeg * 0.5f;
 
         var hits = Physics2D.OverlapCircleAll(origin, p.radius, p.enemyMask);
         Transform firstHit = null;
@@ -31,17 +31,17 @@ public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
         {
             if (p.angleDeg < 359f)
             {
-                Vector2 to = (Vector2)c.bounds.ClosestPoint(origin) - origin;
+                var to = (Vector2)c.bounds.ClosestPoint(origin) - origin;
                 if (to.sqrMagnitude > 1e-6f)
                 {
-                    float ang = Vector2.SignedAngle(fwd, to.normalized);
+                    var ang = Vector2.SignedAngle(fwd, to.normalized);
                     if (Mathf.Abs(ang) > half) continue;
                 }
             }
 
             if (c.TryGetComponent(out ActInterfaces.IVulnerable v))
             {
-                v.TakeDamage(p.attack * p.attackPercent, p.apRatio);
+                //v.TakeDamage(p.attack * p.attackPercent, p.apRatio);
                 firstHit ??= c.transform;
             }
 

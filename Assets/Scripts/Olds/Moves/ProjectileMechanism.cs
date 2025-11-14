@@ -38,7 +38,7 @@ public class ProjectileMechanism : SkillMechanismBase<MissileParams>, ITargetedM
 		}
 
 				var solution = TargetingRuntimeUtil.Resolve(owner, cam, p, explicitTarget, createAnchor: true, targetAlly: p.TargetSelf);
-		Transform resolvedTarget = solution.Target;
+		var resolvedTarget = solution.Target;
 		Debug.Log($"ProjectileMechanism: 발사 대상 {resolvedTarget?.name ?? "null"}, 방향 {solution.Direction}, 거리 {solution.Distance}");
 		if (resolvedTarget == null)
 		{

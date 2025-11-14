@@ -1,0 +1,16 @@
+Implement DeterministicLifetime component (tick-based object expiration).
+DeterministicLifetime을 구현해서 tick에 따라 expired를 호출하라
+
+Expand AreaEntity to actually apply DamageData to IDamageable.
+AreaEntity가 IVulnerable(GPT는 IDamageable로 생각하지만)에게 피해를 가하게 하라(팀 구분을 두면 좋을 것)
+
+Add visual effect spawning hooks for skills.
+VFX를 만들어라(후순위로 두는 게 좋을 수 있음)
+
+Begin the SummonMechanism (will reuse ObjectGeneratingMechanism).
+SummonMechanism을 구현하라(ObjectGeneratingMechanism을 사용하라, prefab도 있어야 할 것이다)
+
+Introduce basic cooldown handling via INewParams.CooldownTicks.
+CooldownTicks를 기반으로 쿨타임을 구현하라(CooldownHandler가 필요할 수 있다)
+
+(Optional) Add simple pooling for spawned entities.

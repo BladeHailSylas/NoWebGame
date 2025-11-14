@@ -17,7 +17,8 @@ public sealed class Ticker
 
 	public Ticker()
 	{
-		Debug.Log("Ticker here");
+		Reset();
+		//Debug.Log("Ticker here");
 		Instance ??= this;
 	}
 	public void Schedule(byte ticksFromNow, Action<int> action) //ticksFromNow is byte since max delay is 120 ticks(2 seconds), the smaller the better for memory and packet size
@@ -26,7 +27,7 @@ public sealed class Ticker
 		{
 			throw new ArgumentOutOfRangeException(nameof(ticksFromNow), "Must be greater than zero.");
 		}
-		ushort targetTick = (TickCount + ticksFromNow < TickCount) ? (ushort)(TickCount + ticksFromNow) : (ushort)1;
+		var targetTick = (TickCount + ticksFromNow < TickCount) ? (ushort)(TickCount + ticksFromNow) : (ushort)1;
 		OnTick += Handler;
 		return;
 
@@ -45,9 +46,9 @@ public sealed class Ticker
 	{
 		TickCount++;
 		//if(TickCount % TicksPerSecond == 0) Debug.Log($"Time? {TickCount}");
-		if (TickCount == 65535) // wrap around to avoid overflow, though unlikely to happen in practice(it needs a battle that lasts more than 18 minutes)
+		if (TickCount == 0) // wrap around to avoid overflow, though unlikely to happen in practice(it needs a battle that lasts more than 18 minutes)
+		//The TickCount isn't supposed to be zero here as I added by 1 above. This means the TickCount had been 65535 and became 0; The overflow.
 		{
-			TickCount = 0;
 			throw new TickCountOverflowException("It seems ushort was too short");
 		}
 		OnTick?.Invoke(TickCount);

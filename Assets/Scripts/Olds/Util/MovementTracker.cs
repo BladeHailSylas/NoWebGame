@@ -34,13 +34,13 @@ public class MovementTracker : MonoBehaviour
         _frameCount++;
 
         // 현재 위치 계산
-        FixedVector2 current = FixedVector2.FromVector2(transform.position);
+        var current = FixedVector2.FromVector2(transform.position);
         //Debug.Log($"Current at {current}, previously {LastPosition}");
         Delta = current - LastPosition;
         LastPosition = current;
 
         // 이동 거리 및 속도 계산
-        float distance = Delta.asVector2.magnitude;
+        var distance = Delta.AsVector2.magnitude;
         Speed = distance / Time.deltaTime;
 
         // 디버그 출력
@@ -48,7 +48,7 @@ public class MovementTracker : MonoBehaviour
         {
             if (distance > stopThreshold)
             {
-                Debug.Log($"[MovementTracker] Δ=({Delta.asVector2.x:F3}, {Delta.asVector2.y:F3})  " +
+                Debug.Log($"[MovementTracker] Δ=({Delta.AsVector2.x:F3}, {Delta.AsVector2.y:F3})  " +
                           $"Speed={Speed:F3} m/s");
             }
             else
@@ -68,7 +68,7 @@ public class MovementTracker : MonoBehaviour
         if (v.RawX == 0 && v.RawY == 0)
             return new FixedVector2(0, 0);
 
-        double mag = System.Math.Sqrt(v.RawX * (double)v.RawX + v.RawY * (double)v.RawY);
+        var mag = System.Math.Sqrt(v.RawX * (double)v.RawX + v.RawY * (double)v.RawY);
         return new FixedVector2((int)(v.RawX / mag), (int)(v.RawY / mag));
     }
 
@@ -77,6 +77,6 @@ public class MovementTracker : MonoBehaviour
     /// </summary>
     public bool IsStationary()
     {
-        return Delta.asVector2.magnitude < stopThreshold;
+        return Delta.AsVector2.magnitude < stopThreshold;
     }
 }

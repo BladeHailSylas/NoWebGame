@@ -2,17 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public struct CollisionPolicy
-{
-	public LayerMask wallsMask;
-	public LayerMask enemyMask;
-	public bool enemyAsBlocker;
-	public int unitradius;
-	public int unitskin;
-	public bool allowWallSlide;
-}
-
 public struct MoveResult
 {
         public FixedVector2 actualDelta;
@@ -23,12 +12,12 @@ public struct MoveResult
         /// <summary>
         /// Helper accessor for legacy call sites that expect a float Vector2 delta.
         /// </summary>
-        public readonly Vector2 ActualDeltaVector => actualDelta.asVector2;
+        public readonly Vector2 ActualDeltaVector => actualDelta.AsVector2;
 
         /// <summary>
         /// Helper accessor for legacy call sites that expect a float Vector2 normal.
         /// </summary>
-        public readonly Vector2 HitNormalVector => hitNormal.asVector2;
+        public readonly Vector2 HitNormalVector => hitNormal.AsVector2;
 }
 
 [DisallowMultipleComponent]
@@ -43,8 +32,8 @@ public class KinematicMotor2D : MonoBehaviour
 		wallsMask = 0,
 		enemyMask = 0,
 		enemyAsBlocker = true,
-		unitradius = 500,
-		unitskin = 125,
+		unitRadius = 500,
+		unitSkin = 125,
 		allowWallSlide = true
 	};
         private Rigidbody2D _rb;
@@ -147,16 +136,16 @@ public class KinematicMotor2D : MonoBehaviour
         private FixedVector2 RemoveNormalComponent(FixedVector2 vector, LayerMask mask, ref MoveResult result)
         {
                 // Bridge deterministic data to Unity physics by operating in float space locally.
-                Vector2 vfinalFloat = vector.asVector2;
-                float magnitude = vfinalFloat.magnitude;
+                var vfinalFloat = vector.AsVector2;
+                var magnitude = vfinalFloat.magnitude;
                 if (magnitude <= 0f)
                 {
                         return new FixedVector2(0, 0);
                 }
 
-                Vector2 origin = _coreTransform.position.asVector2;
-                Vector2 direction = vfinalFloat.normalized;
-                var maskHit = Physics2D.CircleCastAll(origin, _current.unitradius, direction, magnitude, mask);
+                var origin = _coreTransform.position.AsVector2;
+                var direction = vfinalFloat.normalized;
+                var maskHit = Physics2D.CircleCastAll(origin, _current.unitRadius, direction, magnitude, mask);
                 foreach (var hit in maskHit)
                 {
                         if (!hit.collider)
@@ -181,8 +170,8 @@ public class KinematicMotor2D : MonoBehaviour
                         result.hitTransform = hit.transform;
                         result.hitNormal = FixedVector2.FromVector2(hit.normal.normalized);
 
-                        Vector2 nFloat = hit.normal.normalized;
-                        float dot = Vector2.Dot(vfinalFloat, nFloat);
+                        var nFloat = hit.normal.normalized;
+                        var dot = Vector2.Dot(vfinalFloat, nFloat);
                         if (Mathf.Abs(dot) > 0f)
                         {
                                 vfinalFloat -= dot * nFloat;
@@ -204,10 +193,10 @@ public class KinematicMotor2D : MonoBehaviour
                 FixedVector2 totalActual = new(0, 0);
                 FixedVector2 zeroNormal = new(0, 0);
 
-		for (int i = 0; i < _pendingMoves.Count; i++)
+		for (var i = 0; i < _pendingMoves.Count; i++)
 		{
-			FixedVector2 requested = _pendingMoves[i];
-			MoveResult step = ExecuteSweep(requested);
+			var requested = _pendingMoves[i];
+			var step = ExecuteSweep(requested);
 			totalActual += step.actualDelta;
 			aggregated.hitWall |= step.hitWall;
 			aggregated.hitEnemy |= step.hitEnemy;
@@ -234,31 +223,31 @@ public class KinematicMotor2D : MonoBehaviour
 			actualDelta = new FixedVector2(0, 0)
 		};
 
-                Vector2 desiredFloat = desiredDelta.ToVector2();
+                var desiredFloat = desiredDelta.ToVector2();
                 if (desiredFloat.sqrMagnitude <= 0f)
                 {
                         return result;
                 }
 
-                FixedVector2 originFixed = _coreTransform.position;
-                float remaining = desiredFloat.magnitude;
-                Vector2 wishDirFloat = desiredFloat.normalized;
+                var originFixed = _coreTransform.position;
+                var remaining = desiredFloat.magnitude;
+                var wishDirFloat = desiredFloat.normalized;
 
                 const int kMaxSlideIters = 4;
-                int iters = 0;
+                var iters = 0;
 
                 while (remaining > 1e-5f && iters++ < kMaxSlideIters)
                 {
-                        Vector2 vfinalFloat = wishDirFloat * remaining;
-                        FixedVector2 vfinal = FixedVector2.FromVector2(vfinalFloat);
+                        var vfinalFloat = wishDirFloat * remaining;
+                        var vfinal = FixedVector2.FromVector2(vfinalFloat);
                         vfinal = RemoveNormalComponent(vfinal, _current.wallsMask, ref result);
                         vfinal = RemoveNormalComponent(vfinal, _current.enemyMask, ref result);
 
-                        MoveResult wallProbe = result;
-                        FixedVector2 checkWalls = RemoveNormalComponent(vfinal, _current.wallsMask, ref wallProbe);
-                        MoveResult enemyProbe = result;
-                        FixedVector2 checkEnemies = RemoveNormalComponent(vfinal, _current.enemyMask, ref enemyProbe);
-                        Vector2 vfinalCheck = vfinal.ToVector2();
+                        var wallProbe = result;
+                        var checkWalls = RemoveNormalComponent(vfinal, _current.wallsMask, ref wallProbe);
+                        var enemyProbe = result;
+                        var checkEnemies = RemoveNormalComponent(vfinal, _current.enemyMask, ref enemyProbe);
+                        var vfinalCheck = vfinal.ToVector2();
                         if (vfinalCheck != checkWalls.ToVector2() || vfinalCheck != checkEnemies.ToVector2())
                         {
                                 break;
@@ -283,7 +272,7 @@ public class KinematicMotor2D : MonoBehaviour
 
 	private void MoveDiscrete(FixedVector2 delta)
 	{
-		Vector2 deltaVector = delta.ToVector2();
+		var deltaVector = delta.ToVector2();
 		if (deltaVector.sqrMagnitude <= 0f)
 		{
 			return;
@@ -312,17 +301,17 @@ public class KinematicMotor2D : MonoBehaviour
                 filter.SetLayerMask(blockersMask);
                 filter.useTriggers = false;
 
-                Collider2D[] hits = new Collider2D[16];
-                int count = _col.Overlap(filter, hits);
+                var hits = new Collider2D[16];
+                var count = _col.Overlap(filter, hits);
                 if (count <= 0)
                 {
                         return new FixedVector2(0, 0);
                 }
 
-                Vector2 accumFloat = Vector2.zero;
-                int validContacts = 0;
+                var accumFloat = Vector2.zero;
+                var validContacts = 0;
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                         var other = hits[i];
 			if (!other)
@@ -330,7 +319,7 @@ public class KinematicMotor2D : MonoBehaviour
 				continue;
 			}
 
-			ColliderDistance2D d = _col.Distance(other);
+			var d = _col.Distance(other);
                         if (!d.isOverlapped)
                         {
                                 continue;
@@ -345,13 +334,13 @@ public class KinematicMotor2D : MonoBehaviour
                         return new FixedVector2(0, 0);
                 }
 
-                float mag = accumFloat.magnitude;
+                var mag = accumFloat.magnitude;
                 if (mag < minEps)
                 {
                         return new FixedVector2(0, 0);
                 }
 
-                Vector2 mtdFloat = (accumFloat / mag) * (mag + skin);
+                var mtdFloat = (accumFloat / mag) * (mag + skin);
 
                 /*** Debug helper (disabled by default). Enable for MTV visualization. */
                 //for (int i = 0; i < count; i++)
@@ -384,33 +373,33 @@ public class KinematicMotor2D : MonoBehaviour
 			return;
 		}
 
-		LayerMask blockersMask = _current.wallsMask;
+		var blockersMask = _current.wallsMask;
 		if (_current.enemyAsBlocker)
 		{
 			blockersMask |= _current.enemyMask;
 		}
 
-		int maxIterations = 4;
-		float skin = 0.125f;
-		float minEps = 0.001f;
-		float maxTotal = 0.5f;
+		var maxIterations = 4;
+		var skin = 0.125f;
+		var minEps = 0.001f;
+		var maxTotal = 0.5f;
 
                 FixedVector2 total = new(0, 0);
 
-                for (int it = 0; it < maxIterations; it++)
+                for (var it = 0; it < maxIterations; it++)
                 {
-                        FixedVector2 mtd = DepenVector(blockersMask, maxIterations, skin, minEps, maxTotal);
-                        Vector2 mtdFloat = mtd.ToVector2();
+                        var mtd = DepenVector(blockersMask, maxIterations, skin, minEps, maxTotal);
+                        var mtdFloat = mtd.ToVector2();
                         if (mtdFloat.sqrMagnitude <= (minEps * minEps))
                         {
                                 break;
                         }
 
-                        Vector2 totalFloat = total.ToVector2();
+                        var totalFloat = total.ToVector2();
                         if ((total + mtd).ToVector2().magnitude > maxTotal)
                         {
-                                Vector2 dir = mtdFloat.normalized;
-                                float remain = Mathf.Max(0f, maxTotal - totalFloat.magnitude);
+                                var dir = mtdFloat.normalized;
+                                var remain = Mathf.Max(0f, maxTotal - totalFloat.magnitude);
                                 mtd = FixedVector2.FromVector2(dir * remain);
                                 mtdFloat = mtd.ToVector2();
                         }

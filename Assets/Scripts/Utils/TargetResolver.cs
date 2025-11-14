@@ -31,6 +31,16 @@ public readonly struct TargetRequest
         TargetMask = LayerMask.GetMask("Foe");
         CasterPos = FixedVector2.FromVector2(caster.position);
     }
+
+    public TargetRequest(FixedVector2 caster, TargetMode mode)
+    {
+        Caster = null;
+        MinRange = 0;
+        MaxRange = float.MaxValue;
+        Mode = mode;
+        TargetMask = LayerMask.GetMask("Foe");
+        CasterPos = caster;
+    }
 }
 /// <summary>
 /// TargetResolver의 반환 결과 (타깃 / 앵커 / 감지 여부)
@@ -78,12 +88,12 @@ public class TargetResolver : MonoBehaviour
     private TargetResolveResult ResolveTowardsEntity(TargetRequest req)
     {
         // 커서 위치에서 Collider 검색
-        Vector3 screenPos = Input.mousePosition;
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
+        var screenPos = Input.mousePosition;
+        var worldPos = Camera.main.ScreenToWorldPoint(screenPos);
         worldPos.z = 0f;
 
-        Collider2D hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
-        if (hit == null)
+        var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
+        if (hit is null)
         {
             if (debugLog)
                 Debug.Log("[TargetResolver] 커서 아래에 감지된 엔터티 없음");
@@ -91,7 +101,7 @@ public class TargetResolver : MonoBehaviour
         }
 
         // 사거리 계산
-        float distance = Vector2.Distance(req.Caster.position, hit.transform.position);
+        var distance = Vector2.Distance(req.CasterPos.AsVector2, hit.transform.position);
         if (distance > req.MaxRange || distance < req.MinRange)
         {
             if (debugLog)
@@ -99,6 +109,11 @@ public class TargetResolver : MonoBehaviour
             return new TargetResolveResult(null, req.CasterPos, false);
         }
 
+        if (hit.transform.TryGetComponent<Entity>(out var entity) && !entity.targetable)
+        {
+            if(debugLog) Debug.Log("[TargetResolver] 타깃 불가능한 엔터티");
+            return new TargetResolveResult(null, req.CasterPos, false);
+        }
         if (debugLog)
             Debug.Log($"[TargetResolver] 타깃 '{hit.transform.name}' 확정 (거리 {distance:F2})");
 
@@ -118,7 +133,7 @@ public class TargetResolver : MonoBehaviour
         }
 
         // 사거리 검사
-        float distance = Vector2.Distance(req.Caster.position, worldPos);
+        var distance = Vector2.Distance(req.CasterPos.AsVector2, worldPos);
         if (distance > req.MaxRange || distance < req.MinRange)
         {
             if (debugLog)
@@ -127,7 +142,7 @@ public class TargetResolver : MonoBehaviour
         }
 
         // 임시 Anchor 오브젝트 생성
-        GameObject anchor = anchorPrefab != null
+        var anchor = anchorPrefab is null
             ? Instantiate(anchorPrefab, worldPos, Quaternion.identity)
             : new GameObject("Anchor_Temp");
 

@@ -1,20 +1,15 @@
 using UnityEngine;
-using System;
 using System.Collections;
 
 [DisallowMultipleComponent]
-/// <summary>
-/// Internal runner that bridges Unity's Update loop to the deterministic ticker.
-/// </summary>
-/// 
 public class TickerRunner : MonoBehaviour
 {
     private Ticker _ticker;
-    private void Awake()
+    private void OnEnable()
     {
         _ticker = new Ticker();
-        Debug.Log("Ticker Awake, time is ticking...");
-        BattleCore.Initialize();
+        Debug.Log("AYAYAY AYAYYYYY");
+        //BattleCore.Initialize();
         StartCoroutine(TickLoop());
     }
 
@@ -27,9 +22,9 @@ public class TickerRunner : MonoBehaviour
             {
                 _ticker.Step();
             }
-            catch (TickCountOverflowException ex)
+            catch (TickCountOverflowException)
             {
-				
+				Debug.LogError("Die yobbo");
             }
             yield return interval;
         }

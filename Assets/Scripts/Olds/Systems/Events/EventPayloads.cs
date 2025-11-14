@@ -161,7 +161,7 @@ public readonly struct TargetNotFound
 /// [Event] 피해가 "적용된" 사실 알림(로그/연출/UI용).
 /// - RawDamage: 기본 피해량
 /// - FinalDamage: 실제 가하는 피해량(피해량 증감의 효과를 받는)
-/// - ArmorPenetration: 총 방어 관통 계수(곱연산, <see cref="PlayerStatsBridge.TotalArmorPenetration()"/> 참조)
+/// - ArmorPenetration: 총 방어 관통 계수(곱연산, <see cref="StatsBridge.TotalArmorPenetration()"/> 참조)
 /// - DamageType(<see cref="EDamageType"/>): 일반(Normal)/비례(Percentaged)/고정(Fixed)
 /// - HitPoint/HitNormal: 연출/넉백 방향 계산 근거
 /// </summary>
@@ -306,14 +306,14 @@ public struct OnTick
 // - 테스트 더블/모킹이 쉬워집니다.
 public interface IStatModifier
 {
-	void Apply(PlayerStats s);
-	void Remove(PlayerStats s);
+	//void Apply(PlayerStats s);
+	//void Remove(PlayerStats s);
 }
 
 public interface IEffectModifier
 {
-	void Apply(PlayerEffects fx);
-	void Remove(PlayerEffects fx);
+	//void Apply(PlayerEffect fx);
+	//void Remove(PlayerEffect fx);
 }
 
 #endregion

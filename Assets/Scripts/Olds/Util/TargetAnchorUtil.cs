@@ -12,8 +12,8 @@ public static class TargetAnchorUtil2D
 	{
 		Vector2 from = origin;
 		Vector2 to = desired;
-		Vector2 dir = (to - from);
-		float dist = dir.magnitude;
+		var dir = (to - from);
+		var dist = dir.magnitude;
 		if (dist <= Mathf.Epsilon) return origin;
 
 		dir /= dist;
@@ -26,7 +26,7 @@ public static class TargetAnchorUtil2D
 			if (hit.collider != null)
 			{
 				
-				float back = Mathf.Min(skin, hit.distance);
+				var back = Mathf.Min(skin, hit.distance);
 				return hit.point - dir * back;
 			}
 		}
@@ -35,7 +35,7 @@ public static class TargetAnchorUtil2D
 			var hit = Physics2D.Raycast(from, dir, dist, wallsMask);
 			if (hit.collider != null)
 			{
-				float back = Mathf.Min(skin, hit.distance);
+				var back = Mathf.Min(skin, hit.distance);
 				return hit.point - dir * back;
 			}
 		}
@@ -51,7 +51,7 @@ public static class TargetAnchorUtil2D
 	public static Vector3 CursorWorld2D(Camera cam, Transform owner, float depthFallback)
 	{
 		var sp = Input.mousePosition;
-		float depth = Mathf.Abs(cam.transform.position.z - owner.position.z);
+		var depth = Mathf.Abs(cam.transform.position.z - owner.position.z);
 		if (depth < 0.01f) depth = depthFallback;
 		var w = cam.ScreenToWorldPoint(new Vector3(sp.x, sp.y, depth));
 		w.z = owner.position.z;
@@ -61,7 +61,7 @@ public static class TargetAnchorUtil2D
 	{
 		var input = t.GetComponent<IMovable>() ?? t.GetComponentInChildren<IMovable>();
 		if (input == null) Debug.Log("Have �� Children?");
-		Vector2 mv = input != null ? input.LastMoveDir : Vector2.zero;
+		var mv = input != null ? input.LastMoveDir : Vector2.zero;
 		if (mv.sqrMagnitude < 0.01f) mv = Vector2.zero;
 		return mv.normalized;
 	}
@@ -77,12 +77,12 @@ public static class TargetAnchorUtil2D
 	}
 	public static Vector3 ResolveReachablePoint2D(Vector3 origin, Vector3 desired, LayerMask walls, float radius, float skin)
 	{
-		Vector2 from = origin, to = desired, dir = to - from; float dist = dir.magnitude;
+		Vector2 from = origin, to = desired, dir = to - from; var dist = dir.magnitude;
 		if (dist <= Mathf.Epsilon) return origin;
 		dir /= dist; skin = Mathf.Max(0f, skin);
 
-		float eps = 0.03f;
-		float minSep = Mathf.Max(skin, radius + eps); // ★ 최소 분리거리 보장
+		var eps = 0.03f;
+		var minSep = Mathf.Max(skin, radius + eps); // ★ 최소 분리거리 보장
 
 		if (radius > 0f)
 		{
