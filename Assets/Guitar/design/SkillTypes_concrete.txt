@@ -87,11 +87,10 @@ Switch
 효과가 바뀌는 기술도 Switch고 재사용(아트록스 Q) 기술도 Switch다
 쿨타임 후 자동으로 효과가 강화되는 기술은 Stack을 얻고 소모하는 것으로 처리하자
 
-Delay
+Hold
 기술에 지연을 둔다
-고유 params는 DelayType, maxTick
-DelayType은 Delay와 Hold가 있는데, Delay는 꼼짝없이 maxTick까지 기다려야 한다
-다만 Hold는 maxTick이 되면 FollowUp을 자동 발동, 그 이전에도 임의로 발동 가능하다
+고유 params는 minTick, maxTick
+maxTick이 되면 FollowUp을 자동 발동, minTick만 넘겼다면 그 이전에도 임의로 발동 가능하다
 
 Toggle
 지속 기술의 사용 여부를 전환한다

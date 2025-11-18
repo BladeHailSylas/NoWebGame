@@ -39,10 +39,9 @@ public class CursorResolver : MonoBehaviour
 
         // 1️⃣ 입력 좌표 가져오기
         var screenPos = Input.mousePosition;
-        if (mainCamera == null)
+        if (mainCamera is null)
         {
-            if (debugLog)
-                Debug.LogWarning("[CursorResolver] 카메라가 지정되지 않았습니다.");
+            if (debugLog) Debug.LogWarning("[CursorResolver] 카메라가 지정되지 않았습니다.");
             return false;
         }
 
@@ -53,25 +52,21 @@ public class CursorResolver : MonoBehaviour
         // 3️⃣ 커서가 Ground 위에 있는지 검사
         var hit = Physics2D.Raycast(world, Vector2.zero, rayDistance, groundMask);
 
-        if (hit.collider != null)
+        if (hit.collider is not null)
         {
             // 히트 포인트를 사용
             worldPos = hit.point;
             fixedPos = FixedVector2.FromVector2(worldPos);
 
-            if (debugLog)
-                Debug.Log($"[CursorResolver] Ground 히트 감지: {worldPos}");
+            if (debugLog) Debug.Log($"[CursorResolver] Ground 히트 감지: {worldPos}");
             return true;
         }
-        else
-        {
-            // Ground가 없으면 ScreenToWorldPoint 결과를 그대로 사용
-            worldPos = world;
-            fixedPos = FixedVector2.FromVector2(worldPos);
 
-            if (debugLog)
-                Debug.Log($"[CursorResolver] Ground 미감지, 기본 좌표 사용: {worldPos}");
-            return true; // 감지는 실패했지만 커서 좌표는 유효
-        }
+        // Ground가 없으면 ScreenToWorldPoint 결과를 그대로 사용
+        worldPos = world;
+        fixedPos = FixedVector2.FromVector2(worldPos);
+
+        if (debugLog) Debug.Log($"[CursorResolver] Ground 미감지, 기본 좌표 사용: {worldPos}");
+        return true; // 감지는 실패했지만 커서 좌표는 유효
     }
 }

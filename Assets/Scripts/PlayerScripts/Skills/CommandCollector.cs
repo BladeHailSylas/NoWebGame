@@ -7,15 +7,15 @@ public class CommandCollector : MonoBehaviour
     private List<SkillCommand> _current = new();
     private List<SkillCommand> _next = new();
     public static CommandCollector Instance { get; private set; }
-    void OnEnable()
+
+    private void OnEnable()
     {
-        //Debug.Log("Ready to collect garbage");
         _runner = new SkillRunner(GetComponent<TargetResolver>());
         Ticker.Instance.OnTick += TickHandler;
         Instance = this;
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
         Ticker.Instance.OnTick -= TickHandler;
     }
@@ -35,5 +35,8 @@ public class CommandCollector : MonoBehaviour
 
         // swap for next tick
         (_current, _next) = (_next, _current);
+    }
+    public void CeaseCommand() {
+        
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Mechanics/Melee Instant")]
+[CreateAssetMenu(menuName = "Mechanics/Melee Instant"), System.Obsolete]
 public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
 {
     public override IEnumerator Execute(Transform owner, Camera cam, MeleeParams p)
@@ -45,11 +45,9 @@ public class MeleeInstantMechanism : SkillMechanismBase<MeleeParams>
                 firstHit ??= c.transform;
             }
 
-            if (c.attachedRigidbody)
-            {
-                var dir = ((Vector2)c.bounds.center - origin).normalized;
-                c.attachedRigidbody.AddForce(dir * p.knockback, ForceMode2D.Impulse);
-            }
+            if (!c.attachedRigidbody) continue;
+            var dir = ((Vector2)c.bounds.center - origin).normalized;
+            c.attachedRigidbody.AddForce(dir * p.knockback, ForceMode2D.Impulse);
         }
 
         if (firstHit)

@@ -129,7 +129,7 @@ public class VariableStorage
 
             if (key.def is VariableDefinition vdef)
             {
-                if (vdef.exclusiveGroup != null && vdef.exclusiveGroup.Length > 0)
+                if (vdef.exclusiveGroup is { Length: > 0 })
                     continue; // exclusive는 이 단계에서 보류
             }
 

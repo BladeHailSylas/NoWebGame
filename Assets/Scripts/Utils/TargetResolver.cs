@@ -95,8 +95,7 @@ public class TargetResolver : MonoBehaviour
         var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
         if (hit is null)
         {
-            if (debugLog)
-                Debug.Log("[TargetResolver] 커서 아래에 감지된 엔터티 없음");
+            if (debugLog) Debug.Log("[TargetResolver] 커서 아래에 감지된 엔터티 없음");
             return new TargetResolveResult(null, req.CasterPos, false);
         }
 
@@ -104,8 +103,7 @@ public class TargetResolver : MonoBehaviour
         var distance = Vector2.Distance(req.CasterPos.AsVector2, hit.transform.position);
         if (distance > req.MaxRange || distance < req.MinRange)
         {
-            if (debugLog)
-                Debug.Log($"[TargetResolver] 사거리 조건 불충족 (거리 {distance:F2})");
+            if (debugLog) Debug.Log($"[TargetResolver] 사거리 조건 불충족 (거리 {distance:F2})");
             return new TargetResolveResult(null, req.CasterPos, false);
         }
 
@@ -114,8 +112,7 @@ public class TargetResolver : MonoBehaviour
             if(debugLog) Debug.Log("[TargetResolver] 타깃 불가능한 엔터티");
             return new TargetResolveResult(null, req.CasterPos, false);
         }
-        if (debugLog)
-            Debug.Log($"[TargetResolver] 타깃 '{hit.transform.name}' 확정 (거리 {distance:F2})");
+        if (debugLog) Debug.Log($"[TargetResolver] 타깃 '{hit.transform.name}' 확정 (거리 {distance:F2})");
 
         return new TargetResolveResult(
             hit.transform,
@@ -127,8 +124,7 @@ public class TargetResolver : MonoBehaviour
         // 커서 월드 좌표 얻기
         if (!cursorResolver.TryGetCursorWorld(out var worldPos, out var fixedPos))
         {
-            if (debugLog)
-                Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
+            if (debugLog) Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
             return new TargetResolveResult(null, req.CasterPos, false);
         }
 
@@ -136,8 +132,7 @@ public class TargetResolver : MonoBehaviour
         var distance = Vector2.Distance(req.CasterPos.AsVector2, worldPos);
         if (distance > req.MaxRange || distance < req.MinRange)
         {
-            if (debugLog)
-                Debug.Log($"[TargetResolver] 커서 위치가 사거리 밖 (거리 {distance:F2})");
+            if (debugLog) Debug.Log($"[TargetResolver] 커서 위치가 사거리 밖 (거리 {distance:F2})");
             return new TargetResolveResult(null, req.CasterPos, false);
         }
 
@@ -148,8 +143,7 @@ public class TargetResolver : MonoBehaviour
 
         anchor.transform.position = worldPos;
 
-        if (debugLog)
-            Debug.Log($"[TargetResolver] 커서 기준 앵커 생성 ({worldPos})");
+        if (debugLog) Debug.Log($"[TargetResolver] 커서 기준 앵커 생성 ({worldPos})");
 
         // 일정 시간 후 자동 제거
         Destroy(anchor, 0.1f);

@@ -12,8 +12,8 @@ public sealed class ActBridge
 {
     private readonly Mover _mover;
     private readonly Attacker _attacker;
+    private Vector2 _moveVector;
     private Vector2 _inputVector;
-    private Vector2 _tempVector;
     private byte _innoxiousCount;
     private byte _immovableCount;
     public byte InnoxiousCount => _innoxiousCount;
@@ -32,7 +32,7 @@ public sealed class ActBridge
     /// </summary>
     public void SetMovementInput(Vector2 input)
     {
-        _tempVector = input;
+        _inputVector = input;
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public sealed class ActBridge
     /// </summary>
     public void ClearMovementInput()
     {
-        _tempVector = Vector2.zero;
+        _inputVector = Vector2.zero;
     }
 
     /// <summary>
@@ -48,11 +48,11 @@ public sealed class ActBridge
     /// </summary>
     public void Tick(ushort tick)
     {
-        _inputVector = (_immovableCount == 0) ? _tempVector : Vector2.zero;
-        if (_inputVector.sqrMagnitude > 1e-6f)
+        _moveVector = (_immovableCount == 0) ? _inputVector : Vector2.zero;
+        if (_moveVector.sqrMagnitude > 1e-6f)
         {
             //Debug.Log($"Sending {_inputVector}");
-            _mover.MakeMove(new FixedVector2(_inputVector));
+            _mover.MakeMove(new FixedVector2(_moveVector));
             
         }
     }
@@ -115,12 +115,12 @@ public sealed class ActBridge
     private void Immovable()
     {
         _immovableCount += 1;
-        //Nevermore
     }
 
     private void Innoxious()
     {
         _innoxiousCount += 1;
+        //Should cancel attacks(make CommandCollector cease all the commands)
     }
 }
 
