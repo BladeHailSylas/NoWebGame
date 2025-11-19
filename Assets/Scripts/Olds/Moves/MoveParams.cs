@@ -6,52 +6,21 @@ using UnityEditor;
 using UnityEditor.UIElements;
 
 [System.Serializable]
-public class MeleeParams : ISkillParams, ICooldownParams, IFollowUpProvider
+public class MeleeParams : INewParams
 {
 	[Header("Area")]
 	public float radius = 1.6f;
 	[Range(0, 360)] public float angleDeg = 120f;
 	public LayerMask enemyMask;
-
-	[Header("Damage")]
-	public float attack = 10f, apRatio = 0f, knockback = 0f, attackPercent = 1.0f;
-
+	
 	[Header("Timing")]
-	public float windup = 0.05f, recover = 0.08f, cooldown = 8f; // Change to Tick rate(1s = 60 Tick, so 1 Tick = 0.01667s) so that it can be easily synced with Ticker
-	public float Cooldown => cooldown;
-
-	// ★ FollowUp(예: 2타)을 Param에 직접 둠 — 필요 시 인스펙터에서 설정
-	public List<MechanicRef> onHit = new();
-	public List<MechanicRef> onExpire = new();
-
-	public IEnumerable<(CastOrder, float, bool)> BuildFollowUps(AbilityHook hook, Transform prevTarget)
-	{
-		var source = hook switch
-		{
-			AbilityHook.OnHit => onHit,
-			AbilityHook.OnCastEnd => onExpire,
-			_ => null,
-		};
-
-		if (source == null) yield break;
-
-		foreach (var (order, delay, respectBusy) in EnumerateFollowUps(source, prevTarget))
-		{
-			yield return (order, delay, respectBusy);
-		}
-	}
-
-	static IEnumerable<(CastOrder order, float delay, bool respectBusy)> EnumerateFollowUps(List<MechanicRef> source, Transform prevTarget)
-	{
-		if (source == null) yield break;
-		foreach (var reference in source)
-		{
-			if (reference.TryBuildOrder(prevTarget, out var order))
-			{
-				yield return (order, reference.delay, reference.respectBusyCooldown);
-			}
-		}
-	}
+	public byte onAttackDelay;
+	public short afterDelay;
+	public short cooldownTicks;
+	public short CooldownTicks => cooldownTicks;
+	
+	public List<MechanismRef> onHit = new();
+	public List<MechanismRef> onExpire = new();
 }
 
 [System.Serializable]

@@ -34,6 +34,8 @@ public interface ISystemMechanism : INewMechanism
     
 }
 
+public enum TargetMode { TowardsEntity, TowardsCursor, TowardsMovement, TowardsCoordinate }
+
 public interface INewParams
 {
     short CooldownTicks { get; }

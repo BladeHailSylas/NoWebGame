@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections;
 
-[CreateAssetMenu(menuName = "Mechanics/Projectile (Homing, Targeted)")]
+[CreateAssetMenu(menuName = "Mechanics/Projectile")]
 public class ProjectileMechanism : SkillMechanismBase<MissileParams>, ITargetedMechanic
 {
 	public override IEnumerator Execute(Transform owner, Camera cam, MissileParams p)

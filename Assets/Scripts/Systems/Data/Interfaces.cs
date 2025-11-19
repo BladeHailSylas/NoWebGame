@@ -220,18 +220,20 @@ namespace SkillInterfaces
 	public interface ISkillParams { }                    // 파라미터 마커
 	public interface ICooldownParams : ISkillParams { float Cooldown { get; } }
 	// 메커니즘(공식): "캐스팅 코루틴"을 제공
+	[System.Obsolete]
 	public interface ISkillMechanism
 	{
 		System.Type ParamType { get; }
 		IEnumerator Execute(Transform owner, Camera cam, ISkillParams @params);
 	}
+	[System.Obsolete]
 	public interface ITargetedMechanic : ISkillMechanism
 	{
 		IEnumerator Cast(Transform owner, Camera cam, ISkillParams @params, Transform target);
 	}
 
 	// 제네릭 베이스: 타입 가드 + 제네릭 오버로드
-
+	[System.Obsolete]
 	public abstract class SkillMechanismBase<TParam> : ScriptableObject, ISkillMechanism
 		where TParam : ISkillParams
 	{
@@ -247,7 +249,7 @@ namespace SkillInterfaces
 		
 		public abstract IEnumerator Execute(Transform owner, Camera cam, TParam param);
 	}
-		public enum TargetMode { TowardsEntity, TowardsCursor, TowardsMovement, TowardsCoordinate }
+	
 	
 	public interface IAnchorClearance
 	{
