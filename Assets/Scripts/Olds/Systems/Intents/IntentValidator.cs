@@ -2,21 +2,24 @@ using System.Collections.Generic;
 using System.Linq;
 
 #region ===== Intent Validate =====
-/// <summary>
-/// This filters the available intents
-/// </summary>
-public sealed class IntentValidator
+namespace Olds.Systems.Intents
 {
-    private List<IIntent> _validIntents;
-    private ushort[] _immovableIDs;
-    private ushort[] _unattackableIDs;
-    public IIntent[] ValidatedIntents => _validIntents.ToArray();
-    public void GetFlush(IIntent[] intents)
+    /// <summary>
+    /// This filters the available intents
+    /// </summary>
+    public sealed class IntentValidator
     {
-        _validIntents.Clear();
-        foreach (var intent in intents.Where(intent => !(_immovableIDs.Contains(intent.OwnerID) || _unattackableIDs.Contains(intent.OwnerID))))
+        private List<IIntent> _validIntents;
+        private ushort[] _immovableIDs;
+        private ushort[] _unattackableIDs;
+        public IIntent[] ValidatedIntents => _validIntents.ToArray();
+        public void GetFlush(IIntent[] intents)
         {
-            if(intent.Type == IntentType.Move || intent.Type == IntentType.Cast) _validIntents.Add(intent);
+            _validIntents.Clear();
+            foreach (var intent in intents.Where(intent => !(_immovableIDs.Contains(intent.OwnerID) || _unattackableIDs.Contains(intent.OwnerID))))
+            {
+                if(intent.Type == IntentType.Move || intent.Type == IntentType.Cast) _validIntents.Add(intent);
+            }
         }
     }
 }

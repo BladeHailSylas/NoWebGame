@@ -1,4 +1,4 @@
-namespace Intents
+namespace Olds.Systems.Session
 {
     public readonly struct SessionPlayerInfo
     {

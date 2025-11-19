@@ -1,56 +1,58 @@
-using System.Linq;
-using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEditor;
 using UnityEngine;
-public class MonoSizeReport
+
+namespace Editor
 {
-    // ÇÊ¿ä½Ã Á¶Á¤: °æ°í ÀÓ°èÄ¡
-    const int Threshold = 60;
-
-    [MenuItem("Tools/Report/Heavy MonoBehaviours (Assets only)")]
-    static void Run()
+    public class MonoSizeReport
     {
-        // Assets Æú´õ ¾Æ·¡ÀÇ C# ½ºÅ©¸³Æ®¸¸ °Ë»ö
-        var guids = AssetDatabase.FindAssets("t:MonoScript", new[] { "Assets" });
-        int count = 0;
+        // ï¿½Ê¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ ï¿½Ó°ï¿½Ä¡
+        const int Threshold = 60;
 
-        foreach (var guid in guids)
+        [MenuItem("Tools/Report/Heavy MonoBehaviours (Assets only)")]
+        static void Run()
         {
-            var path = AssetDatabase.GUIDToAssetPath(guid);
+            // Assets ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ C# ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ë»ï¿½
+            var guids = AssetDatabase.FindAssets("t:MonoScript", new[] { "Assets" });
+            int count = 0;
 
-            // Packages/ ÀÌÇÏ³ª »ý¼º¹°Àº Á¦¿Ü (¾ÈÀüÀåÄ¡)
-            if (path.StartsWith("Packages/")) continue;
-
-            var ms = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
-            if (ms == null) continue;
-
-            var t = ms.GetClass();
-            if (t == null) continue; // ¿¡µðÅÍ Àü¿ë/Á¦³×¸¯ µîÀ¸·Î Å¸ÀÔ »ý¼º ½ÇÆÐÇÑ °æ¿ì
-            if (t.IsAbstract) continue;
-            if (!typeof(MonoBehaviour).IsAssignableFrom(t)) continue;
-
-            var methods = t.GetMethods(
-                System.Reflection.BindingFlags.Public |
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.DeclaredOnly
-            ).Length;
-
-            var fields = t.GetFields(
-                System.Reflection.BindingFlags.Public |
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.DeclaredOnly
-            ).Length;
-
-            var size = methods + fields;
-            if (size > Threshold)
+            foreach (var guid in guids)
             {
-                Debug.LogWarning($"{t.FullName} ({path}): methods+fields={size}");
-                count++;
-            }
-        }
+                var path = AssetDatabase.GUIDToAssetPath(guid);
 
-        Debug.Log($"[Assets only] Heavy MonoBehaviours warnings: {count}");
+                // Packages/ ï¿½ï¿½ï¿½Ï³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡)
+                if (path.StartsWith("Packages/")) continue;
+
+                var ms = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+                if (ms == null) continue;
+
+                var t = ms.GetClass();
+                if (t == null) continue; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+                if (t.IsAbstract) continue;
+                if (!typeof(MonoBehaviour).IsAssignableFrom(t)) continue;
+
+                var methods = t.GetMethods(
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.DeclaredOnly
+                ).Length;
+
+                var fields = t.GetFields(
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.DeclaredOnly
+                ).Length;
+
+                var size = methods + fields;
+                if (size > Threshold)
+                {
+                    Debug.LogWarning($"{t.FullName} ({path}): methods+fields={size}");
+                    count++;
+                }
+            }
+
+            Debug.Log($"[Assets only] Heavy MonoBehaviours warnings: {count}");
+        }
     }
 }

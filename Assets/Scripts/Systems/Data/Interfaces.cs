@@ -1,23 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using ActInterfaces;
+using Moves;
+using Olds.Util;
 using UnityEngine;
-using EffectInterfaces;
 
-public interface IEntity : IVulnerable, IStackable
+namespace Systems.Data
 {
+	public interface IEntity : IVulnerable, IStackable
+	{
 	
-}
+	}
 
-public interface IStackable
-{
+	public interface IStackable
+	{
 
-	public void ApplyStack();
-}
+		public void ApplyStack();
+	}
 
-#region ===== Effect =====
-namespace EffectInterfaces
-{
+	#region ===== Effect =====
+
 	public enum EffectType
 	{
 		Stack = 0, Haste, DamageBoost, ArmorBoost, APBoost, DRBoost, Invisibility, Invincible, Slow, Stunned, Suppressed, Rooted, Tumbled, Damage //Damage는 지속 피해, duration을 0으로 하면 즉시 피해도 가능함
@@ -51,12 +52,11 @@ namespace EffectInterfaces
 		HashSet<EffectType> PositiveEffects { get; }
 		HashSet<EffectType> NegativeEffects { get; }
 	}
-}
-#endregion
 
-#region ===== Act =====
-namespace ActInterfaces
-{
+	#endregion
+
+	#region ===== Act =====
+
 	public interface IVulnerable //피해를 받아 죽을 수 있음
 	{
 		void TakeDamage(DamageData data);
@@ -102,13 +102,13 @@ namespace ActInterfaces
 	{
 		void ApplyKnockback(Vector2 direction, float force);
 	}
-        public interface ISweepable
-        {
-                FixedVector2 DepenVector(LayerMask blockersMask, int maxIterations = 4, float skin = 0.125f, float minEps = 0.001f, float maxTotal = 0.5f);
-                void Move(FixedVector2 vec);
-                MoveResult LastMoveResult { get; }
-                int LastProcessedTick { get; }
-        }
+	public interface ISweepable
+	{
+		FixedVector2 DepenVector(LayerMask blockersMask, int maxIterations = 4, float skin = 0.125f, float minEps = 0.001f, float maxTotal = 0.5f);
+		void Move(FixedVector2 vec);
+		MoveResult LastMoveResult { get; }
+		int LastProcessedTick { get; }
+	}
 	public interface IMovable
 	{
 		Vector2 LastMoveDir { get; }
@@ -131,12 +131,11 @@ namespace ActInterfaces
 	{
 		bool Verbose { get; }
 	}
-}
-#endregion
 
-#region ===== Stats =====
-namespace StatsInterfaces
-{
+	#endregion
+
+	#region ===== Stats =====
+
 	public enum StatType
 	{
 		Health, HealthRegen,
@@ -166,7 +165,7 @@ namespace StatsInterfaces
 	{
 		//float GetStat(StatType stat, StatRef re = StatRef.Current); -> stat이 모두 public get, private set이라 필요 없음
 	}
-	/*public interface IDefensiveStats
+/*public interface IDefensiveStats
 	{
 		float BaseHealth { get; }
 		float MaxHealth { get; }
@@ -210,16 +209,15 @@ namespace StatsInterfaces
 		float Velocity { get; }
 		float JumpTime { get; }
 	}*/
-}
-#endregion
 
-#region ===== Skill =====
-namespace SkillInterfaces
-{
+	#endregion
+
+	#region ===== Skill =====
+
 	public enum SkillSlot { Attack, AttackSkill, Skill1, Skill2, Ultimate }
 	public interface ISkillParams { }                    // 파라미터 마커
 	public interface ICooldownParams : ISkillParams { float Cooldown { get; } }
-	// 메커니즘(공식): "캐스팅 코루틴"을 제공
+// 메커니즘(공식): "캐스팅 코루틴"을 제공
 	[System.Obsolete]
 	public interface ISkillMechanism
 	{
@@ -232,7 +230,7 @@ namespace SkillInterfaces
 		IEnumerator Cast(Transform owner, Camera cam, ISkillParams @params, Transform target);
 	}
 
-	// 제네릭 베이스: 타입 가드 + 제네릭 오버로드
+// 제네릭 베이스: 타입 가드 + 제네릭 오버로드
 	[System.Obsolete]
 	public abstract class SkillMechanismBase<TParam> : ScriptableObject, ISkillMechanism
 		where TParam : ISkillParams
@@ -266,5 +264,6 @@ namespace SkillInterfaces
 		bool TargetSelf { get; }      // true일 경우 명시적으로 자신을 대상으로 삼습니다.
 		bool CanPenetrate { get; } // 논타깃: 적중 시에도 종료되지 않는가, 타깃: 대상에게 적중하기 전까지 종료되지 않는가
 	}
+
+	#endregion
 }
-#endregion

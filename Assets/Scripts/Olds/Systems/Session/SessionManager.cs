@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Intents
+namespace Olds.Systems.Session
 {
     public class SessionManager
     {

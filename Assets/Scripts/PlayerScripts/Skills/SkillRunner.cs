@@ -1,70 +1,72 @@
-﻿using SkillInterfaces;
-using StatsInterfaces;
-using UnityEngine;
-public class SkillRunner
+﻿using Moves;
+
+namespace PlayerScripts.Skills
 {
-    private TargetResolver _targetResolver;
-    public SkillRunner(TargetResolver resolver)
+    public class SkillRunner
     {
-        _targetResolver = resolver;
-    }
-
-    public void Activate(in SkillCommand cmd)
-    {
-        //Enforce maximum chain depth
-        //Determine target
-        var target = cmd.Target;
-        var anchor = cmd.CastPosition;
-
-        if (target is null)
+        private TargetResolver _targetResolver;
+        public SkillRunner(TargetResolver resolver)
         {
-            var req = new TargetRequest(cmd.Caster, cmd.TargetMode);
-            // TODO: Later support range/mask overrides from skill data.
-
-            var result = _targetResolver.ResolveTarget(req);
-            if (!result.Found)
-            {
-                // No target found — silently return (placeholder behavior)
-                return;
-            }
-
-            target = result.Target;
-            anchor = result.Anchor;
+            _targetResolver = resolver;
         }
 
-        //Debug.Log($"Let's apply damage {cmd.Damage.Attack}");
-        //Execute skill mechanism
-        //Debug.Log($"Variable은 {cmd.Var.Variable?.displayName}");
-        cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
-            cmd.Damage, cmd.Var));
+        public void Activate(in SkillCommand cmd)
+        {
+            //Enforce maximum chain depth
+            //Determine target
+            var target = cmd.Target;
+            var anchor = cmd.CastPosition;
+
+            if (target is null)
+            {
+                var req = new TargetRequest(cmd.Caster, cmd.TargetMode);
+                // TODO: Later support range/mask overrides from skill data.
+
+                var result = _targetResolver.ResolveTarget(req);
+                if (!result.Found)
+                {
+                    // No target found — silently return (placeholder behavior)
+                    return;
+                }
+
+                target = result.Target;
+                anchor = result.Anchor;
+            }
+
+            //Debug.Log($"Let's apply damage {cmd.Damage.Attack}");
+            //Execute skill mechanism
+            //Debug.Log($"Variable은 {cmd.Var.Variable?.displayName}");
+            cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
+                cmd.Damage, cmd.Var));
         
-    }
-    public void Activate(in SkillCommand cmd, in DamageData data)
-    {
-        //Enforce maximum chain depth
-
-        //Determine target
-        var target = cmd.Target;
-        var anchor = cmd.CastPosition;
-
-        if (target is null)
+        }
+        public void Activate(in SkillCommand cmd, in DamageData data)
         {
-            var req = new TargetRequest(cmd.Caster, cmd.TargetMode);
-            // TODO: Later support range/mask overrides from skill data.
+            //Enforce maximum chain depth
 
-            var result = _targetResolver.ResolveTarget(req);
-            if (!result.Found)
+            //Determine target
+            var target = cmd.Target;
+            var anchor = cmd.CastPosition;
+
+            if (target is null)
             {
-                // No target found — silently return (placeholder behavior)
-                return;
+                var req = new TargetRequest(cmd.Caster, cmd.TargetMode);
+                // TODO: Later support range/mask overrides from skill data.
+
+                var result = _targetResolver.ResolveTarget(req);
+                if (!result.Found)
+                {
+                    // No target found — silently return (placeholder behavior)
+                    return;
+                }
+
+                target = result.Target;
+                anchor = result.Anchor;
             }
 
-            target = result.Target;
-            anchor = result.Anchor;
+            //Execute skill mechanism
+            cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
+                data));
         }
-
-        //Execute skill mechanism
-        cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
-            data));
     }
 }

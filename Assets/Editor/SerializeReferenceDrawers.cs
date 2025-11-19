@@ -1,19 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Moves;
+using Moves.ObjectEntity;
 using UnityEditor;
-using UnityEngine;
 
-[CustomPropertyDrawer(typeof(INewParams), true)]
-public class INewParamsDrawer : SerializeReferenceDrawerBase<INewParams>
+namespace Editor
 {
-    protected override string DropdownLabel => "Param Type";
-    protected override string FieldLabel => "Param Data";
-}
+    [CustomPropertyDrawer(typeof(INewParams), true)]
+    public class INewParamsDrawer : SerializeReferenceDrawerBase<INewParams>
+    {
+        protected override string DropdownLabel => "Param Type";
+        protected override string FieldLabel => "Param Data";
+    }
 
-[CustomPropertyDrawer(typeof(IAreaShapes), true)]
-public class IAreaShapesDrawer : SerializeReferenceDrawerBase<IAreaShapes>
-{
-    protected override string DropdownLabel => "Shape Type";
-    protected override string FieldLabel => "Shape Data";
+    [CustomPropertyDrawer(typeof(IAreaShapes), true)]
+    public class IAreaShapesDrawer : SerializeReferenceDrawerBase<IAreaShapes>
+    {
+        protected override string DropdownLabel => "Shape Type";
+        protected override string FieldLabel => "Shape Data";
+    }
 }

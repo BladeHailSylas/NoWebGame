@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Intents
+namespace Olds.Systems.Intents
 {
     public class IntentCollector
     {

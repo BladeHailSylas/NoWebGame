@@ -1,25 +1,28 @@
 using System.Collections.Generic;
-using UnityEngine;
+using Systems.Stacks.Definition;
 
-public sealed class StackRegistry
+namespace Systems.Stacks
 {
-    public static StackRegistry Instance { get; private set; }
-    private List<StackDefinition> Stacks;
-    public Dictionary<string, StackDefinition> StackStorage { get; private set; }
-
-    public StackRegistry(List<StackDefinition> stacks)
+    public sealed class StackRegistry
     {
-        Instance = this;
-        Stacks = stacks;
-        StackStorage = new Dictionary<string, StackDefinition>();
-        foreach (var stack in Stacks)
+        public static StackRegistry Instance { get; private set; }
+        private List<StackDefinition> Stacks;
+        public Dictionary<string, StackDefinition> StackStorage { get; private set; }
+
+        public StackRegistry(List<StackDefinition> stacks)
         {
-            StackStorage.Add(stack.displayName, stack);
+            Instance = this;
+            Stacks = stacks;
+            StackStorage = new Dictionary<string, StackDefinition>();
+            foreach (var stack in Stacks)
+            {
+                StackStorage.Add(stack.displayName, stack);
+            }
         }
-    }
 
-    public void AddToStackList(StackDefinition stack)
-    {
-        Stacks.Add(stack);
+        public void AddToStackList(StackDefinition stack)
+        {
+            Stacks.Add(stack);
+        }
     }
 }

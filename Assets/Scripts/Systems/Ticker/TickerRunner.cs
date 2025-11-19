@@ -1,33 +1,36 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
-[DisallowMultipleComponent]
-public class TickerRunner : MonoBehaviour
+namespace Systems.Ticker
 {
-    private Ticker _ticker;
-    private void OnEnable()
+    [DisallowMultipleComponent]
+    public class TickerRunner : MonoBehaviour
     {
-        _ticker = new Ticker();
-        Debug.Log("AYAYAY AYAYYYYY");
-        //BattleCore.Initialize();
-        StartCoroutine(TickLoop());
-    }
-
-    IEnumerator TickLoop()
-    {
-        var interval = new WaitForSecondsRealtime(1f / Ticker.TicksPerSecond);
-        while (true)
+        private Ticker _ticker;
+        private void OnEnable()
         {
-            try
-            {
-                _ticker.Step();
-            }
-            catch (TickCountOverflowException)
-            {
-				Debug.LogError("Die yobbo");
-            }
-            yield return interval;
+            _ticker = new Ticker();
+            Debug.Log("AYAYAY AYAYYYYY");
+            //BattleCore.Initialize();
+            StartCoroutine(TickLoop());
         }
+
+        IEnumerator TickLoop()
+        {
+            var interval = new WaitForSecondsRealtime(1f / Ticker.TicksPerSecond);
+            while (true)
+            {
+                try
+                {
+                    _ticker.Step();
+                }
+                catch (TickCountOverflowException)
+                {
+                    Debug.LogError("Die yobbo");
+                }
+                yield return interval;
+            }
 		
+        }
     }
 }

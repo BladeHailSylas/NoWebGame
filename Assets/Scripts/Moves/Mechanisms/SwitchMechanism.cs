@@ -1,72 +1,76 @@
 using System;
 using System.Linq;
-using SkillInterfaces;
+using PlayerScripts.Skills;
+using Systems.Data;
+using Systems.Stacks.Definition;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "SwitchMechanism", menuName = "Skills/Mechanisms/Switch")]
-public class SwitchMechanism : ScriptableObject, INewMechanism
+namespace Moves.Mechanisms
 {
-
-    public void Prepare(CastContext ctx)
+    [CreateAssetMenu(fileName = "SwitchMechanism", menuName = "Skills/Mechanisms/Switch")]
+    public class SwitchMechanism : ScriptableObject, INewMechanism
     {
-        if (ctx.Params is not SwitchParams param) return;
-        foreach (var item in param.switchFollowUps)
-        {
-            //Implement Cast Preparation
-        }
-    }
-    public void Execute(CastContext ctx)
-    {
-        if (ctx.Params is not SwitchParams param || !ctx.Var.Variable.ID.Equals(param.variable.ID))
-            return;
-        var variable = ctx.Var;
-        var conditions = param.points.OrderByDescending(x => x).ToArray();
-        var followUps = param.switchFollowUps;
 
-// followUps가 더 적을 수 있으므로 offset 계산
-        int cCount = conditions.Length;
-        int fCount = followUps.Length;
-        int offset = cCount - fCount;
-
-// 선택된 follow-up을 여기에 저장
-        MechanismRef selected = default;
-        var chosen = false;
-// 조건 검사 (내림차순)
-        for (int i = 0; i < cCount; i++)
+        public void Prepare(CastContext ctx)
         {
-            if (variable.Amount >= conditions[i])
+            if (ctx.Params is not SwitchParams param) return;
+            foreach (var item in param.switchFollowUps)
             {
-                // follow-up index 계산
-                int fIdx = i - offset;
-
-                // followUp 부족 시 default(맨 앞) 사용
-                if (fIdx < 0)
-                    fIdx = 0;
-
-                // followUp 배열 범위 초과 방지
-                if (fIdx >= fCount)
-                    fIdx = fCount - 1;
-                chosen = true;
-                selected = followUps[fIdx];
-                break;
+                //Implement Cast Preparation
             }
         }
+        public void Execute(CastContext ctx)
+        {
+            if (ctx.Params is not SwitchParams param || !ctx.Var.Variable.ID.Equals(param.variable.ID))
+                return;
+            var variable = ctx.Var;
+            var conditions = param.points.OrderByDescending(x => x).ToArray();
+            var followUps = param.switchFollowUps;
+
+// followUps가 더 적을 수 있으므로 offset 계산
+            int cCount = conditions.Length;
+            int fCount = followUps.Length;
+            int offset = cCount - fCount;
+
+// 선택된 follow-up을 여기에 저장
+            MechanismRef selected = default;
+            var chosen = false;
+// 조건 검사 (내림차순)
+            for (int i = 0; i < cCount; i++)
+            {
+                if (variable.Amount >= conditions[i])
+                {
+                    // follow-up index 계산
+                    int fIdx = i - offset;
+
+                    // followUp 부족 시 default(맨 앞) 사용
+                    if (fIdx < 0)
+                        fIdx = 0;
+
+                    // followUp 배열 범위 초과 방지
+                    if (fIdx >= fCount)
+                        fIdx = fCount - 1;
+                    chosen = true;
+                    selected = followUps[fIdx];
+                    break;
+                }
+            }
 
 // 조건을 하나도 만족시키지 못한 경우 (variable.Amount < 모든 conditions)
-        if (!chosen && fCount > 0)
-        {
-            chosen = true;
-            selected = followUps[0]; // 디폴트 분기
-        }
+            if (!chosen && fCount > 0)
+            {
+                chosen = true;
+                selected = followUps[0]; // 디폴트 분기
+            }
         
 // 이제 selected를 실행
-        if (chosen && selected.mechanism is INewMechanism mech)
-        {
-            SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                mech, selected.@params, ctx.Damage, ctx.Target);
-            CommandCollector.Instance.EnqueueCommand(cmd);
-        }
-        /*if (ctx.Params is not SwitchParams param) return;
+            if (chosen && selected.mechanism is INewMechanism mech)
+            {
+                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
+                    mech, selected.@params, ctx.Damage, ctx.Target);
+                CommandCollector.Instance.EnqueueCommand(cmd);
+            }
+            /*if (ctx.Params is not SwitchParams param) return;
         if (!ctx.Target.TryGetComponent(out IVulnerable vul)) return;
         var finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - param.defaultAPRatio / 100.0);
         var finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
@@ -88,14 +92,15 @@ public class SwitchMechanism : ScriptableObject, INewMechanism
                 mech, followup.@params, ctx.Damage, ctx.Target);
             CommandCollector.Instance.EnqueueCommand(cmd);
         }*/
-        //Debug.Log("Damage: OnExpire FollowUps are casted");
+            //Debug.Log("Damage: OnExpire FollowUps are casted");
+        }
     }
-}
-[Serializable]
-public class SwitchParams : INewParams
-{
-    public VariableDefinition variable;
-    public int[] points;
-    public short CooldownTicks { get; private set; }
-    public MechanismRef[] switchFollowUps;
+    [Serializable]
+    public class SwitchParams : INewParams
+    {
+        public VariableDefinition variable;
+        public int[] points;
+        public short CooldownTicks { get; private set; }
+        public MechanismRef[] switchFollowUps;
+    }
 }

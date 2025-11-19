@@ -1,9 +1,12 @@
-using EffectInterfaces;
+using Systems.Data;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Stacks/CCDefinition")]
-public class CCStackDefinition : StackDefinition
+namespace Systems.Stacks.Definition
 {
-    public EffectType Type;
-    public byte Value;
+    [CreateAssetMenu(menuName = "Stacks/CCDefinition")]
+    public class CCStackDefinition : StackDefinition
+    {
+        public EffectType Type;
+        public byte Value;
+    }
 }
