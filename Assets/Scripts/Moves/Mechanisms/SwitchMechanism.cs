@@ -36,7 +36,7 @@ namespace Moves.Mechanisms
             MechanismRef selected = default;
             var chosen = false;
 // 조건 검사 (내림차순)
-            for (int i = 0; i < cCount; i++)
+            for (int i = 0; i < cCount; i++) 
             {
                 if (variable.Amount >= conditions[i])
                 {
@@ -70,29 +70,6 @@ namespace Moves.Mechanisms
                     mech, selected.@params, ctx.Damage, ctx.Target);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
-            /*if (ctx.Params is not SwitchParams param) return;
-        if (!ctx.Target.TryGetComponent(out IVulnerable vul)) return;
-        var finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - param.defaultAPRatio / 100.0);
-        var finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
-        //Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");
-        vul.TakeDamage(new DamageData(param.type, ctx.Damage.Attack, param.damageValue, finalAP, finalDA));
-        foreach (var followup in param.onHitFollowUps)
-        {
-            if (followup.mechanism is not INewMechanism mech) continue;
-            SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                mech, followup.@params, ctx.Damage, ctx.Target);
-            CommandCollector.Instance.EnqueueCommand(cmd);
-        }
-        //Debug.Log("Damage: OnHit FollowUps are cast");
-
-        foreach (var followup in param.onExpireFollowUps)
-        {
-            if (followup.mechanism is not INewMechanism mech) continue;
-            SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                mech, followup.@params, ctx.Damage, ctx.Target);
-            CommandCollector.Instance.EnqueueCommand(cmd);
-        }*/
-            //Debug.Log("Damage: OnExpire FollowUps are casted");
         }
     }
     [Serializable]

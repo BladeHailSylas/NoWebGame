@@ -1,4 +1,5 @@
-using Olds.Moves;
+using System.Collections.Generic;
+using Moves;
 using PlayerScripts.Skills;
 using Systems.Data;
 using UnityEngine;
@@ -75,4 +76,22 @@ namespace Moves.Mechanisms
             }
         }
     }
+}
+
+[System.Serializable]
+public class MeleeParams : INewParams
+{
+    [Header("Area")]
+    public float radius = 1.6f;
+    [Range(0, 360)] public float angleDeg = 120f;
+    public LayerMask enemyMask;
+	
+    [Header("Timing")]
+    public byte onAttackDelay;
+    public short afterDelay;
+    public short cooldownTicks;
+    public short CooldownTicks => cooldownTicks;
+	
+    public List<MechanismRef> onHit = new();
+    public List<MechanismRef> onExpire = new();
 }

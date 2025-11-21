@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Moves;
-using Olds.Util;
 using UnityEngine;
 
 namespace Systems.Data
@@ -106,7 +105,6 @@ namespace Systems.Data
 	{
 		FixedVector2 DepenVector(LayerMask blockersMask, int maxIterations = 4, float skin = 0.125f, float minEps = 0.001f, float maxTotal = 0.5f);
 		void Move(FixedVector2 vec);
-		MoveResult LastMoveResult { get; }
 		int LastProcessedTick { get; }
 	}
 	public interface IMovable
