@@ -9,12 +9,6 @@ namespace Moves.Mechanisms
     [CreateAssetMenu(menuName = "Skills/Mechanisms/Melee")]
     public class MeleeMechanism : ScriptableObject, INewMechanism
     {
-        public void Execute(INewParams parameters, Transform caster, Transform target)
-        {
-            // CastContext 기반 Execute로 넘김
-            Execute(new CastContext(parameters, caster, target, new DamageData()));
-        }
-
         public void Execute(CastContext ctx)
         {
             if (ctx.Params is not MeleeParams param)

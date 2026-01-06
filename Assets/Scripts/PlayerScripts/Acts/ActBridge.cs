@@ -1,3 +1,4 @@
+using Moves;
 using PlayerScripts.Core;
 using Systems.Data;
 using UnityEngine;
@@ -14,13 +15,11 @@ namespace PlayerScripts.Acts
     {
         private readonly Mover _mover;
         private readonly Attacker _attacker;
-        private Vector2 _moveVector;
         private Vector2 _inputVector;
         private byte _innoxiousCount;
         private byte _immovableCount;
-        public byte InnoxiousCount => _innoxiousCount;
+        private ushort _tick;
         public bool CanAttack => _innoxiousCount == 0;
-        public byte ImmovableCount => _immovableCount;
         public bool CanMove => _immovableCount == 0;
     
         public ActBridge(Mover mover, Attacker attacker)
@@ -45,18 +44,29 @@ namespace PlayerScripts.Acts
             _inputVector = Vector2.zero;
         }
 
+        public void AddDashContract(DashContract contract)
+        {
+            DashContract dashContract = new DashContract(
+                contract.Context, (ushort)(contract.EndTick + _tick), contract.Speed, contract.PreventActivation, contract.Penetrative,
+                contract.OnHit, contract.OnExpire, contract.ExpireWhenUnexpected
+            );
+            _mover.StartDash(dashContract);
+        }
+
         /// <summary>
         /// Called every tick by <see cref="PlayerEntity"/> to process movement.
         /// </summary>
         public void Tick(ushort tick)
         {
-            _moveVector = (_immovableCount == 0) ? _inputVector : Vector2.zero;
+            _tick = tick;
+            _mover.MakeMove(new FixedVector2(_inputVector), _immovableCount);
+            _mover.DashTick(tick, _immovableCount);
+            /*_moveVector = (_immovableCount == 0) ? _inputVector : Vector2.zero;
             if (_moveVector.sqrMagnitude > 1e-6f)
             {
-                //Debug.Log($"Sending {_inputVector}");
                 _mover.MakeMove(new FixedVector2(_moveVector));
             
-            }
+            }*/
         }
 
         /// <summary>
@@ -65,7 +75,7 @@ namespace PlayerScripts.Acts
         /// </summary>
         public void PrepareAttack(SkillSlot slot)
         {
-            if(_innoxiousCount > 0) _attacker.PrepareCast(slot);
+            _attacker.PrepareCast(slot, _innoxiousCount);
             //Preparing might be allowed, but block for now
         }
 
@@ -74,10 +84,8 @@ namespace PlayerScripts.Acts
         /// </summary>
         public void ExecuteAttack(SkillSlot slot)
         {
-            if (_innoxiousCount == 0)
-            {
-                _attacker.TryCast(slot);
-            }
+            if (_mover.PreventingActivation) return;
+            _attacker.TryCast(slot, _innoxiousCount);
         }
 
         public void ApplyCC(CCData cc)
@@ -85,15 +93,15 @@ namespace PlayerScripts.Acts
             switch (cc.Type)
             {
                 case EffectType.Rooted:
-                    _immovableCount += 1;
+                    Immovable();
                     break;
                 case EffectType.Suppressed:
-                    _innoxiousCount += 1;
+                    Innoxious();
                     break;
                 case EffectType.Stunned:
                 case EffectType.Tumbled:
-                    _innoxiousCount += 1;
-                    _immovableCount += 1;
+                    Immovable();
+                    Innoxious();
                     break;
             }
         }
@@ -102,7 +110,7 @@ namespace PlayerScripts.Acts
             switch (cc.Type)
             {
                 case EffectType.Rooted:
-                    _immovableCount = (byte)Mathf.Max(0, _immovableCount - 1);
+                    _immovableCount = (byte)Mathf.Max(0, _immovableCount - 1); //Overflow? Not likely to occur, but...
                     break;
                 case EffectType.Suppressed:
                     _innoxiousCount = (byte)Mathf.Max(0, _innoxiousCount - 1);

@@ -1,4 +1,8 @@
 using System;
+using Moves;
+using PlayerScripts.Acts;
+using PlayerScripts.Core;
+using PlayerScripts.Skills;
 using Systems.Data;
 using UnityEngine;
 
@@ -66,6 +70,72 @@ namespace Systems.SubSystems
             _pos = new FixedVector2(target);
             _needsSync = true;
         }
+        /// <summary>
+        /// An extended version of Move().
+        /// </summary>
+        /// <param name="desiredDelta"></param>
+        public bool TryDash(DashContract contract)
+        {
+            var delta = ((Vector2)contract.Context.Target.position - _rb.position).normalized * contract.Speed / 60f;
+            if (delta.sqrMagnitude <= 0f)
+                return true;
+
+            var origin = _rb.position;
+            var direction = delta.normalized;
+            var distance = delta.magnitude;
+            var radius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
+
+            // 1️⃣ CircleCast: 벽 + 적 동시 탐색
+            var hits = Physics2D.CircleCastAll(
+                origin,
+                radius,
+                direction,
+                distance,
+                Policy.wallsMask | Policy.enemyMask
+            );
+
+            foreach (var hit in hits)
+            {
+                if (!hit.collider)
+                    continue;
+
+                var layer = hit.collider.gameObject.layer;
+
+                // 2️⃣ 벽 충돌 → 즉시 종료
+                if (((1 << layer) & Policy.wallsMask) != 0)
+                {
+                    return false;
+                }
+
+                // 3️⃣ 적 충돌 → 피해 적용
+                if (((1 << layer) & Policy.enemyMask) != 0)
+                {
+                    if (hit.collider.TryGetComponent<Entity>(out var entity))
+                    {
+                        // 자기 자신 방지 (안전장치)
+                        if (entity.transform == _col.transform)
+                            continue;
+                        foreach (var mechanism in contract.OnHit)
+                        {
+                            if (mechanism.mechanism is not INewMechanism mech) continue;
+                            SkillCommand cmd = new(contract.Context.Caster, new FixedVector2(_rb.position), contract.Context.Mode,
+                                mech, mechanism.@params, contract.Context.Damage, null, entity.transform, contract.Context.Var);
+                            CommandCollector.Instance.EnqueueCommand(cmd);
+                        }
+                        // ❗ 지금은 비관통 Dash로 가정
+                        return false;
+                    }
+                }
+            }
+            // 4️⃣ 실제 이동 적용
+            var target = origin + delta;
+            _rb.MovePosition(target);
+            _pos = new FixedVector2(target);
+            _needsSync = true;
+
+            return true;
+        }
+
 
         private Vector2 RemoveNormalComponent(Vector2 vector, LayerMask mask, bool treatedAsBlocker = true)
         {

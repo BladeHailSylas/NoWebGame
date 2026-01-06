@@ -20,7 +20,7 @@ namespace PlayerScripts.Core
     /// systems for maintainability.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class PlayerEntity : Entity, IEntity
+    public sealed class PlayerEntity : Entity, IEntity, IDashable
     {
         [Header("Configuration")]
         [SerializeField] private CharacterSpec spec;
@@ -157,14 +157,15 @@ namespace PlayerScripts.Core
 
         private void Dev(ushort tick)
         {
-            _stackManager.Storage.Tell();
-            RemoveStack(new StackKey(characterVariables[0]), tick);
-            _stackManager.Storage.Tell();
         }
         private void OnMovePerformed(InputAction.CallbackContext ctx)
         {
-            //Debug.Log($"Got {ctx.ReadValue<Vector2>()}");
             _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
+        }
+
+        public void AddDashContract(DashContract contract)
+        {
+            _actBridge.AddDashContract(contract);
         }
 
         private void OnMoveCanceled(InputAction.CallbackContext ctx)
@@ -266,5 +267,10 @@ namespace PlayerScripts.Core
         public void RemoveStack(StackKey key, ushort tick, int amount = 0)
         {
         }
+    }
+
+    public interface IDashable
+    {
+        public void AddDashContract(DashContract contract);
     }
 }

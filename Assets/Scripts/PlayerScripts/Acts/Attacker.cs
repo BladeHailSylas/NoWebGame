@@ -45,8 +45,9 @@ namespace PlayerScripts.Acts
             _context.Logger.Info($"Attack controller initialised with {_skills.Count} skills.");
         }
 
-        public void TryCast(SkillSlot slot)
+        public void TryCast(SkillSlot slot, byte innoxiousCount)
         {
+            if (innoxiousCount > 0) return; 
             if (!_skills.TryGetValue(slot, out var binding))
             {
                 _context.Logger.Warn($"No skill bound to slot {slot}.");
@@ -93,8 +94,9 @@ namespace PlayerScripts.Acts
             _context.Logger.Info($"Casted skill from slot {slot} ({mech.GetType().Name}).");
         }
 
-        public void PrepareCast(SkillSlot slot)
+        public void PrepareCast(SkillSlot slot, byte innoxiousCount)
         {
+            if (innoxiousCount > 0) return;
             if (!_skills.TryGetValue(slot, out var binding))
             {
                 _context.Logger.Warn($"No skill bound to slot {slot}.");

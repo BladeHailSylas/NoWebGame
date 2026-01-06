@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
 using Systems.Data;
@@ -8,10 +9,6 @@ namespace Moves.Mechanisms
     [CreateAssetMenu(menuName = "Skills/Mechanisms/Area")]
     public class AreaMechanism : ObjectGeneratingMechanism
     {
-        public override void Execute(INewParams @params, Transform caster, Transform target)
-        {
-        }
-
         public override void Execute(CastContext ctx)
         {
             if (ctx.Params is not AreaParams param)
@@ -30,7 +27,8 @@ namespace Moves.Mechanisms
             entity.Init(ctx.Damage, param.onAreaEnter, param.onAreaExpire, ctx.Caster, param.lifeTick);
         }
     }
-
+    
+    [Serializable]
     public class AreaParams : INewParams
     {
         [Header("Time")]

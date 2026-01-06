@@ -50,16 +50,18 @@ namespace Moves
         public readonly INewParams Params;
         public readonly Transform Caster;
         public readonly Transform Target;
+        public readonly TargetMode Mode;
         public DamageData Damage;
         public SwitchVariable Var;
 
-        public CastContext(INewParams param, Transform caster, Transform target, DamageData damage, SwitchVariable va = default)
+        public CastContext(INewParams param, Transform caster, Transform target, DamageData damage, SwitchVariable va = default, TargetMode mode = TargetMode.TowardsEntity)
         {
             Params = param;
             Caster = caster;
             Target = target;
             Damage = damage;
             Var = va;
+            Mode = mode;
         }
     }
 
