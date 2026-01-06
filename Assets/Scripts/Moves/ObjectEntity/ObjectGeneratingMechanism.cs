@@ -42,8 +42,6 @@ namespace Moves.ObjectEntity
         /// <summary>
         /// All mechanisms must implement this — defines their activation behavior.
         /// </summary>
-        public abstract void Execute(INewParams @params, Transform caster, Transform target);
-
         public abstract void Execute(CastContext ctx);
     }
 }

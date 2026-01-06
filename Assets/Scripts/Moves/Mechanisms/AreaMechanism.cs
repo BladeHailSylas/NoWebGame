@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
 using Systems.Data;
@@ -8,10 +9,6 @@ namespace Moves.Mechanisms
     [CreateAssetMenu(menuName = "Skills/Mechanisms/Area")]
     public class AreaMechanism : ObjectGeneratingMechanism
     {
-        public override void Execute(INewParams @params, Transform caster, Transform target)
-        {
-        }
-
         public override void Execute(CastContext ctx)
         {
             if (ctx.Params is not AreaParams param)
@@ -21,26 +18,28 @@ namespace Moves.Mechanisms
             }
             
             var centerPos = ctx.Target?.position ?? ctx.Caster.position;
-            var go = Instantiate(param.AreaPrefab, centerPos, Quaternion.identity);
+            var go = Instantiate(param.areaPrefab, centerPos, Quaternion.identity);
             var dir = ctx.Target is not null
                 ? (ctx.Target.position - ctx.Caster.position).normalized
                 : ctx.Caster.right;
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
             if (!go.TryGetComponent<AreaEntity>(out var entity)) return;
-            entity.Init(ctx.Damage, param.OnAreaEnter, param.OnAreaExpire, ctx.Caster, param.lifeTick);
+            entity.Init(ctx.Damage, param.onAreaEnter, param.onAreaExpire, ctx.Caster, param.lifeTick);
         }
     }
-
+    
+    [Serializable]
     public class AreaParams : INewParams
     {
         [Header("Time")]
         [SerializeField] private short cooldownTicks;
         public ushort lifeTick;
-        
-        [Header("Settings")]
-        public AreaEntity AreaPrefab;
-        public List<MechanismRef> OnAreaEnter;
-        public List<MechanismRef> OnAreaExpire;
+
+        [Header("Settings")] 
+        public LayerMask mask;
+        public AreaEntity areaPrefab;
+        public List<MechanismRef> onAreaEnter;
+        public List<MechanismRef> onAreaExpire;
         public short CooldownTicks => cooldownTicks;
     }
 }
