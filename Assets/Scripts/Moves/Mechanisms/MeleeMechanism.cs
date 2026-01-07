@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Moves;
 using PlayerScripts.Skills;
+using Systems.Anchor;
 using Systems.Data;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace Moves.Mechanisms
                 return;
 
             var caster = ctx.Caster;
-            var target = ctx.Target ?? caster; // anchor fallback
+            var target = ctx.Target; // anchor fallback
 
             Vector2 origin = caster.position;
             Vector2 dir = target.position - caster.position;
@@ -51,9 +52,12 @@ namespace Moves.Mechanisms
                     CommandCollector.Instance.EnqueueCommand(cmd);
                 }
             }
-            // 타격 대상이 하나도 없었을 때 onExpire 실행
-            if (param.onExpire == null) return;
             {
+                if (param.onExpire.Count == 0)
+                {
+                    if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                    AnchorRegistry.Instance.Return(anchor);
+                }
                 foreach (var followup in param.onExpire)
                 {
                     if (followup.mechanism is not INewMechanism mech) continue;

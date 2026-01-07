@@ -53,6 +53,11 @@ namespace PlayerScripts.Acts
             _mover.StartDash(dashContract);
         }
 
+        public void AddTeleportContract(TeleportContract tpc)
+        {
+            _mover.Teleport(tpc);
+        }
+
         /// <summary>
         /// Called every tick by <see cref="PlayerEntity"/> to process movement.
         /// </summary>

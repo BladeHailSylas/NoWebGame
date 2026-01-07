@@ -20,7 +20,7 @@ namespace PlayerScripts.Core
     /// systems for maintainability.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class PlayerEntity : Entity, IEntity, IDashable
+    public sealed class PlayerEntity : Entity, IEntity, IDashable, ITeleportative
     {
         [Header("Configuration")]
         [SerializeField] private CharacterSpec spec;
@@ -168,6 +168,11 @@ namespace PlayerScripts.Core
             _actBridge.AddDashContract(contract);
         }
 
+        public void AddTeleportContract(TeleportContract tpc)
+        {
+            _actBridge.AddTeleportContract(tpc);
+        }
+
         private void OnMoveCanceled(InputAction.CallbackContext ctx)
         {
             _actBridge.ClearMovementInput();
@@ -272,5 +277,10 @@ namespace PlayerScripts.Core
     public interface IDashable
     {
         public void AddDashContract(DashContract contract);
+    }
+
+    public interface ITeleportative
+    {
+        public void AddTeleportContract(TeleportContract tpc);
     }
 }

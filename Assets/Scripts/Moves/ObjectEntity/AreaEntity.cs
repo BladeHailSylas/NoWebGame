@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using Moves.Mechanisms;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
+using Systems.Anchor;
 using Systems.Data;
 using Systems.Ticker;
 using UnityEngine;
@@ -16,25 +16,21 @@ namespace Moves.ObjectEntity
         private ushort _limitTick;
         private ushort _lifeTick;
         private ushort _tickElapsed;
-        private DamageData _damage;
         private List<MechanismRef> _onInterval;
         private List<MechanismRef> _onExpire;
         private FixedVector2 _location;
-        private Transform _originalCaster;
         private CastContext _ctx;
-        public void Init(CastContext ctx, AreaParams param)
+        public void Init(CastContext ctx)
         {
+            if(ctx.Params is not AreaParams param) return;
             _ctx = ctx;
-            _damage = ctx.Damage;
-            _onInterval = param.onAreaEnter;
-            _onExpire = param.onAreaExpire;
+            _onInterval = param.onEnter;
+            _onExpire = param.onExpire;
             _limitTick = param.lifeTick;
             _location = new FixedVector2(transform.position);
-            _originalCaster = ctx.Caster;
             ActivateInterval();
             if (_limitTick < ActivateTick)
             {
-                Debug.Log("lifetime is under 0.25s; instant activation");
                 Expire();
             }
             else
@@ -112,7 +108,11 @@ namespace Moves.ObjectEntity
         private void Expire()
         {
             Ticker.Instance.OnTick -= TickHandler;
-            //Debug.Log($"{intervalActivated} times of activation");
+            if (_onExpire.Count == 0)
+            {
+                if (!_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                AnchorRegistry.Instance.Return(anchor);
+            }
             foreach (var followup in _onExpire)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;

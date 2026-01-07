@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using Moves;
+using Moves.Mechanisms;
 using PlayerScripts.Core;
+using PlayerScripts.Skills;
 using PlayerScripts.Stats;
+using Systems.Anchor;
 using Systems.Data;
 using Systems.SubSystems;
 using UnityEngine;
@@ -18,6 +21,7 @@ namespace PlayerScripts.Acts
         private readonly Context _context;
         private readonly StatsBridge _stats;
         private readonly FixedMotor _motor;
+        private readonly Teleporter _teleporter;
         private Vector2 _moveVector;
         private DashContract? _dashContract;
         private HashSet<Entity> _dashHits;
@@ -29,6 +33,16 @@ namespace PlayerScripts.Acts
             _context = context;
             _stats = stats;
             _motor = new FixedMotor(rb, col);
+            _teleporter = new Teleporter(rb, col);
+        }
+
+        public void Teleport(TeleportContract tpc)
+        {
+            EndDash();
+            if (_teleporter.TryTeleport(tpc))
+            {
+                _motor.Depenetrate();
+            }
         }
 
         public void StartDash(DashContract dashContract)
@@ -47,9 +61,12 @@ namespace PlayerScripts.Acts
 
         private void EndDash()
         {
-            _dashContract = null;
             _dashHits = null;
             PreventingActivation = false;
+            if (_dashContract is null) return;
+            CastExpire(_dashContract.Value.Context);
+            _dashContract = null;
+
         }
 
         /// <summary>
@@ -63,9 +80,9 @@ namespace PlayerScripts.Acts
                 _moveVector = Vector2.zero;
                 return;
             }
+            _motor.Depenetrate(); //Always depenetrate, even when neutral(Enemies can overlap the player)
             _moveVector = move.AsVector2;
             if (!(_moveVector.sqrMagnitude > 1e-6f)) return;
-            _motor.Depenetrate();
             var speed = _stats.Stats.Speed;
             _motor.Move(move.Normalized * speed);
             _motor.Depenetrate();
@@ -89,6 +106,25 @@ namespace PlayerScripts.Acts
         {
             //Future hook: integrate with locomotion buffer when implemented.
             _context.Logger.Info($"Knockback requested direction={direction}, force={force}.");
+        }
+        private void CastExpire(CastContext ctx)
+        {
+            if (ctx.Params is not DashParams param) return;
+            if (param.onExpire.Count == 0)
+            {
+                if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                AnchorRegistry.Instance.Return(anchor);
+                return;
+            }
+
+            foreach (var followup in param.onExpire)
+            {
+                if (followup.mechanism is not INewMechanism mech) continue;
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
+                CommandCollector.Instance.EnqueueCommand(cmd);
+            }
         }
     }
 
@@ -117,6 +153,16 @@ namespace PlayerScripts.Acts
             OnHit = onHit;
             OnExpire = onExpire;
             ExpireWhenUnexpected = unexpected;
+        }
+    }
+
+    public readonly struct TeleportContract
+    {
+        public readonly CastContext Context;
+
+        public TeleportContract(CastContext ctx)
+        {
+            Context = ctx;
         }
     }
 }

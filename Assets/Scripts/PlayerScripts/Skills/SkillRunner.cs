@@ -22,14 +22,12 @@ namespace PlayerScripts.Skills
             {
                 var req = new TargetRequest(cmd.Caster, cmd.TargetMode);
                 // TODO: Later support range/mask overrides from skill data.
-
                 var result = _targetResolver.ResolveTarget(req);
                 if (!result.Found)
                 {
                     // No target found — silently return (placeholder behavior)
                     return;
                 }
-
                 target = result.Target;
             }
             //Execute skill mechanism

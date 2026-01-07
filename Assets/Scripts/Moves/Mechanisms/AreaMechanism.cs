@@ -24,7 +24,7 @@ namespace Moves.Mechanisms
                 : ctx.Caster.right;
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
             if (!go.TryGetComponent<AreaEntity>(out var entity)) return;
-            entity.Init(ctx, param);
+            entity.Init(ctx);
         }
     }
     
@@ -38,8 +38,8 @@ namespace Moves.Mechanisms
         [Header("Settings")] 
         public LayerMask mask;
         public AreaEntity areaPrefab;
-        public List<MechanismRef> onAreaEnter;
-        public List<MechanismRef> onAreaExpire;
+        public List<MechanismRef> onEnter;
+        public List<MechanismRef> onExpire;
         public short CooldownTicks => cooldownTicks;
     }
 }

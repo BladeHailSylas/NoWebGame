@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Moves.Mechanisms;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
+using Systems.Anchor;
 using Systems.Data;
 using Systems.SubSystems;
 using Systems.Ticker;
@@ -33,10 +34,9 @@ namespace Moves.ObjectEntity
         [SerializeField] private Collider2D col;
         
 
-        public void Init(
-            CastContext ctx,
-            ProjectileParams param)
+        public void Init(CastContext ctx)
         {
+            if (ctx.Params is not ProjectileParams param) return;
             _ctx = ctx;
             _onHit = param.onHit;
             _onExpire = param.onExpire;
@@ -55,7 +55,6 @@ namespace Moves.ObjectEntity
 
             if (_limitTick < LifeTick)
             {
-                Debug.Log("lifetime is too short (under 0.25s); instant kill");
                 Expire();
                 return;
             }
@@ -127,7 +126,11 @@ namespace Moves.ObjectEntity
         private void Expire()
         {
             Ticker.Instance.OnTick -= TickHandler;
-
+            if (_onExpire.Count == 0)
+            {
+                if (!_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                AnchorRegistry.Instance.Return(anchor);
+            }
             foreach (var followup in _onExpire)
             {
                 if (followup.mechanism is not INewMechanism mech)

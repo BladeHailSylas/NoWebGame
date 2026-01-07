@@ -50,11 +50,11 @@ namespace Systems.Anchor
         public void Return(SkillAnchor anchor)
         {
             if (!_active.Remove(anchor))
+            {
                 return;
-
+            }
             anchor.active = false;
             anchor.owner = null;
-
             anchor.gameObject.SetActive(false);
             _pool.Push(anchor);
         }

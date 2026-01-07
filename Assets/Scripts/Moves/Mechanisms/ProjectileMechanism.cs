@@ -24,9 +24,7 @@ namespace Moves.Mechanisms
             if (!go.TryGetComponent<ProjectileEntity>(out var entity))
                 return;
             // 4️⃣ Projectile 초기화
-            entity.Init(
-                ctx, param
-            );
+            entity.Init(ctx);
         }
     }
 

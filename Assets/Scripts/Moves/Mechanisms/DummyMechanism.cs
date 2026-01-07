@@ -17,7 +17,7 @@ namespace Moves.Mechanisms
         {
             if (ctx.Params is not DummyParams param) return;
             Debug.Log($"Hello {ctx.Caster} {ctx.Target}");
-            foreach (var followup in param.onHitFollowUps)
+            foreach (var followup in param.onHit)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
                 SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
@@ -26,7 +26,7 @@ namespace Moves.Mechanisms
             }
             //Debug.Log("Dummy: OnHit FollowUps are cast");
         
-            foreach (var followup in param.onExpireFollowUps)
+            foreach (var followup in param.onExpire)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
                 SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
@@ -41,7 +41,7 @@ namespace Moves.Mechanisms
     public class DummyParams : INewParams
     {
         public short CooldownTicks { get; private set; }
-        public List<MechanismRef> onHitFollowUps;
-        public List<MechanismRef> onExpireFollowUps;
+        public List<MechanismRef> onHit;
+        public List<MechanismRef> onExpire;
     }
 }

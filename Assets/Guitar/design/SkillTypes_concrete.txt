@@ -31,18 +31,17 @@ Projectile
 
 Dash
 대상 지점을 향해 빠르게 움직인다
-고유 params는 speed, maxRange, endTick(무한 돌진 방지), canAttack, canPenetrate
-게임을 망친 추한 타입이다
-이 자식 때문에 KinematicMotor2D를 도입하다 어쩌구 저쩌구 했다
-사실 이 정도로 망가질 게임이면 그냥 망가지는 게 필연이겠지만 아무튼 겜망추임
+고유 params는 speed, endTick(무한 돌진 방지), penetrative
+이거 때문에 KinematicMotor2D를 도입하다 Intent를 도입하고 BattleCore로 틀고 했었다
+사실 이 정도로 망가질 게임이면 그냥 망가지는 게 필연이겠지만 아무튼 이게 게임을 망침
 Dash는 무조건 일반 이동 이상의 속력을 가져야 하며, Dash 중에는 일반 이동이 비활성화
 
 Teleport
 대상 지점으로 순간이동한다
-고유 params는 maxRange, attackWidth(0이면 공격 기능이 없다)
+고유 params는 maxRange, ignoreEnemy
 필드에서 사라졌다가 대상 지점에서 나타난다, 이 덕에 targeted 기술을 그냥 흘릴 수 있다
 그런데 이게 너무 강해서 비대상 Teleport는 없었으면 좋겠음
-추가로 attackWidth가 있으면 순간이동 경로 상의 적을 공격하는 것
+Raycast로 도착 지점을 판정하여 그곳으로 이동하고, 원래 적을 통과할 수 없지만 ignoreEnemy라면 적이 사이에 있어도 무시할 수 있다
 
 #endregion
 
@@ -62,7 +61,7 @@ Gain
 
 #endregion
 
-#region ===== Interact Skills =====
+#region ===== Interactive Skills =====
 
 Damage
 피해를 직접 가한다

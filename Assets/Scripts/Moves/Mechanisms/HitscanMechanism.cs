@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using PlayerScripts.Skills;
+using Systems.Anchor;
 using Systems.Data;
 using UnityEngine;
 
@@ -11,10 +12,6 @@ namespace Moves.Mechanisms
     [CreateAssetMenu(fileName = "HitscanMechanism", menuName = "Skills/Mechanisms/Hitscan")]
     public class HitscanMechanism : ScriptableObject, INewMechanism
     {
-        public void Execute(INewParams @params, Transform caster, Transform target)
-        {
-        }
-
         public void Execute(CastContext ctx)
         {
             if (ctx.Target is null)
@@ -28,18 +25,11 @@ namespace Moves.Mechanisms
                 //Debug.LogError("Wrong Parameter");
                 return;
             }
-            //Transform caster = null;
-            //if (@params is SkillCommand sc)
-            //    caster = sc.Caster;
-            // Fallback: SkillRunner provides caster via SkillCommand; params may evolve later.
-
-            // Validate target layer
             if ((param.layerMask.value & (1 << ctx.Target.gameObject.layer)) == 0)
             {
                 //Debug.Log("[HitscanMechanism] Target layer not allowed — skipping.");
                 return;
             }
-
             Vector2 origin = ctx.Caster?.position ?? Vector2.zero;
             var direction = ((Vector2)ctx.Target.position - origin).normalized;
             var distance = Vector2.Distance(origin, ctx.Target.position);
@@ -59,19 +49,15 @@ namespace Moves.Mechanisms
 
             if (hit.collider is not null)
             {
-                //Placeholder: actual damage logic handled externally
-                // hit.collider.GetComponent<IVulnerable>().TakeDamage(10);
-                //Debug.Log($"[HitscanMechanism] Hit detected on {hit.collider.name}");
                 OnHit(ctx);
             }
-
-            OnFinished(ctx.Target);
+            OnFinished(ctx);
         }
         protected virtual void OnHit(CastContext ctx)
         {
             if (ctx.Params is not HitscanParams param) return;
             // Placeholder for EffectSkill or damage pipeline.
-            foreach (var followup in param.onHitFollowUp)
+            foreach (var followup in param.onHit)
             {
                 //Debug.Log($"I got {ctx.Damage.Attack}");
                 if (followup.mechanism is not INewMechanism mech) continue;
@@ -86,10 +72,23 @@ namespace Moves.Mechanisms
             //Debug.Log($"[HitscanMechanism] OnHit triggered on {ctx.Target.name}");
         }
 
-        protected virtual void OnFinished(Transform prevTarget)
+        protected virtual void OnFinished(CastContext ctx)
         {
-            // Placeholder for completion callbacks or follow-ups.
-            //Debug.Log("[HitscanMechanism] OnFinished triggered.");
+            if (ctx.Params is not HitscanParams param) return;
+            if (param.onExpire.Count == 0)
+            {
+                if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                AnchorRegistry.Instance.Return(anchor);
+            }
+
+            foreach (var followup in param.onExpire)
+            {
+                if (followup.mechanism is not INewMechanism mech) continue;
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
+                CommandCollector.Instance.EnqueueCommand(cmd);
+            }
         }
     }
 
@@ -106,8 +105,8 @@ namespace Moves.Mechanisms
         [SerializeField] private short cooldownTicks;
         public short CooldownTicks => cooldownTicks;
         [Header("FollowUp")] 
-        public List<MechanismRef> onHitFollowUp;
-        public List<MechanismRef> onExpireFollowUp;
+        public List<MechanismRef> onHit;
+        public List<MechanismRef> onExpire;
         [Header("Debug")]
         public bool debugDraw = true;
     }

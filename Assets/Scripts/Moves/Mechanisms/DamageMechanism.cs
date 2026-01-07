@@ -17,7 +17,7 @@ namespace Moves.Mechanisms
             var finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
             //Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");
             vul.TakeDamage(new DamageData(param.type, ctx.Damage.Attack, param.damageValue, finalAP, finalDA));
-            foreach (var followup in param.onHitFollowUps)
+            foreach (var followup in param.onHit)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
                 var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
@@ -27,7 +27,7 @@ namespace Moves.Mechanisms
             }
             //Debug.Log("Damage: OnHit FollowUps are cast");
         
-            foreach (var followup in param.onExpireFollowUps)
+            foreach (var followup in param.onExpire)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
                 /*SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
@@ -48,7 +48,7 @@ namespace Moves.Mechanisms
         public byte defaultAmplitude;
         public DamageType type;
         public short CooldownTicks { get; private set; }
-        public List<MechanismRef> onHitFollowUps;
-        public List<MechanismRef> onExpireFollowUps;
+        public List<MechanismRef> onHit;
+        public List<MechanismRef> onExpire;
     }
 }

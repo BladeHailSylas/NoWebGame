@@ -15,7 +15,7 @@ namespace Moves.Mechanisms
             if(!ctx.Caster.TryGetComponent<IDashable>(out var dash)) return;
             var contract = new DashContract(
                 ctx, param.durationTicks, param.speed, param.preventActivation,
-                param.penetrative, param.onHitFollowUps, param.onExpireFollowUps,
+                param.penetrative, param.onHit, param.onExpire,
                 param.expireWhenUnexpected
             );
             dash.AddDashContract(contract);
@@ -31,7 +31,7 @@ namespace Moves.Mechanisms
         public bool preventActivation;
         public bool penetrative;
         public bool expireWhenUnexpected;
-        public List<MechanismRef> onHitFollowUps;
-        public List<MechanismRef> onExpireFollowUps;
+        public List<MechanismRef> onHit;
+        public List<MechanismRef> onExpire;
     }
 }

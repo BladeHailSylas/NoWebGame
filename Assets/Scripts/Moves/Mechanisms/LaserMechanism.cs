@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
+using Systems.Anchor;
 using Systems.Data;
 using UnityEngine;
 
@@ -35,8 +36,13 @@ namespace Moves.Mechanisms
                 if (entity is null) continue;
 
                 // FollowUp 즉시 발동
-                foreach (var followup in param.onHitFollowUps)
+                foreach (var followup in param.onHit)
                 {
+                    if (param.onHit.Count == 0)
+                    {
+                        if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                        AnchorRegistry.Instance.Return(anchor);
+                    }
                     if (followup.mechanism is not INewMechanism mech) continue;
                     var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
                     SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
@@ -55,6 +61,6 @@ namespace Moves.Mechanisms
     {
         public short CooldownTicks { get; private set; }
         public float rangeMultiplier = 1f;
-        public List<MechanismRef> onHitFollowUps;
+        public List<MechanismRef> onHit;
     }
 }
