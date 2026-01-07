@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Moves;
 using PlayerScripts.Acts;
 using PlayerScripts.Core;
@@ -23,13 +24,13 @@ namespace Systems.SubSystems
         {
             _rb = rb ?? throw new ArgumentNullException(nameof(rb));
             _col = col ?? throw new ArgumentNullException(nameof(col));
-            Policy = new()
+            Policy = new CollisionPolicy
             {
                 wallsMask = LayerMask.GetMask("Walls&Obstacles"),
                 enemyMask = LayerMask.GetMask("Foe"),
                 enemyAsBlocker = true,
                 unitRadius = 500,
-                unitSkin = 125,
+                unitSkin = 10,
                 allowWallSlide = true
             };
             rb.bodyType = RigidbodyType2D.Kinematic;
@@ -61,9 +62,12 @@ namespace Systems.SubSystems
             delta = RemoveNormalComponent(delta, Policy.wallsMask);
 
             // 2️⃣ Remove enemy collision normals if treated as blockers
-            if (Policy.enemyAsBlocker)
-                delta = RemoveNormalComponent(delta, Policy.enemyMask);
-
+            if (Policy.enemyAsBlocker) delta = RemoveNormalComponent(delta, Policy.enemyMask);
+            if (delta != RemoveNormalComponent(delta, Policy.wallsMask) ||
+                delta != RemoveNormalComponent(delta, Policy.enemyMask))
+            {
+                return;
+            }
             // 3️⃣ Apply movement
             var target = _rb.position + delta;
             _rb.MovePosition(target);
@@ -73,19 +77,17 @@ namespace Systems.SubSystems
         /// <summary>
         /// An extended version of Move().
         /// </summary>
-        /// <param name="desiredDelta"></param>
-        public bool TryDash(DashContract contract)
+        public bool TryDash(DashContract contract, HashSet<Entity> dashHits)
         {
             var delta = ((Vector2)contract.Context.Target.position - _rb.position).normalized * contract.Speed / 60f;
             if (delta.sqrMagnitude <= 0f)
-                return true;
-
+                return false;
             var origin = _rb.position;
             var direction = delta.normalized;
             var distance = delta.magnitude;
             var radius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
 
-            // 1️⃣ CircleCast: 벽 + 적 동시 탐색
+            // 벽 + 적 탐색
             var hits = Physics2D.CircleCastAll(
                 origin,
                 radius,
@@ -101,33 +103,33 @@ namespace Systems.SubSystems
 
                 var layer = hit.collider.gameObject.layer;
 
-                // 2️⃣ 벽 충돌 → 즉시 종료
+                // 벽 충돌 → 즉시 종료
                 if (((1 << layer) & Policy.wallsMask) != 0)
                 {
                     return false;
                 }
 
-                // 3️⃣ 적 충돌 → 피해 적용
-                if (((1 << layer) & Policy.enemyMask) != 0)
+                // 적 충돌 → 피해 적용
+                if (((1 << layer) & Policy.enemyMask) == 0) continue; //Negate when not enemyMask
+                if (!hit.collider.TryGetComponent<Entity>(out var entity) || dashHits.Contains(entity)) continue; //Negate when touched already
+                // 자기 자신 방지 (안전장치)
+                if (entity.transform == _col.transform)
+                    continue;
+                var _ctx = contract.Context;
+                foreach (var followup in contract.OnHit)
                 {
-                    if (hit.collider.TryGetComponent<Entity>(out var entity))
-                    {
-                        // 자기 자신 방지 (안전장치)
-                        if (entity.transform == _col.transform)
-                            continue;
-                        foreach (var mechanism in contract.OnHit)
-                        {
-                            if (mechanism.mechanism is not INewMechanism mech) continue;
-                            SkillCommand cmd = new(contract.Context.Caster, new FixedVector2(_rb.position), contract.Context.Mode,
-                                mech, mechanism.@params, contract.Context.Damage, null, entity.transform, contract.Context.Var);
-                            CommandCollector.Instance.EnqueueCommand(cmd);
-                        }
-                        // ❗ 지금은 비관통 Dash로 가정
-                        return false;
-                    }
+                    if (followup.mechanism is not INewMechanism mech) continue; //Negate when the followUp is not a INewMechanism
+                    var ctxTarget = !followup.requireRetarget ? entity.transform : null;
+                    SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                        mech, followup.@params, _ctx.Damage, ctxTarget);
+                    CommandCollector.Instance.EnqueueCommand(cmd);
+                    dashHits.Add(entity);
                 }
+                return contract.Penetrative && contract.Context.Target != entity.transform;
+                //False when not penetrative since it needs to stop when touches an enemy
+                //True only when penetrative and not target; It needs to stop if it hits the target
             }
-            // 4️⃣ 실제 이동 적용
+            // Moving
             var target = origin + delta;
             _rb.MovePosition(target);
             _pos = new FixedVector2(target);

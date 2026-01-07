@@ -25,9 +25,6 @@ namespace Moves.Mechanisms
             // 1) 원형 탐색
             var hits = Physics2D.OverlapCircleAll(origin, radius, param.enemyMask);
 
-            // this stores evaluated targets
-            var hitSomething = false;
-
             foreach (var hit in hits)
             {
                 // 자기 자신 제거
@@ -43,28 +40,26 @@ namespace Moves.Mechanisms
                     if (angle > halfAngle)
                         continue;
                 }
-
-                hitSomething = true;
-            
+                Debug.Log(hit.transform.name);
                 // OnHit follow-ups 실행
                 foreach (var followup in param.onHit)
                 {
                     if (followup.mechanism is not INewMechanism mech) continue;
-                    SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                        mech, followup.@params, ctx.Damage, hit.transform);
-
+                    var ctxTarget = !followup.requireRetarget ? hit.transform : null;
+                    SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                        mech, followup.@params, ctx.Damage, ctxTarget);
                     CommandCollector.Instance.EnqueueCommand(cmd);
                 }
             }
-            Debug.Log(hitSomething);
             // 타격 대상이 하나도 없었을 때 onExpire 실행
             if (param.onExpire == null) return;
             {
                 foreach (var followup in param.onExpire)
                 {
                     if (followup.mechanism is not INewMechanism mech) continue;
-                    SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                        mech, followup.@params, ctx.Damage, ctx.Target);
+                    var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                    SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                        mech, followup.@params, ctx.Damage, ctxTarget);
                     CommandCollector.Instance.EnqueueCommand(cmd);
                 }
             }

@@ -12,9 +12,8 @@ namespace Moves.Mechanisms
         public void Execute(CastContext ctx)
         {
             if (ctx.Params is not DashParams param) return;
-            Debug.Log($"Hello {ctx.Caster} {ctx.Target}");
             if(!ctx.Caster.TryGetComponent<IDashable>(out var dash)) return;
-            DashContract contract = new DashContract(
+            var contract = new DashContract(
                 ctx, param.durationTicks, param.speed, param.preventActivation,
                 param.penetrative, param.onHitFollowUps, param.onExpireFollowUps,
                 param.expireWhenUnexpected

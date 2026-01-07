@@ -41,7 +41,6 @@ namespace PlayerScripts.Acts
                     _context.Logger.Error($"Invalid params in slot {kvp.Key}.");
                 }
             }
-
             _context.Logger.Info($"Attack controller initialised with {_skills.Count} skills.");
         }
 
@@ -72,7 +71,7 @@ namespace PlayerScripts.Acts
                 var sv = VariableStorage.Instance.GetVariable(switcher.variable);
                 cmd = new SkillCommand(
                     caster: _caster,
-                    mode: TargetMode.TowardsEntity,
+                    mode: binding.mode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
                     mech: mech,
                     @params: param,
@@ -83,13 +82,12 @@ namespace PlayerScripts.Acts
             else {
                 cmd = new SkillCommand(
                     caster: _caster,
-                    mode: TargetMode.TowardsEntity,
+                    mode: binding.mode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
                     mech: mech,
                     @params: param,
                     damage: _context.Stats.DamageData()
                 );}
-            //Debug.Log($"Sent Attack damage { _context.Stats.DamageData().Attack}");
             _collector?.EnqueueCommand(cmd);
             _context.Logger.Info($"Casted skill from slot {slot} ({mech.GetType().Name}).");
         }

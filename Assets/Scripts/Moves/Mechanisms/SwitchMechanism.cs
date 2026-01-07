@@ -64,12 +64,12 @@ namespace Moves.Mechanisms
             }
         
 // 이제 selected를 실행
-            if (chosen && selected.mechanism is INewMechanism mech)
-            {
-                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, selected.@params, ctx.Damage, ctx.Target);
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            if (!chosen || selected.mechanism is not INewMechanism mech) return;
+            
+            var ctxTarget = !selected.requireRetarget ? ctx.Target : null;
+            SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                mech, selected.@params, ctx.Damage, ctxTarget);
+            CommandCollector.Instance.EnqueueCommand(cmd);
         }
     }
     [Serializable]

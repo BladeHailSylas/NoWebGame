@@ -1,5 +1,6 @@
 using Moves;
 using PlayerScripts.Core;
+using Systems.Anchor;
 using Systems.Data;
 using UnityEngine;
 using Utils;
@@ -70,9 +71,6 @@ namespace PlayerScripts.Skills
         [Header("Dependencies")] [Tooltip("커서 위치를 감지할 CursorResolver 모듈")]
         public CursorResolver cursorResolver;
 
-        [Tooltip("임시 앵커 오브젝트의 프리팹 (없으면 자동 생성)")]
-        public GameObject anchorPrefab;
-
         [Tooltip("디버그 로그 출력")] public bool debugLog = true;
 
         public TargetResolveResult ResolveTarget(TargetRequest request)
@@ -126,34 +124,62 @@ namespace PlayerScripts.Skills
         }
         private TargetResolveResult ResolveTowardsCursor(TargetRequest req)
         {
-            // 커서 월드 좌표 얻기
-            if (!cursorResolver.TryGetCursorWorld(out var worldPos, out var fixedPos))
+            // 1. 커서 월드 좌표 획득
+            if (!cursorResolver.TryGetCursorWorld(out var cursorWorld, out _))
             {
-                if (debugLog) Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
+                if (debugLog)
+                    Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
+
                 return new TargetResolveResult(null, req.CasterPos, false);
             }
 
-            // 사거리 검사
-            var distance = Vector2.Distance(req.CasterPos.AsVector2, worldPos);
-            if (distance > req.MaxRange || distance < req.MinRange)
+            Vector2 casterPos = req.CasterPos.AsVector2;
+            Vector2 cursorPos = cursorWorld;
+
+            Vector2 toCursor = cursorPos - casterPos;
+            float distance = toCursor.magnitude;
+
+            // 2. 최소 사거리 검사
+            if (distance < req.MinRange)
             {
-                if (debugLog) Debug.Log($"[TargetResolver] 커서 위치가 사거리 밖 (거리 {distance:F2})");
+                if (debugLog)
+                    Debug.Log($"[TargetResolver] 커서가 최소 사거리보다 가까움 ({distance:F2})");
+
                 return new TargetResolveResult(null, req.CasterPos, false);
             }
 
-            // 임시 Anchor 오브젝트 생성
-            var anchor = anchorPrefab is null
-                ? Instantiate(anchorPrefab, worldPos, Quaternion.identity)
-                : new GameObject("Anchor_Temp");
+            // 3. 방향 계산
+            Vector2 direction = toCursor.normalized;
 
-            anchor.transform.position = worldPos;
+            // 4. 최종 Anchor 위치 결정
+            Vector2 anchorPos =
+                distance > req.MaxRange
+                    ? casterPos + direction * req.MaxRange
+                    : cursorPos;
 
-            if (debugLog) Debug.Log($"[TargetResolver] 커서 기준 앵커 생성 ({worldPos})");
+            // 5. Anchor 대여
+            var anchor = AnchorRegistry.Instance.Rent(
+                owner: req.Caster,
+                position: anchorPos
+            );
 
-            // 일정 시간 후 자동 제거
-            Destroy(anchor, 0.1f);
+            if (anchor is null)
+            {
+                Debug.LogWarning("[TargetResolver] Anchor 대여 실패");
+                return new TargetResolveResult(null, req.CasterPos, false);
+            }
 
-            return new TargetResolveResult(anchor.transform, fixedPos, true);
+            if (debugLog)
+                Debug.Log($"[TargetResolver] TowardsCursor Anchor 배치 ({anchorPos})");
+
+            // 6. Anchor를 Target으로 반환
+            return new TargetResolveResult(
+                target: anchor.transform,
+                anchor: FixedVector2.FromVector2(anchorPos),
+                found: true
+            );
         }
+
+
     }
 }

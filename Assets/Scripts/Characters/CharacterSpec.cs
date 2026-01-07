@@ -10,6 +10,7 @@ namespace Characters
 	public struct SkillBinding
 	{
 		public SkillSlot slot;
+		public TargetMode mode;
 		public ScriptableObject mechanism;
 		[SerializeReference] public INewParams @params;
 	}

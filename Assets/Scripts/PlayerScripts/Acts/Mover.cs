@@ -76,15 +76,12 @@ namespace PlayerScripts.Acts
             if (immovableCount > 0 || !_dashContract.HasValue || tick >= _dashContract.Value.EndTick)
             {
                 EndDash();
+                _motor.Depenetrate();
                 return;
             }
-            _motor.Depenetrate();
-            var cont = _motor.TryDash(_dashContract.Value);
-            if (!cont)
-            {
-                EndDash();
-                return;
-            }
+            var cont = _motor.TryDash(_dashContract.Value, _dashHits);
+            if (cont) return;
+            EndDash();
             _motor.Depenetrate();
         }
 

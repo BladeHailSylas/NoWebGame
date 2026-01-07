@@ -24,7 +24,7 @@ namespace Moves.Mechanisms
                 : ctx.Caster.right;
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
             if (!go.TryGetComponent<AreaEntity>(out var entity)) return;
-            entity.Init(ctx.Damage, param.onAreaEnter, param.onAreaExpire, ctx.Caster, param.lifeTick);
+            entity.Init(ctx, param);
         }
     }
     

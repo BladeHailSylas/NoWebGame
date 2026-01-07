@@ -1,10 +1,12 @@
 ﻿using Moves;
+using Moves.Mechanisms;
+using PlayerScripts.Core;
 
 namespace PlayerScripts.Skills
 {
     public class SkillRunner
     {
-        private TargetResolver _targetResolver;
+        private readonly TargetResolver _targetResolver;
         public SkillRunner(TargetResolver resolver)
         {
             _targetResolver = resolver;
@@ -15,7 +17,6 @@ namespace PlayerScripts.Skills
             //Enforce maximum chain depth
             //Determine target
             var target = cmd.Target;
-            var anchor = cmd.CastPosition;
 
             if (target is null)
             {
@@ -30,12 +31,8 @@ namespace PlayerScripts.Skills
                 }
 
                 target = result.Target;
-                anchor = result.Anchor;
             }
-
-            //Debug.Log($"Let's apply damage {cmd.Damage.Attack}");
             //Execute skill mechanism
-            //Debug.Log($"Variable은 {cmd.Var.Variable?.displayName}");
             cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
                 cmd.Damage, cmd.Var, cmd.TargetMode));
         

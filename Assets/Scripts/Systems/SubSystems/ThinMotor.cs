@@ -81,6 +81,12 @@ namespace Systems.SubSystems
 
             // 3️⃣ Apply movement
             var target = origin + delta;
+
+            // 이동 방향을 바라보도록 회전
+            var angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            _rb.MoveRotation(angle);
+
+            // 위치 이동
             _rb.MovePosition(target);
             _pos = new FixedVector2(target);
 

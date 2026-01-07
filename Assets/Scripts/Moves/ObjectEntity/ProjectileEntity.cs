@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Moves.Mechanisms;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
 using Systems.Data;
@@ -14,40 +16,36 @@ namespace Moves.ObjectEntity
 
         private ushort _limitTick;
         private ushort _lifeTick;
-
-        private DamageData _damage;
+        
         private List<MechanismRef> _onHit;
         private List<MechanismRef> _onExpire;
 
         private FixedVector2 _location;
         private FixedVector2 _velocity;
+        private int _speed;
 
-        private Transform _originalCaster;
+        private HashSet<Entity> _hitEntities;
         private ThinMotor _motor;
-
+        private bool _penetrative;
+        private CastContext _ctx;
+        
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private Collider2D col;
-
-        [Header("Projectile Policy")]
-        [SerializeField] private bool penetrative;
+        
 
         public void Init(
-            DamageData dmg,
-            List<MechanismRef> onHit,
-            List<MechanismRef> onExpire,
-            Transform caster,
-            FixedVector2 velocity,
-            ushort life = 60)
+            CastContext ctx,
+            ProjectileParams param)
         {
-            _damage = dmg;
-            _onHit = onHit;
-            _onExpire = onExpire;
-            _limitTick = life;
-            _velocity = velocity;
+            _ctx = ctx;
+            _onHit = param.onHit;
+            _onExpire = param.onExpire;
+            _limitTick = param.lifeTick;
+            _penetrative = param.penetrative;
+            _hitEntities = new HashSet<Entity>();
 
             _location = new FixedVector2(transform.position);
-            _originalCaster = caster;
-
+            _speed = param.speed;
             // 🔹 ThinMotor 생성 (Entity 소유)
             _motor = new ThinMotor(rb, col)
             {
@@ -80,7 +78,10 @@ namespace Moves.ObjectEntity
         /// </summary>
         private void Move()
         {
-            if (!_motor.TryMove(_velocity, penetrative, out var hit))
+            _velocity = new FixedVector2(
+                (_ctx.Target is not null ? (Vector2)_ctx.Target.transform.position - _location.AsVector2 : Vector2.right)
+                .normalized * _speed);
+            _motor.TryMove(_velocity, _penetrative, out var hit);
             {
                 switch (hit.type)
                 {
@@ -88,12 +89,17 @@ namespace Moves.ObjectEntity
                         // 벽에 닿으면 즉시 제거
                         Expire();
                         break;
-
                     case HitType.Enemy:
+                    {
                         ApplyHit(hit.collider);
-                        if (!penetrative)
+                        if (!_penetrative || hit.collider.transform == _ctx.Target)
                             Expire();
                         break;
+                    }
+                    case HitType.None:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
@@ -103,25 +109,18 @@ namespace Moves.ObjectEntity
 
         private void ApplyHit(Collider2D other)
         {
-            if (!other.TryGetComponent<Entity>(out var entity))
-                return;
+            if (!other.TryGetComponent<Entity>(out var entity)) return;
+            if (_hitEntities.Contains(entity)) return;
 
             foreach (var followup in _onHit)
             {
-                if (followup.mechanism is not INewMechanism mech)
-                    continue;
-
-                SkillCommand cmd = new(
-                    _originalCaster,
-                    TargetMode.TowardsEntity,
-                    _location,
-                    mech,
-                    followup.@params,
-                    _damage,
-                    entity.transform
-                );
+                if (followup.mechanism is not INewMechanism mech) continue;
+                var ctxTarget = !followup.requireRetarget ? entity.transform : null;
+                SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                    mech, followup.@params, _ctx.Damage, ctxTarget);
 
                 CommandCollector.Instance.EnqueueCommand(cmd);
+                _hitEntities.Add(entity);
             }
         }
 
@@ -134,14 +133,9 @@ namespace Moves.ObjectEntity
                 if (followup.mechanism is not INewMechanism mech)
                     continue;
 
-                SkillCommand cmd = new(
-                    _originalCaster,
-                    TargetMode.TowardsEntity,
-                    _location,
-                    mech,
-                    followup.@params,
-                    _damage
-                );
+                var ctxTarget = !followup.requireRetarget ? _ctx.Target : null;
+                SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                    mech, followup.@params, _ctx.Damage, ctxTarget);
 
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using JetBrains.Annotations;
+using Moves.Mechanisms;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
 using Systems.Data;
@@ -19,14 +21,16 @@ namespace Moves.ObjectEntity
         private List<MechanismRef> _onExpire;
         private FixedVector2 _location;
         private Transform _originalCaster;
-        public void Init(DamageData dmg, List<MechanismRef> interval, List<MechanismRef> expire, Transform caster, ushort life = 0)
+        private CastContext _ctx;
+        public void Init(CastContext ctx, AreaParams param)
         {
-            _damage = dmg;
-            _onInterval = interval;
-            _onExpire = expire;
-            _limitTick = life;
+            _ctx = ctx;
+            _damage = ctx.Damage;
+            _onInterval = param.onAreaEnter;
+            _onExpire = param.onAreaExpire;
+            _limitTick = param.lifeTick;
             _location = new FixedVector2(transform.position);
-            _originalCaster = caster;
+            _originalCaster = ctx.Caster;
             ActivateInterval();
             if (_limitTick < ActivateTick)
             {
@@ -38,11 +42,8 @@ namespace Moves.ObjectEntity
                 Ticker.Instance.OnTick += TickHandler;
             }
         }
-        void OnDisable()
-        {
-            Expire();
-        }
-        void TickHandler(ushort tick)
+
+        private void TickHandler(ushort tick)
         {
             _lifeTick++; _tickElapsed++;
             if (_lifeTick >= _limitTick)
@@ -75,8 +76,9 @@ namespace Moves.ObjectEntity
                         foreach (var followup in _onInterval)
                         {
                             if (followup.mechanism is not INewMechanism mech) continue;
-                            SkillCommand cmd = new(_originalCaster, TargetMode.TowardsEntity,
-                                _location, mech, followup.@params, _damage, entity.transform);
+                            var ctxTarget = !followup.requireRetarget ? entity.transform : null;
+                            SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                                mech, followup.@params, _ctx.Damage, ctxTarget);
                             CommandCollector.Instance.EnqueueCommand(cmd);
                         }
                     }
@@ -96,9 +98,9 @@ namespace Moves.ObjectEntity
                         foreach (var followup in _onInterval)
                         {
                             if (followup.mechanism is not INewMechanism mech) continue;
-
-                            SkillCommand cmd = new(_originalCaster, TargetMode.TowardsEntity,
-                                _location, mech, followup.@params, _damage, entity.transform);
+                            var ctxTarget = !followup.requireRetarget ? entity.transform : null;
+                            SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                                mech, followup.@params, _ctx.Damage, ctxTarget);
                             CommandCollector.Instance.EnqueueCommand(cmd);
                         }
                     }
@@ -114,9 +116,9 @@ namespace Moves.ObjectEntity
             foreach (var followup in _onExpire)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
-
-                SkillCommand cmd = new(_originalCaster, TargetMode.TowardsEntity,
-                    _location, mech, followup.@params, _damage);
+                var ctxTarget = !followup.requireRetarget ? _ctx.Target : null;
+                SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                    mech, followup.@params, _ctx.Damage, ctxTarget);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
             Destroy(gameObject);

@@ -20,8 +20,9 @@ namespace Moves.Mechanisms
             foreach (var followup in param.onHitFollowUps)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
-                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctx.Target);
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
             //Debug.Log("Damage: OnHit FollowUps are cast");
@@ -29,8 +30,11 @@ namespace Moves.Mechanisms
             foreach (var followup in param.onExpireFollowUps)
             {
                 if (followup.mechanism is not INewMechanism mech) continue;
-                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctx.Target);
+                /*SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctx.Target);*/
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
             //Debug.Log("Damage: OnExpire FollowUps are casted");

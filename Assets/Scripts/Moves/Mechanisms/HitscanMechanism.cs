@@ -76,8 +76,9 @@ namespace Moves.Mechanisms
                 //Debug.Log($"I got {ctx.Damage.Attack}");
                 if (followup.mechanism is not INewMechanism mech) continue;
                 //Debug.Log($"[HitscanMechanism] Now enqueuing {mech.GetType().Name}");
-                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctx.Target);
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
                 CommandCollector.Instance.EnqueueCommand(cmd);
                 //Debug.Log($"You are casting {mech.GetType().Name} as a followup to {hitTarget.name}");
             }

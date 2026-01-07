@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Moves.ObjectEntity;
 using Systems.Data;
 using Systems.Stacks.Definition;
@@ -43,6 +44,7 @@ namespace Moves
     public interface INewParams
     {
         short CooldownTicks { get; }
+        
     }
 
     public struct CastContext
@@ -63,7 +65,7 @@ namespace Moves
             Var = va;
             Mode = mode;
         }
-    }
+    } 
 
     public readonly struct SkillCommand
     {
@@ -121,7 +123,7 @@ namespace Moves
     {
         public ScriptableObject mechanism;
         [SerializeReference] public INewParams @params;
-        public bool passSameTarget;
+        public bool requireRetarget;
         public bool respectBusy;
     }
 }
