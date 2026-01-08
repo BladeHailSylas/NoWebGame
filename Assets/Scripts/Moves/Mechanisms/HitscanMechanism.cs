@@ -96,6 +96,7 @@ namespace Moves.Mechanisms
     public class HitscanParams : INewParams
     {
         [Header("Hitscan Settings")]
+        // Range limits for this mechanism (world units).
         public float minRange;
         public float maxRange = 10f;
         [Header("Entity Settings")]
@@ -104,6 +105,8 @@ namespace Moves.Mechanisms
         [Header("Ticker")] 
         [SerializeField] private short cooldownTicks;
         public short CooldownTicks => cooldownTicks;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
         [Header("FollowUp")] 
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;

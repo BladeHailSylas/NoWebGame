@@ -47,8 +47,13 @@ namespace Moves.Mechanisms
         public byte defaultAPRatio;
         public byte defaultAmplitude;
         public DamageType type;
+        // Range limits for this mechanism (world units).
+        public float minRange;
+        public float maxRange;
         public short CooldownTicks { get; private set; }
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }
