@@ -53,7 +53,7 @@ namespace Moves.Mechanisms
         public short CooldownTicks { get; private set; }
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
     }
 }

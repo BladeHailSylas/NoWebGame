@@ -82,7 +82,7 @@ namespace Moves.Mechanisms
         public float minRange;
         public float maxRange;
         public MechanismRef[] switchFollowUps;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
     }
 }

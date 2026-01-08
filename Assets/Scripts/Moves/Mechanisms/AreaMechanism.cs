@@ -37,14 +37,14 @@ namespace Moves.Mechanisms
 
         [Header("Settings")] 
         // Range limits for this mechanism (world units).
-        public float minRange = 0;
+        public float minRange;
         public float maxRange;
         public LayerMask mask;
         public AreaEntity areaPrefab;
         public List<MechanismRef> onEnter;
         public List<MechanismRef> onExpire;
         public short CooldownTicks => cooldownTicks;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
     }
 }

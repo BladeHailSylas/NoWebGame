@@ -50,11 +50,16 @@ namespace Moves.ObjectEntity
     public class LaserArea : IBoxLikeArea
     {
         public int Width;
-        public int MaxRange;
+        public int MaxRange { get; private set; }
 
         // Init에서 채워질 값
         public FixedVector2 Start { get; private set; }
         public FixedVector2 End   { get; private set; }
+
+        public void SetMaxRange(int maxRange)
+        {
+            MaxRange = maxRange;
+        }
 
         public FixedVector2 CenterCoordinate { get; private set; }
 

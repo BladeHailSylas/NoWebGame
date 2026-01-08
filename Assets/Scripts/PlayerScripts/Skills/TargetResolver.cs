@@ -1,4 +1,5 @@
 using Moves;
+using Moves.Mechanisms;
 using PlayerScripts.Core;
 using Systems.Anchor;
 using Systems.Data;
@@ -27,34 +28,6 @@ namespace PlayerScripts.Skills
             Mode = mode;
             TargetMask = targetMask;
             CasterPos = new FixedVector2(caster.position);
-        }
-        public TargetRequest(Transform caster, float maxRange, TargetMode mode, LayerMask targetMask)
-        {
-            Caster = caster;
-            MinRange = 0;
-            MaxRange = maxRange;
-            Mode = mode;
-            TargetMask = targetMask;
-            CasterPos = new FixedVector2(caster.position);
-        }
-        public TargetRequest(Transform caster, TargetMode mode)
-        {
-            Caster = caster;
-            MinRange = 0;
-            MaxRange = float.MaxValue;
-            Mode = mode;
-            TargetMask = LayerMask.GetMask("Foe");
-            CasterPos = new FixedVector2(caster.position);
-        }
-
-        public TargetRequest(FixedVector2 casterPos, TargetMode mode)
-        {
-            Caster = null;
-            MinRange = 0;
-            MaxRange = float.MaxValue;
-            Mode = mode;
-            TargetMask = LayerMask.GetMask("Foe");
-            CasterPos = casterPos;
         }
     }
     /// <summary>
@@ -87,14 +60,25 @@ namespace PlayerScripts.Skills
             switch (request.Mode)
             {
                 case TargetMode.TowardsEntity:
+                {
                     return ResolveTowardsEntity(request);
+                }
 
                 case TargetMode.TowardsCursor:
+                {
                     return ResolveTowardsCursor(request);
+                }
 
+                case TargetMode.TowardsMovement:
+                case TargetMode.TowardsCoordinate:
+                {
+                    return new TargetResolveResult(null, request.CasterPos, false);
+                }
                 default:
+                {
                     Debug.LogError("No good");
                     return new TargetResolveResult(null, request.CasterPos, false);
+                }
             }
         }
         private TargetResolveResult ResolveTowardsEntity(TargetRequest req)
@@ -143,7 +127,6 @@ namespace PlayerScripts.Skills
             }
 
             var casterPos = req.CasterPos.AsVector2;
-
             var toCursor = cursorWorld - casterPos;
             var distance = toCursor.magnitude;
 
@@ -187,7 +170,41 @@ namespace PlayerScripts.Skills
                 found: true
             );
         }
+        public TargetResolveResult Detect(Transform caster, DetectParams detect)
+        {
+            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, LayerMask.GetMask("Foe"));
+            TargetResolveResult result;
+            switch (request.Mode)
+            {
+                case TargetMode.TowardsEntity:
+                {
+                    result = ResolveTowardsEntity(request);
+                    break;
+                }
 
+                case TargetMode.TowardsCursor:
+                {
+                    result = ResolveTowardsCursor(request);
+                    break;
+                }
 
+                case TargetMode.TowardsMovement:
+                case TargetMode.TowardsCoordinate:
+                {
+                    return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                }
+                default:
+                {
+                    Debug.LogError("No good");
+                    return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                }
+            }
+            if (detect.requiredComponent is not null && !result.Target.TryGetComponent(detect.requiredComponent?.GetType(), out _))
+            {
+                return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+            }
+
+            return result;
+        }
     }
 }

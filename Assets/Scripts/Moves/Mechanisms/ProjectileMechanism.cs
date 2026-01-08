@@ -48,7 +48,7 @@ namespace Moves.Mechanisms
         public List<MechanismRef> onExpire;
 
         public short CooldownTicks => cooldownTicks;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
     }
 }

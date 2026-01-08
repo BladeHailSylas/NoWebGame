@@ -36,7 +36,7 @@ namespace Moves.Mechanisms
         public float maxRange;
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
     }
 }

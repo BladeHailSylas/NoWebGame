@@ -1,6 +1,6 @@
 ﻿using Moves;
 using Moves.Mechanisms;
-using PlayerScripts.Core;
+using UnityEngine;
 
 namespace PlayerScripts.Skills
 {
@@ -17,10 +17,17 @@ namespace PlayerScripts.Skills
             //Enforce maximum chain depth
             //Determine target
             var target = cmd.Target;
-
+            var mode = TargetMode.TowardsEntity; // default
+            if (cmd.Params is DetectParams detect && target is null)
+            {
+                var result = _targetResolver.Detect(cmd.Caster, detect);
+                target = result.Target;
+                mode = detect.requiredMode;
+            }
             if (target is null)
             {
-                var req = new TargetRequest(cmd.Caster, cmd.TargetMode);
+                var req = new TargetRequest(cmd.Caster, cmd.Params.MinRange, cmd.Params.MaxRange, cmd.TargetMode, LayerMask.GetMask("Foe"));
+                //Temporarily Foe, should be added further target request
                 // TODO: Later support range/mask overrides from skill data.
                 var result = _targetResolver.ResolveTarget(req);
                 if (!result.Found)
@@ -29,11 +36,10 @@ namespace PlayerScripts.Skills
                     return;
                 }
                 target = result.Target;
+                mode = cmd.TargetMode;
             }
-            //Execute skill mechanism
             cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
-                cmd.Damage, cmd.Var, cmd.TargetMode));
-        
+                cmd.Damage, cmd.Var, mode));
         }
     }
 }

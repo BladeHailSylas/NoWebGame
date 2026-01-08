@@ -30,6 +30,7 @@ namespace Moves.ObjectEntity
             _location = new FixedVector2(transform.position);
             if (areaShape is LaserArea laser)
             {
+                laser.SetMaxRange((int)param.maxRange);
                 // 1. Start = 시전자 위치
                 var start = new FixedVector2(ctx.Caster.transform.position);
 
@@ -44,7 +45,6 @@ namespace Moves.ObjectEntity
                 // 4. End 계산
                 var endVec = start.AsVector2 + dir * height;
                 var end = new FixedVector2(endVec);
-
                 // 5. Laser 기하 확정
                 laser.ResolveFromContext(start, end);
             }

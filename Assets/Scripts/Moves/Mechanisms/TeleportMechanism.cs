@@ -28,7 +28,7 @@ namespace Moves.Mechanisms
         public float maxRange;
         public bool ignoreEnemy;
         public List<MechanismRef> onArrival;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
     }
 }

@@ -105,8 +105,8 @@ namespace Moves.Mechanisms
         [Header("Ticker")] 
         [SerializeField] private short cooldownTicks;
         public short CooldownTicks => cooldownTicks;
-        public float MinRange => minRange;
-        public float MaxRange => maxRange;
+        public float MinRange => minRange / 1000;
+        public float MaxRange => maxRange / 1000;
         [Header("FollowUp")] 
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
