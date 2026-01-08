@@ -22,7 +22,7 @@ namespace Systems.SubSystems
 
         public bool TryTeleport(TeleportContract tpc)
         {
-            Vector2 destination = ResolveTeleportPoint(tpc);
+            var destination = ResolveTeleportPoint(tpc);
 
             // 현재 위치와 거의 같으면 스킵
             if ((_rb.position - destination).sqrMagnitude < 0.0001f)
@@ -82,7 +82,7 @@ namespace Systems.SubSystems
             return hit.point - dir * skin;
         }
 
-        private void CastFollowUps(TeleportContract tpc)
+        private static void CastFollowUps(TeleportContract tpc)
         {
             var ctx = tpc.Context;
             if (ctx.Params is not TeleportParams param) return;

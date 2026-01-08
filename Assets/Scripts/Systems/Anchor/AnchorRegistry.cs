@@ -32,17 +32,13 @@ namespace Systems.Anchor
         {
             if (_pool.Count == 0)
             {
-                Debug.LogWarning("Anchor pool exhausted");
                 return null;
             }
-
             var anchor = _pool.Pop();
             _active.Add(anchor);
-
             anchor.transform.position = position;
             anchor.owner = owner;
             anchor.active = true;
-
             anchor.gameObject.SetActive(true);
             return anchor;
         }

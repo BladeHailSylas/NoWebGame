@@ -104,6 +104,11 @@ namespace Systems.Data
 		{
 			return new FixedVector2(scalar * vector._rawX, scalar * vector._rawY);
 		}
+
+		public static FixedVector2 operator /(FixedVector2 vector, int scalar)
+		{
+			return scalar == 0 ? new FixedVector2(int.MaxValue, int.MaxValue) : new FixedVector2(vector._rawX / scalar, vector._rawY / scalar);
+		}
 		public override string ToString()
 		{
 			return $"({AsVector2.x:F3}, {AsVector2.y:F3})";

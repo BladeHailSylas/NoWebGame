@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(fileName = "LaserMechanism", menuName = "Skills/Mechanisms/Laser")]
-    public class LaserMechanism : ScriptableObject, INewMechanism
+    [CreateAssetMenu(fileName = "RayMechanism", menuName = "Skills/Mechanisms/Ray")]
+    public class RayMechanism : ScriptableObject, INewMechanism
     {
         public void Execute(CastContext ctx)
         {
-            if (ctx.Params is not LaserParams param) return;
+            if (ctx.Params is not RayParams param) return;
             Vector2 origin = ctx.Caster.position;
             Vector2 target = ctx.Target.position;
             var dist = target - origin;
@@ -32,8 +32,7 @@ namespace Moves.Mechanisms
                     break;
 
                 // 적 판정
-                var entity = hit.collider.GetComponent<Entity>();
-                if (entity is null) continue;
+                if (!hit.collider.TryGetComponent<Entity>(out var entity)) continue;
 
                 // FollowUp 즉시 발동
                 foreach (var followup in param.onHit)
@@ -57,7 +56,7 @@ namespace Moves.Mechanisms
     }
 
     [System.Serializable]
-    public class LaserParams : INewParams
+    public class RayParams : INewParams
     {
         public short CooldownTicks { get; private set; }
         public float rangeMultiplier = 1f;

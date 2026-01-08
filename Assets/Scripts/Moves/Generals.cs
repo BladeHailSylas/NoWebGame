@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel;
-using Moves.ObjectEntity;
 using Systems.Data;
 using Systems.Stacks.Definition;
 using UnityEngine;
@@ -44,7 +42,8 @@ namespace Moves
     public interface INewParams
     {
         short CooldownTicks { get; }
-        
+        float MinRange { get; }
+        float MaxRange { get; }
     }
 
     public struct CastContext
@@ -80,20 +79,6 @@ namespace Moves
 
         public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
             INewMechanism mech, INewParams @params, DamageData damage, Transform target = null, SwitchVariable va = default)
-        {
-            Caster = caster;
-            Target = target;
-            TargetMode = mode;
-            CastPosition = castPosition;
-            Mech = mech;
-            Params = @params;
-            Damage = damage;
-            Var = va;
-        }
-
-        public SkillCommand(Transform _, FixedVector2 castPosition, TargetMode mode, INewMechanism mech,
-            INewParams @params,
-            DamageData damage, Transform caster = null, Transform target = null, SwitchVariable va = default)
         {
             Caster = caster;
             Target = target;

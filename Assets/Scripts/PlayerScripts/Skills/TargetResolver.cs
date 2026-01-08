@@ -26,7 +26,16 @@ namespace PlayerScripts.Skills
             MaxRange = maxRange;
             Mode = mode;
             TargetMask = targetMask;
-            CasterPos = FixedVector2.FromVector2(caster.position);
+            CasterPos = new FixedVector2(caster.position);
+        }
+        public TargetRequest(Transform caster, float maxRange, TargetMode mode, LayerMask targetMask)
+        {
+            Caster = caster;
+            MinRange = 0;
+            MaxRange = maxRange;
+            Mode = mode;
+            TargetMask = targetMask;
+            CasterPos = new FixedVector2(caster.position);
         }
         public TargetRequest(Transform caster, TargetMode mode)
         {
@@ -35,17 +44,17 @@ namespace PlayerScripts.Skills
             MaxRange = float.MaxValue;
             Mode = mode;
             TargetMask = LayerMask.GetMask("Foe");
-            CasterPos = FixedVector2.FromVector2(caster.position);
+            CasterPos = new FixedVector2(caster.position);
         }
 
-        public TargetRequest(FixedVector2 caster, TargetMode mode)
+        public TargetRequest(FixedVector2 casterPos, TargetMode mode)
         {
             Caster = null;
             MinRange = 0;
             MaxRange = float.MaxValue;
             Mode = mode;
             TargetMask = LayerMask.GetMask("Foe");
-            CasterPos = caster;
+            CasterPos = casterPos;
         }
     }
     /// <summary>
@@ -133,11 +142,10 @@ namespace PlayerScripts.Skills
                 return new TargetResolveResult(null, req.CasterPos, false);
             }
 
-            Vector2 casterPos = req.CasterPos.AsVector2;
-            Vector2 cursorPos = cursorWorld;
+            var casterPos = req.CasterPos.AsVector2;
 
-            Vector2 toCursor = cursorPos - casterPos;
-            float distance = toCursor.magnitude;
+            var toCursor = cursorWorld - casterPos;
+            var distance = toCursor.magnitude;
 
             // 2. 최소 사거리 검사
             if (distance < req.MinRange)
@@ -149,13 +157,13 @@ namespace PlayerScripts.Skills
             }
 
             // 3. 방향 계산
-            Vector2 direction = toCursor.normalized;
+            var direction = toCursor.normalized;
 
             // 4. 최종 Anchor 위치 결정
-            Vector2 anchorPos =
+            var anchorPos =
                 distance > req.MaxRange
                     ? casterPos + direction * req.MaxRange
-                    : cursorPos;
+                    : cursorWorld;
 
             // 5. Anchor 대여
             var anchor = AnchorRegistry.Instance.Rent(

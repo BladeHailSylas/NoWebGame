@@ -36,10 +36,14 @@ namespace Moves.Mechanisms
         public ushort lifeTick;
 
         [Header("Settings")] 
+        public float minRange = 0;
+        public float maxRange;
         public LayerMask mask;
         public AreaEntity areaPrefab;
         public List<MechanismRef> onEnter;
         public List<MechanismRef> onExpire;
         public short CooldownTicks => cooldownTicks;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }

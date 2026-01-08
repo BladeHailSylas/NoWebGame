@@ -28,6 +28,26 @@ namespace Moves.ObjectEntity
             _onExpire = param.onExpire;
             _limitTick = param.lifeTick;
             _location = new FixedVector2(transform.position);
+            if (areaShape is LaserArea laser)
+            {
+                // 1. Start = 시전자 위치
+                var start = new FixedVector2(ctx.Caster.transform.position);
+
+                // 2. Target 방향 계산
+                Vector2 targetPos = ctx.Target.transform.position;
+                var dir = (targetPos - start.AsVector2).normalized;
+
+                // 3. 거리 제한
+                var distance = Vector2.Distance(start.AsVector2, targetPos);
+                var height = Mathf.Min(distance, laser.MaxRange / 1000f);
+
+                // 4. End 계산
+                var endVec = start.AsVector2 + dir * height;
+                var end = new FixedVector2(endVec);
+
+                // 5. Laser 기하 확정
+                laser.ResolveFromContext(start, end);
+            }
             ActivateInterval();
             if (_limitTick < ActivateTick)
             {
@@ -80,12 +100,13 @@ namespace Moves.ObjectEntity
                     }
                     break;
                 }
-                case BoxArea box:
+                case IBoxLikeArea boxLike:
                 {
-                    var center = _location.AsVector2;
-                    Vector2 size = new(box.Width / 1000f, box.Height / 1000f);
+                    var center = boxLike.CenterCoordinate.AsVector2;
+                    var size = boxLike.GetBoxSize();
+                    var angle = boxLike.GetRotation();
 
-                    var results = Physics2D.OverlapBoxAll(center, size, transform.eulerAngles.z, LayerMask.GetMask("Foe"));
+                    var results = Physics2D.OverlapBoxAll(center, size, angle, LayerMask.GetMask("Foe"));
                     foreach (var col in results)
                     {
                         col.TryGetComponent<Entity>(out var entity);
@@ -123,5 +144,49 @@ namespace Moves.ObjectEntity
             }
             Destroy(gameObject);
         }
+        #if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            if (areaShape is not IBoxLikeArea boxLike)
+                return;
+
+            var center = boxLike.CenterCoordinate.AsVector2;
+            var size = boxLike.GetBoxSize();
+            var angle = boxLike.GetRotation();
+
+            // 색상: Laser는 빨간색
+            Gizmos.color = Color.red;
+
+            // 회전된 박스를 그리기 위해 행렬 변환
+            var prev = Gizmos.matrix;
+            Gizmos.matrix = Matrix4x4.TRS(
+                center,
+                Quaternion.Euler(0, 0, angle),
+                Vector3.one
+            );
+
+            Gizmos.DrawWireCube(Vector3.zero, size);
+
+            Gizmos.matrix = prev;
+
+            // Center 점
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(center, 0.05f);
+
+            // Laser라면 Start / End도 추가로 표시
+            if (areaShape is not LaserArea laser) return;
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(laser.Start.AsVector2, 0.05f);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(laser.End.AsVector2, 0.05f);
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(
+                laser.Start.AsVector2,
+                laser.End.AsVector2
+            );
+        }
+        #endif
     }
 }
