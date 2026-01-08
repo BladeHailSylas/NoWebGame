@@ -31,7 +31,12 @@ namespace Moves.Mechanisms
         public bool preventActivation;
         public bool penetrative;
         public bool expireWhenUnexpected;
+        // Range limits for this mechanism (world units).
+        public float minRange;
+        public float maxRange;
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }

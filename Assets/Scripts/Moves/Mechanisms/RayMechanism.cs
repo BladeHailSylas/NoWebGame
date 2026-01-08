@@ -60,6 +60,11 @@ namespace Moves.Mechanisms
     {
         public short CooldownTicks { get; private set; }
         public float rangeMultiplier = 1f;
+        // Range limits for this mechanism (world units).
+        public float minRange;
+        public float maxRange;
         public List<MechanismRef> onHit;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }

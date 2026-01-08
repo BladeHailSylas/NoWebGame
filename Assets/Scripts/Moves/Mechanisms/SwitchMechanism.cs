@@ -78,6 +78,11 @@ namespace Moves.Mechanisms
         public VariableDefinition variable;
         public int[] points;
         public short CooldownTicks { get; private set; }
+        // Range limits for this mechanism (world units).
+        public float minRange;
+        public float maxRange;
         public MechanismRef[] switchFollowUps;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }

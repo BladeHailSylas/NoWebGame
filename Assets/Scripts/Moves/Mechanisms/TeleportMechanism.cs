@@ -23,8 +23,12 @@ namespace Moves.Mechanisms
     public class TeleportParams : INewParams
     {
         public short CooldownTicks { get; private set; }
+        // Range limits for this mechanism (world units).
+        public float minRange;
         public float maxRange;
         public bool ignoreEnemy;
         public List<MechanismRef> onArrival;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }

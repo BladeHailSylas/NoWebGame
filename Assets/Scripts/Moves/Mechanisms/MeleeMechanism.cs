@@ -78,12 +78,19 @@ public class MeleeParams : INewParams
     public float radius = 1.6f;
     [Range(0, 360)] public float angleDeg = 120f;
     public LayerMask enemyMask;
+
+    [Header("Range")]
+    // Range limits for this mechanism (world units).
+    public float minRange;
+    public float maxRange;
 	
     [Header("Timing")]
     public byte onAttackDelay;
     public short afterDelay;
     public short cooldownTicks;
     public short CooldownTicks => cooldownTicks;
+    public float MinRange => minRange;
+    public float MaxRange => maxRange;
 	
     public List<MechanismRef> onHit = new();
     public List<MechanismRef> onExpire = new();
