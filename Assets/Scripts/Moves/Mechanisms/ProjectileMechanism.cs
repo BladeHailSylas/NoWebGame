@@ -39,11 +39,16 @@ namespace Moves.Mechanisms
         public ProjectileEntity projectilePrefab;
         public int speed;
         public bool penetrative;
+        // Range limits for this mechanism (world units).
+        public float minRange;
+        public float maxRange;
 
         [Header("Callbacks")]
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
 
         public short CooldownTicks => cooldownTicks;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }

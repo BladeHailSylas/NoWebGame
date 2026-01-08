@@ -36,6 +36,7 @@ namespace Moves.Mechanisms
         public ushort lifeTick;
 
         [Header("Settings")] 
+        // Range limits for this mechanism (world units).
         public float minRange = 0;
         public float maxRange;
         public LayerMask mask;

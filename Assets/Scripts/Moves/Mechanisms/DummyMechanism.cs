@@ -41,7 +41,12 @@ namespace Moves.Mechanisms
     public class DummyParams : INewParams
     {
         public short CooldownTicks { get; private set; }
+        // Range limits for this mechanism (world units).
+        public float minRange;
+        public float maxRange;
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
+        public float MinRange => minRange;
+        public float MaxRange => maxRange;
     }
 }
