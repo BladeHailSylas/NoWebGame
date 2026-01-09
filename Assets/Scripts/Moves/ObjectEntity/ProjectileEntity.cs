@@ -6,7 +6,7 @@ using PlayerScripts.Skills;
 using Systems.Anchor;
 using Systems.Data;
 using Systems.SubSystems;
-using Systems.Ticker;
+using Systems.Time;
 using UnityEngine;
 
 namespace Moves.ObjectEntity

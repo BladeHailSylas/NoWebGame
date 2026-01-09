@@ -1,158 +1,422 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using PlayerScripts.Acts;
 using PlayerScripts.Core;
 using PlayerScripts.Stats;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
+using Systems.Time;
 
 namespace PlayerScripts.Stack
 {
+    /// <summary>
+    /// StackManager (Expirable + Periodic Variable 지원)
+    /// - 시간 판정은 DelayScheduler에 위임
+    /// - StackStatus는 (Amount, DelayId)만 가짐
+    ///   -> 따라서 Expirable+Periodic을 동시에 갖는 Variable은 이 버전에서 지원하지 않음.
+    /// </summary>
     public class StackManager
     {
-        private ushort _lastTick;
         private readonly Context _context;
         public VariableStorage Storage;
+        private readonly DelayScheduler _scheduler;
+
+        // 현재 Tick 캐시 (모듈이 "마지막으로 실행된 시점"만 기억)
+        private ushort _currentTick;
+
+        private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
+
         public StackManager(Context ctx)
         {
             _context = ctx;
             Storage = new VariableStorage();
+            _scheduler = _context.DelayScheduler;
         }
 
-        private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
-        private readonly Dictionary<ushort, List<StackKey>> _expirable = new();
-        private readonly List<ReapplySchedule> _reapplicable = new();
-
+        /// <summary>
+        /// 매 Tick 호출.
+        /// - Expirable(Buff/CC/Expirable Variable): 만료되면 제거
+        /// - Periodic Variable: 주기 Delay 완료되면 +1 적용 후 필요하면 다음 주기 재시작
+        /// </summary>
         public void Tick(ushort tick)
         {
-            if (_lastTick < tick)
-            {
-                // lastTick부터 현재 틱까지 모든 틱을 순회; 실질적으로 1틱 순회로 끝날 확률이 큼
-                for (var t = (ushort)(_lastTick + 1); t <= tick; t++)
-                {
-                    CacheStack(t);
-                    HandlePeriodic(t);
-                }
-            }
-            else // overflow 발생 시
-            {
-                for (var t = (ushort)(_lastTick + 1); t != 0; t++)
-                {
-                    CacheStack(t);
-                    HandlePeriodic(t);
-                }
+            _currentTick = tick;
 
-                for (ushort t = 0; t <= tick; t++)
+            // 순회 중 컬렉션 변경을 피하기 위해 처리 대상 수집
+            List<StackKey> expireKeys = null;
+            List<StackKey> periodicKeys = null;
+
+            foreach (var kv in _stackStorage)
+            {
+                var key = kv.Key;
+                var status = kv.Value;
+
+                if (!IsValidDelay(status.DelayId))
+                    continue;
+
+                if (!_scheduler.IsCompleted(status.DelayId, _currentTick))
+                    continue;
+
+                // DelayId가 완료되었을 때 "무슨 의미인지"는 Definition이 결정
+                if (key.def is VariableDefinition va && va.isPeriodic)
                 {
-                    CacheStack(t);
-                    HandlePeriodic(t);
+                    periodicKeys ??= new List<StackKey>();
+                    periodicKeys.Add(key);
+                }
+                else
+                {
+                    // Buff/CC/Expirable Variable은 완료 시 제거로 해석
+                    expireKeys ??= new List<StackKey>();
+                    expireKeys.Add(key);
                 }
             }
-            _lastTick = tick;
+
+            // 1) Expiration 제거 처리
+            if (expireKeys != null)
+            {
+                foreach (var key in expireKeys)
+                {
+                    RemoveStackCompletely(key, _currentTick);
+                }
+            }
+
+            // 2) Periodic 완료 처리 (+1 후 필요 시 재시작)
+            if (periodicKeys != null)
+            {
+                foreach (var key in periodicKeys)
+                {
+                    HandlePeriodicCompleted(key, _currentTick);
+                }
+            }
         }
 
-        public void DetachVariable(StackKey key, ushort tick, int amount = 0)
+        /// <summary>
+        /// 공용 Apply 진입점.
+        /// - Buff/CC: Expiration Delay(def.duration) 부여
+        /// - Variable(Periodic): Apply 트리거( after가 max 미만 )일 때 Periodic Delay(def.periodTick) 시작
+        /// - Variable(NonPeriodic): 기본은 Expiration(def.duration)일 수도 있고 영구(duration==65535)일 수도 있음
+        /// </summary>
+        public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort durationOverride = 0)
         {
-            //Debug.Log($"{key.def.displayName} 을 받았습니다.");
-            // Variable이 아니면 관심 없음
+            var def = stackKey.def;
+
+            _stackStorage.TryGetValue(stackKey, out var oldStatus);
+            int before = oldStatus.Amount;
+
+            int after = TotalStack(def.maxStacks, before, amount);
+
+            // 0 이하로 떨어지는 Apply(음수 적용)는 ConsumeVariable 쪽으로 보내는 것을 권장하지만,
+            // 방어적으로 clamp.
+            if (after < 0) after = 0;
+
+            // DelayId는 케이스별로 의미가 달라짐(Periodic 또는 Expiration)
+            DelayId nextDelayId = oldStatus.DelayId;
+
+            switch (def)
+            {
+                case VariableDefinition va:
+                {
+                    // Variable Storage 갱신(표시/상태용)
+                    // (프로젝트의 VariableStorage 설계에 맞춰 "존재 여부"를 유지하려면 Remove 대신 Update가 필요할 수 있음)
+                    if (after <= 0)
+                    {
+                        // Variable이 0이 되면 Storage에서 제거하는 정책을 기본으로 둠.
+                        // (만약 0이어도 표시가 필요하면 Remove 대신 0으로 업데이트하는 메서드가 필요)
+                        Storage.RemoveStorage(stackKey);
+                    }
+                    else
+                    {
+                        Storage.AddStorage(stackKey, new VariableState(after, tick));
+                    }
+
+                    if (va.isPeriodic)
+                    {
+                        // -----------------------------
+                        // 합의된 "추가 트리거" 공식:
+                        //   after < maxStacks 이면 재적용(= periodic delay 시작/유지)
+                        // -----------------------------
+                        bool shouldStartPeriodic = ShouldStartPeriodicOnApply(after, va.maxStacks);
+
+                        if (shouldStartPeriodic)
+                        {
+                            // 기존 Delay가 있었다면 교체
+                            if (IsValidDelay(nextDelayId))
+                                _scheduler.Remove(nextDelayId);
+
+                            nextDelayId = _scheduler.Start(tick, va.periodTick);
+                        }
+                        else
+                        {
+                            // maxStacks에 도달했다면 periodic은 멈춤(Delay 제거)
+                            if (IsValidDelay(nextDelayId))
+                            {
+                                _scheduler.Remove(nextDelayId);
+                                nextDelayId = default;
+                            }
+                        }
+
+                        _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
+
+                        // Variable 자체 효과(Apply/Detach 시 추가 로직이 있다면 ResolveApply에서 처리)
+                        ResolveApply(stackKey, tick, amount);
+                        return;
+                    }
+
+                    // Non-periodic Variable: duration에 따라 Expirable(만료)일 수도, 영구일 수도 있음
+                    int durationTick = durationOverride != 0 ? durationOverride : va.duration;
+                    if (durationTick != 65535 && after > 0)
+                    {
+                        // Expiration Delay 설정(변수에도 만료가 있는 경우)
+                        if (IsValidDelay(nextDelayId))
+                            _scheduler.Remove(nextDelayId);
+
+                        nextDelayId = _scheduler.Start(tick, durationTick);
+                    }
+                    else
+                    {
+                        // 영구면 Delay 없음
+                        if (IsValidDelay(nextDelayId))
+                        {
+                            _scheduler.Remove(nextDelayId);
+                            nextDelayId = default;
+                        }
+                    }
+
+                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
+                    ResolveApply(stackKey, tick, amount);
+                    return;
+                }
+
+                case BuffDefinition buff:
+                {
+                    // Buff/CC는 Expirable 모델
+                    int durationTick = durationOverride != 0 ? durationOverride : buff.duration;
+
+                    if (IsValidDelay(nextDelayId))
+                        _scheduler.Remove(nextDelayId);
+
+                    nextDelayId = _scheduler.Start(tick, durationTick);
+
+                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
+
+                    ResolveApply(stackKey, tick, amount);
+                    return;
+                }
+
+                case CCDefinition cc:
+                {
+                    int durationTick = durationOverride != 0 ? durationOverride : cc.duration;
+
+                    if (IsValidDelay(nextDelayId))
+                        _scheduler.Remove(nextDelayId);
+
+                    nextDelayId = _scheduler.Start(tick, durationTick);
+
+                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
+
+                    ResolveApply(stackKey, tick, amount);
+                    return;
+                }
+
+                default:
+                {
+                    // 기타 정의는 기본적으로 Expirable로 취급(필요 시 분기 확장)
+                    int durationTick = durationOverride != 0 ? durationOverride : def.duration;
+
+                    if (durationTick != 65535)
+                    {
+                        if (IsValidDelay(nextDelayId))
+                            _scheduler.Remove(nextDelayId);
+
+                        nextDelayId = _scheduler.Start(tick, durationTick);
+                    }
+
+                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
+                    ResolveApply(stackKey, tick, amount);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Variable 소비(Amount 감소) 전용 API.
+        /// - 합의된 "제거 트리거" 공식을 적용:
+        ///   before == maxStacks && after가 maxStacks 미만이면 periodic 시작
+        /// - Recharge/Accumulate 구분 없이 maxStacks 기반으로 동작
+        /// </summary>
+        public void ConsumeVariable(StackKey key, int consumeAmount, ushort tick)
+        {
+            if (consumeAmount <= 0)
+                return;
+
             if (key.def is not VariableDefinition va)
+                return;
+
+            if (!_stackStorage.TryGetValue(key, out var status))
+                return;
+
+            int before = status.Amount;
+            if (before <= 0)
+                return;
+
+            int after = Math.Max(0, before - consumeAmount);
+
+            // Storage 갱신
+            if (after <= 0)
+                Storage.RemoveStorage(key);
+            else
+                Storage.AddStorage(key, new VariableState(after, tick));
+
+            // Non-periodic variable이라면 여기서 끝 (소비 후 만료 스케줄링 같은 건 정의 필요)
+            if (!va.isPeriodic)
             {
-                //Debug.Log($"{key.def.displayName}이(가) VariableDefinition이 아닙니다.");
+                _stackStorage[key] = new StackStatus(after, status.DelayId);
                 return;
             }
 
-            if (!_stackStorage.TryGetValue(key, out var status) || status.Amount <= 0)
-            {
-                //Debug.Log($"{key.def.displayName}이(가) 존재하지 않거나({_stackStorage.TryGetValue(key, out _)}) 이미 제거되었습니다({status.Amount}).");
-                return;
-            }
+            // -----------------------------
+            // 합의된 "제거 트리거" 공식:
+            //   before == maxStacks && after < maxStacks -> periodic 시작
+            // -----------------------------
+            bool shouldStartPeriodic = ShouldStartPeriodicOnRemove(before, after, va.maxStacks);
 
-            // 현재는 "전부 제거"만 지원한다고 가정 (amount는 확장용)
-            _stackStorage[key] = default;  // new StackStatus() 와 동일
-            Storage.RemoveStorage(key);
-            // periodic Variable이면 "다시 차오를 수 있는 상태"가 되었으니 스케줄 등록
-            if (va.isPeriodic)
+            DelayId nextDelayId = status.DelayId;
+
+            if (shouldStartPeriodic)
             {
-                ReSchedule(key, tick);
-            }
-        }
-    
-        #region ===== Apply =====
-        public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort duration = 0)
-        {
-            var endAt = EndTick(tick, duration == 0 ? stackKey.def.duration : duration);
-            var total = TotalStack(stackKey.def.maxStacks, amount);
-            AddExpiration(stackKey, endAt);
-            if (_stackStorage.ContainsKey(stackKey))
-            {
-                //total = Math.Min(total + CurrentStacks[stackKey].amount, stackKey.def.maxStacks);
-                total = TotalStack(stackKey.def.maxStacks, total, _stackStorage[stackKey].Amount);
-                _stackStorage[stackKey] = new StackStatus(total, tick, endAt);
+                if (IsValidDelay(nextDelayId))
+                    _scheduler.Remove(nextDelayId);
+
+                nextDelayId = _scheduler.Start(tick, va.periodTick);
             }
             else
             {
-                _stackStorage.Add(stackKey, new StackStatus(total, tick, endAt));
+                // 제거가 있었지만 시작 조건이 아니라면 아무것도 하지 않음
+                // (누적 중이던 상태라면 이미 Delay가 돌고 있어야 함)
             }
-            Storage.AddStorage(stackKey, new VariableState(total, tick));
-            ResolveApply(stackKey, tick, amount);
+
+            _stackStorage[key] = new StackStatus(after, nextDelayId);
         }
-    
-        private void AddExpiration(StackKey key, ushort expireTick)
+
+        /// <summary>
+        /// 기존 DetachVariable은 "전부 제거"에 가까웠던 레거시 흐름이므로 Deprecated 처리 권장.
+        /// 현재는 RemoveStackCompletely 또는 ConsumeVariable로 역할을 분리하는 것이 안전합니다.
+        /// </summary>
+        [Obsolete("Use ConsumeVariable(...) for decrement, or RemoveStackCompletely(...) for full removal.")]
+        public void DetachVariable(StackKey key, ushort tick, int amount = 0)
         {
-            if (expireTick == 65535) return;
-            // 기존 만료 tick이 존재하는가?
-            if (_stackStorage.TryGetValue(key, out var status))
+            // 레거시 호환을 위해: amount==0이면 완전 제거, amount>0이면 소비로 해석
+            if (amount > 0)
             {
-                ushort oldExpireTick = status.ExpireAt;
-
-                if (_expirable.TryGetValue(oldExpireTick, out var oldList))
-                {
-                    oldList.Remove(key);
-                    if (oldList.Count == 0)
-                        _expirable.Remove(oldExpireTick);
-                }
+                ConsumeVariable(key, amount, tick);
+                return;
             }
 
-            // 새 tick으로 재등록
-            if (!_expirable.TryGetValue(expireTick, out var list))
-                _expirable[expireTick] = list = new List<StackKey>();
-
-            list.Add(key);
+            RemoveStackCompletely(key, tick);
         }
-        #endregion
-    
-        #region ===== Cache =====
 
-        private void CacheStack(ushort tick)
+        /// <summary>
+        /// Expiration 등에 의해 스택을 완전히 제거한다.
+        /// - Delay 제거
+        /// - ResolveCache 호출(도메인 효과 해제)
+        /// - Storage 제거(Variable)
+        /// </summary>
+        private void RemoveStackCompletely(StackKey key, ushort tick)
         {
-            if (!_expirable.TryGetValue(tick, out var list)) 
+            if (!_stackStorage.TryGetValue(key, out var status))
                 return;
 
-            foreach (var key in list)
-            {
-                ResolveCache(key, tick);
-                _stackStorage[key] = new StackStatus(0, tick, 0);
+            if (IsValidDelay(status.DelayId))
+                _scheduler.Remove(status.DelayId);
+
+            ResolveCache(key, tick);
+
+            if (key.def is VariableDefinition)
                 Storage.RemoveStorage(key);
-            }
-            list.Clear();
-            _expirable.Remove(tick);
+
+            _stackStorage.Remove(key);
         }
-        #endregion
-    
-        #region ===== Resolve =====
+
+        /// <summary>
+        /// Periodic Delay 완료 처리:
+        /// - Amount가 max보다 작으면 +1 (ApplyStack을 타지 않고 직접 갱신: 무한 루프 방지/의도 명확)
+        /// - max에 도달하면 Delay 제거하고 정지
+        /// - 아직 max 미만이면 다음 periodTick으로 Delay 재시작
+        /// </summary>
+        private void HandlePeriodicCompleted(StackKey key, ushort tick)
+        {
+            if (key.def is not VariableDefinition va || !va.isPeriodic)
+            {
+                // 안전장치: periodic이 아닌데 periodicKeys에 들어온 경우
+                RemoveStackCompletely(key, tick);
+                return;
+            }
+
+            if (!_stackStorage.TryGetValue(key, out var status))
+                return;
+
+            // 현재 완료된 Delay 제거 (재시작/정지 결정 전에 정리)
+            if (IsValidDelay(status.DelayId))
+                _scheduler.Remove(status.DelayId);
+
+            int before = status.Amount;
+            int after = before;
+
+            if (before < va.maxStacks)
+            {
+                after = Math.Min(before + 1, va.maxStacks);
+
+                // Storage 갱신
+                if (after <= 0)
+                    Storage.RemoveStorage(key);
+                else
+                    Storage.AddStorage(key, new VariableState(after, tick));
+            }
+
+            // max에 도달했으면 periodic 중지(DelayId 없음)
+            if (after >= va.maxStacks)
+            {
+                _stackStorage[key] = new StackStatus(after, default);
+                return;
+            }
+
+            // 아직 max 미만이면 다음 주기 시작
+            var nextDelayId = _scheduler.Start(tick, va.periodTick);
+            _stackStorage[key] = new StackStatus(after, nextDelayId);
+        }
+
+        /// <summary>
+        /// 추가 트리거 공식:
+        /// - 적용 후 총량이 maxStacks 미만이면 재적용(=periodic) 개시
+        /// </summary>
+        private static bool ShouldStartPeriodicOnApply(int afterAmount, int maxStacks)
+            => afterAmount < maxStacks;
+
+        /// <summary>
+        /// 제거 트리거 공식:
+        /// - 제거 "이전"이 maxStacks이고 제거 "이후"가 maxStacks 미만이면 재적용(=periodic) 개시
+        /// </summary>
+        private static bool ShouldStartPeriodicOnRemove(int beforeAmount, int afterAmount, int maxStacks)
+            => beforeAmount == maxStacks && afterAmount < maxStacks;
+
+        private static bool IsValidDelay(DelayId id)
+            => !id.Equals(default);
 
         private void ResolveApply(StackKey stack, ushort tick, int amp = 1)
         {
             switch (stack.def)
             {
-                case VariableDefinition va:
-                    if (va.isPeriodic)
-                        ApplyPeriodic(stack, va, tick);
+                case VariableDefinition:
+                    // Variable은 Storage 갱신이 핵심이며,
+                    // 별도 적용 효과(예: UI, 상태 플래그)가 필요하면 여기서 처리.
                     break;
-                case BuffStackDefinition buff:
+
+                case BuffDefinition buff:
                     _context.Stats.TryApply(new BuffData(buff.Type, buff.Value * amp, buff.displayName));
                     break;
-                case CCStackDefinition cc:
+
+                case CCDefinition cc:
                     _context.Act.ApplyCC(new CCData(cc.Type, cc.Value));
                     break;
             }
@@ -163,144 +427,26 @@ namespace PlayerScripts.Stack
             switch (stack.def)
             {
                 case VariableDefinition:
+                    // Variable의 "해제 효과"가 필요하다면 여기서 처리 가능.
                     break;
-                case BuffStackDefinition buff:
+
+                case BuffDefinition buff:
+                    // 제거 시점의 Amount를 기준으로 제거(기존 방식 유지)
+                    // 주의: RemoveStackCompletely에서 _stackStorage.Remove 전에 호출되므로 안전.
                     _context.Stats.TryRemove(new BuffData(buff.Type, buff.Value * _stackStorage[stack].Amount, buff.displayName));
                     break;
-                case CCStackDefinition cc:
+
+                case CCDefinition cc:
                     _context.Act.RemoveCC(new CCData(cc.Type, cc.Value));
                     break;
             }
         }
-    
-        #endregion
-    
-        #region ===== Variable =====
-    
-        private bool CanReapply(ReapplySchedule schd, ushort tick)
-        {
-            // Variable이 아니면 재적용 대상이 아님
-            if (schd.key.def is not VariableDefinition { isPeriodic: true })
-                return false;
-
-            // tick + delta 가 관찰자의 "체감 시간"
-            int observed = tick + schd.cooldownDelta;
-            if (observed < 0) observed = 0;
-            if (observed > ushort.MaxValue) observed = ushort.MaxValue;
-
-            return (ushort)observed >= schd.reapplyAt;
-        }
-    
-        private void ApplyPeriodic(StackKey key, VariableDefinition va, ushort tick)
-        {
-            _stackStorage.TryGetValue(key, out var status);
-            int current = status.Amount;
-
-            // 현재 amount가 최대면 더 이상 충전할 필요 없음
-            if (current >= va.maxStacks)
-                return;
-
-            int next = current + 1;
-            if (next > va.maxStacks)
-                next = va.maxStacks;
-
-            // 상태 갱신 (duration은 사실상 영구)
-            _stackStorage[key] = new StackStatus(next, tick, 65535);
-
-            // 아직 최대치가 아니라면, "다음 한 칸"을 위한 스케줄을 다시 건다
-            if (next < va.maxStacks)
-            {
-                ReSchedule(key, tick);
-            }
-        }
-
-        private void ReSchedule(StackKey key, ushort tick)
-        {
-            if (key.def is not VariableDefinition va || !va.isPeriodic)
-                return;
-
-            // "제거된 순간" 또는 "방금 충전된 순간" 기준으로 다음 재적용 시각 결정
-            ushort reapplyAt = (ushort)(tick + va.periodTick);
-
-            // 같은 Variable에 대한 이전 스케줄은 모두 폐기 (마지막 요청만 유효)
-            for (int i = 0; i < _reapplicable.Count; i++)
-            {
-                if (_reapplicable[i].key.Equals(key))
-                {
-                    _reapplicable.RemoveAt(i);
-                    break;
-                }
-            }
-            _reapplicable.Add(new ReapplySchedule(key, reapplyAt, 0));
-        }
-
-        private void HandlePeriodic(ushort tick)
-        {
-            for (int i = _reapplicable.Count - 1; i >= 0; i--)
-            {
-                var schd = _reapplicable[i];
-
-                if (!CanReapply(schd, tick))
-                    continue;
-
-                // 공통 파이프라인을 타기 위해 ApplyStack을 호출
-                // durationOverride는 periodic에선 의미가 없으므로 0 또는 기본값 사용
-                ApplyStack(schd.key, 1, tick, 0);
-
-                // 이 스케줄은 소비되었으므로 제거
-                _reapplicable.RemoveAt(i);
-                // 이후 ApplyPeriodic에서 필요하면 다시 ReSchedule을 호출합니다.
-            }
-        }
-
-        private readonly struct ReapplySchedule
-        {
-            public readonly StackKey key;
-            public readonly ushort reapplyAt;
-            public readonly short cooldownDelta;
-
-            public ReapplySchedule(StackKey key, ushort reapplyAt, short cooldownDelta)
-            {
-                this.key = key;
-                this.reapplyAt = reapplyAt;
-                this.cooldownDelta = cooldownDelta;
-            }
-        }
-        #endregion
-    
-        #region ===== Utils =====
-        private void CooldownModifier(StackKey key, short delta)
-        {
-            for (int i = 0; i < _reapplicable.Count; i++)
-            {
-                if (_reapplicable[i].key.Equals(key))
-                {
-                    var s = _reapplicable[i];
-                    short newDelta = (short)(s.cooldownDelta + delta);
-                    _reapplicable[i] = new ReapplySchedule(s.key, s.reapplyAt, newDelta);
-                    break;
-                }
-            }
-        }
-        private ushort EndTick(ushort tick, ushort duration)
-        {
-            if (duration == 65535 || tick + duration < tick) //tick + duration < tick => overflow
-            {
-                return 65535;
-            }
-
-            return (ushort)(tick + duration);
-        }
 
         private int TotalStack(int max, params int[] applies)
         {
-            int total = 0;
-            foreach (var n in applies)
-            {
-                total += n;
-            }
+            int total = applies.Sum();
+            if (total < 0) total = 0;
             return Math.Min(total, max);
         }
-        #endregion
     }
 }

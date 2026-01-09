@@ -29,4 +29,10 @@ namespace Systems.Stacks.Definition
         }
 #endif
     }
+
+    public enum PeriodicType
+    {
+        Recharging,
+        Accumulating,
+    }
 }

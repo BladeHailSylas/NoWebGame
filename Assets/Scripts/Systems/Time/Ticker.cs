@@ -1,6 +1,6 @@
 using System;
 
-namespace Systems.Ticker
+namespace Systems.Time
 {
 	#region ===== Ticker =====
 

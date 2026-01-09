@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Moves;
-using Systems.Ticker;
 using UnityEngine;
+using Time = Systems.Time.Time;
 
 namespace PlayerScripts.Skills
 {
@@ -16,13 +16,13 @@ namespace PlayerScripts.Skills
         private void OnEnable()
         {
             _runner = new SkillRunner(GetComponent<TargetResolver>());
-            Ticker.Instance.OnTick += TickHandler;
+            Time.Ticker.OnTick += TickHandler;
             Instance = this;
         }
 
         private void OnDisable()
         {
-            Ticker.Instance.OnTick -= TickHandler;
+            Time.Ticker.OnTick -= TickHandler;
         }
     
         public void EnqueueCommand(SkillCommand cmd) => _next.Add(cmd);

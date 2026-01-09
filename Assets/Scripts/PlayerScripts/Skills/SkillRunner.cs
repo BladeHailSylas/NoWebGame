@@ -24,6 +24,7 @@ namespace PlayerScripts.Skills
                 target = result.Target;
                 mode = detect.requiredMode;
             }
+            //TODO: Consider refactoring into: single target acquisition / post-acquisition interpretation
             if (target is null)
             {
                 var req = new TargetRequest(cmd.Caster, cmd.Params.MinRange, cmd.Params.MaxRange, cmd.TargetMode, LayerMask.GetMask("Foe"));

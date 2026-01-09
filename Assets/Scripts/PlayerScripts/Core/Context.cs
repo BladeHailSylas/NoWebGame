@@ -3,6 +3,7 @@ using PlayerScripts.Acts;
 using PlayerScripts.Skills;
 using PlayerScripts.Stack;
 using PlayerScripts.Stats;
+using Systems.Time;
 using UnityEngine;
 
 namespace PlayerScripts.Core
@@ -25,6 +26,8 @@ namespace PlayerScripts.Core
         public ActBridge Act { get; private set; }
     
         public StackManager StackManager { get; private set; }
+        
+        public DelayScheduler DelayScheduler { get; private set; }
 
         public Context(PlayerEntity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, ILogger logger)
         {
@@ -50,6 +53,11 @@ namespace PlayerScripts.Core
         public void RegisterStackManager(StackManager stackManager)
         {
             StackManager = stackManager;
+        }
+
+        public void RegisterScheduler(DelayScheduler scheduler)
+        {
+            DelayScheduler = scheduler;
         }
     }
 

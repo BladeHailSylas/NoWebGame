@@ -8,9 +8,11 @@ using PlayerScripts.Stats;
 using Systems.Data;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
-using Systems.Ticker;
+using Systems.Stacks.Instances;
+using Systems.Time;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Time = Systems.Time.Time;
 
 namespace PlayerScripts.Core
 {
@@ -59,41 +61,36 @@ namespace PlayerScripts.Core
                 spec.baseDefense,
                 spec.baseSpeed
             );
-
             _statsBridge = new StatsBridge(_context, baseStats);
             _mover = new Mover(_context, _statsBridge, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
             _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
             _actBridge = new ActBridge(_mover, _attacker);
-            _stackManager = new StackManager(_context);
-
+            _context.RegisterScheduler(Time.DelayScheduler);
             _context.RegisterStats(_statsBridge);
             _context.RegisterAct(_actBridge);
+            _stackManager = new StackManager(_context);
             _context.RegisterStackManager(_stackManager);
-
             _controls = new InputSystem_Actions();
         }
 
         private bool ValidateDependencies()
         {
-            if (spec == null)
+            if (spec is null)
             {
                 _logger.Error("CharacterSpec reference missing.");
                 return false;
             }
 
-            if (targetResolver == null)
+            if (targetResolver is null)
             {
                 _logger.Error("TargetResolver component missing.");
                 return false;
             }
 
-            if (commandCollector == null)
-            {
-                _logger.Error("CommandCollector component missing.");
-                return false;
-            }
+            if (commandCollector is not null) return true;
+            _logger.Error("CommandCollector component missing.");
+            return false;
 
-            return true;
         }
 
         private void OnEnable()
@@ -112,7 +109,7 @@ namespace PlayerScripts.Core
             _controls.Player.Ultimate.canceled += OnUltimateReleased;
             if (Ticker.Instance != null)
             {
-                Ticker.Instance.OnTick += TickHandler;
+                Time.Ticker.OnTick += TickHandler;
             }
             else
             {
@@ -140,7 +137,7 @@ namespace PlayerScripts.Core
 
             if (Ticker.Instance != null)
             {
-                Ticker.Instance.OnTick -= TickHandler;
+                Time.Ticker.OnTick -= TickHandler;
             }
         }
 
@@ -151,13 +148,9 @@ namespace PlayerScripts.Core
             _statsBridge.Tick(tick);
             if (tick % 240 is 0)
             {
-                Dev(tick);
             }
         }
 
-        private void Dev(ushort tick)
-        {
-        }
         private void OnMovePerformed(InputAction.CallbackContext ctx)
         {
             _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
@@ -218,7 +211,7 @@ namespace PlayerScripts.Core
         {
             foreach (var stack in characterVariables)
             {
-                ApplyStack(new StackKey(stack), 0, stack.maxStacks);
+                ApplyStack(new StackKey(stack), 0);
             }
         }
 

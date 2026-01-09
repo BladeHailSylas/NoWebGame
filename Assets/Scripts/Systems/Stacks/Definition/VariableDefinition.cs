@@ -7,6 +7,7 @@ namespace Systems.Stacks.Definition
     public class VariableDefinition : StackDefinition
     {
         public bool isPeriodic;
+        public PeriodicType periodicType;
         public bool isExclusive;
         public ushort periodTick; // Don't need to change if not periodic
         public ExclusiveGroup[] exclusiveGroup;
