@@ -128,8 +128,10 @@ namespace Moves.ObjectEntity
             Ticker.Instance.OnTick -= TickHandler;
             if (_onExpire.Count == 0)
             {
-                if (!_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                AnchorRegistry.Instance.Return(anchor);
+                if (_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
+                {
+                    AnchorRegistry.Instance.Return(anchor);
+                }
             }
             foreach (var followup in _onExpire)
             {
@@ -142,7 +144,6 @@ namespace Moves.ObjectEntity
 
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
-
             Destroy(gameObject);
         }
     }

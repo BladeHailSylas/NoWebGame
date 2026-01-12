@@ -56,15 +56,9 @@ namespace Moves.Mechanisms
     }
 
     [System.Serializable]
-    public class RayParams : INewParams
+    public class RayParams : NewParams
     {
-        public short CooldownTicks { get; private set; }
         public float rangeMultiplier = 1f;
-        // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange;
         public List<MechanismRef> onHit;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
     }
 }

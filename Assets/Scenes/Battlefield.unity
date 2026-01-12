@@ -2010,7 +2010,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d6b1c74f01d44979f9f26f721a6920c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StackRegistryObject
-  stacks: []
+  stacks:
+  - {fileID: 11400000, guid: 8bdee2da6ae1adf49ade3cb50d81ab93, type: 2}
+  - {fileID: 11400000, guid: ac1d2dd1c4229e743baf29daa1b7138a, type: 2}
 --- !u!4 &1611561276
 Transform:
   m_ObjectHideFlags: 0

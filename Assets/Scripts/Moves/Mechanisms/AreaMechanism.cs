@@ -29,22 +29,16 @@ namespace Moves.Mechanisms
     }
     
     [Serializable]
-    public class AreaParams : INewParams
+    public class AreaParams : NewParams
     {
         [Header("Time")]
-        [SerializeField] private short cooldownTicks;
         public ushort lifeTick;
 
         [Header("Settings")] 
         // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange;
         public LayerMask mask;
         public AreaEntity areaPrefab;
         public List<MechanismRef> onEnter;
         public List<MechanismRef> onExpire;
-        public short CooldownTicks => cooldownTicks;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
     }
 }

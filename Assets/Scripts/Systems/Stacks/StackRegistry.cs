@@ -28,7 +28,7 @@ namespace Systems.Stacks
                         case PeriodicType.Accumulating when va.maxStacks <= 1: // Accumulating => maxStacks가 2 이상이어야 함
                             throw new InvalidDataException($"{va.displayName} must be accumulating, but its maxStacks is not");
                         case PeriodicType.Accumulating when va.duration is not 65535: //Accumulating인데 Expirable일 경우
-                            throw new InvalidDataException($"{va.displayName} must be permanent since it's accumulating, but its duration is not");
+                            throw new InvalidDataException($"{va.displayName} must be permanent since it's periodic-accumulating, but its duration is not");
                     }
                 }
                 StackStorage.Storage.Add(stack.displayName, stack);

@@ -175,25 +175,20 @@ namespace PlayerScripts.Stats
 
         public bool TryApply(BuffData buff)
         {
-            if (applier.TryGetValue(buff.Type, out var modify))
-            {
-                modify(this, buff);
-                return true;
-            }
+            if (!applier.TryGetValue(buff.Type, out var modify)) return false;
+            modify(this, buff);
+            return true;
 
-            return false;
         }
         public bool TryRemove(BuffData buff)
         {
-            if (remover.TryGetValue(buff.Type, out var modify))
-            {
-                modify(this, buff);
-                return true;
-            }
+            if (!remover.TryGetValue(buff.Type, out var modify)) return false;
+            modify(this, buff);
+            return true;
 
-            return false;
         }
-        public void CreateBuffers()
+
+        private void CreateBuffers()
         {
             applier = new Dictionary<EffectType, Action<StatsContainer, BuffData>>
             {

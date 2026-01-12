@@ -20,7 +20,7 @@ namespace Moves.Mechanisms
 
             Vector2 origin = caster.position;
             Vector2 dir = target.position - caster.position;
-            var radius = param.maxRange / 1000;
+            var radius = param.MaxRange;
             var halfAngle = param.angleDeg * 0.5f;
 
             // 1) 원형 탐색
@@ -72,22 +72,11 @@ namespace Moves.Mechanisms
 }
 
 [System.Serializable]
-public class MeleeParams : INewParams
+public class MeleeParams : NewParams
 {
     [Header("Area")]
-    public float minRange;
-    public float maxRange;
     [Range(0, 360)] public float angleDeg = 120f;
     public LayerMask enemyMask;
-	
-    [Header("Timing")]
-    public byte onAttackDelay;
-    public short afterDelay;
-    public short cooldownTicks;
-    public short CooldownTicks => cooldownTicks;
-    public float MinRange => minRange / 1000;
-    public float MaxRange => maxRange / 1000;
-	
     public List<MechanismRef> onHit = new();
     public List<MechanismRef> onExpire = new();
 }

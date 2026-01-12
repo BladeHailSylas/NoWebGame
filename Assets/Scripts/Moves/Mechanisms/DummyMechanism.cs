@@ -38,15 +38,9 @@ namespace Moves.Mechanisms
     }
 
     [Serializable]
-    public class DummyParams : INewParams
+    public class DummyParams : NewParams
     {
-        public short CooldownTicks { get; private set; }
-        // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange;
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
     }
 }

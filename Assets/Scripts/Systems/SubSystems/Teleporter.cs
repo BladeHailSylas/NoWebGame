@@ -55,7 +55,7 @@ namespace Systems.SubSystems
                 return start;
             }
             var dir = toTarget.normalized;
-            var distance = Mathf.Min(toTarget.magnitude, tparam.maxRange);
+            var distance = Mathf.Min(toTarget.magnitude, tparam.MaxRange);
             
             var wallMask = LayerMask.GetMask("Walls&Obstacles");
             var enemyMask = LayerMask.GetMask("Foe");

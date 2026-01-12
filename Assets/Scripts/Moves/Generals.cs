@@ -42,8 +42,22 @@ namespace Moves
     public interface INewParams
     {
         short CooldownTicks { get; }
+        byte DelayTicks { get; }
         float MinRange { get; }
         float MaxRange { get; }
+    }
+
+    public abstract class NewParams : INewParams
+    {
+        [SerializeField] private short cooldownTicks;
+        [SerializeField] private byte delayTicks;
+        [SerializeField] private int minRange;
+        [SerializeField] private int maxRange;
+        public short CooldownTicks => cooldownTicks;
+        public byte DelayTicks => delayTicks;
+        public float MinRange => minRange / 1000f;
+        public float MaxRange => maxRange / 1000f;
+
     }
 
     public struct CastContext
@@ -66,7 +80,7 @@ namespace Moves
         }
     } 
 
-    public readonly struct SkillCommand
+    public readonly struct SkillCommand : IEquatable<SkillCommand>
     {
         public readonly Transform Caster;
         public readonly Transform Target;
@@ -88,6 +102,21 @@ namespace Moves
             Params = @params;
             Damage = damage;
             Var = va;
+        }
+
+        public bool Equals(SkillCommand other)
+        {
+            return Caster.Equals(other.Caster) && Target.Equals(other.Target) && Mech.Equals(other.Mech) && Params.Equals(other.Params);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is SkillCommand other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Caster, Target, (int)TargetMode, CastPosition, Mech, Params);
         }
     }
 

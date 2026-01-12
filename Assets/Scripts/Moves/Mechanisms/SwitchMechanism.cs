@@ -73,16 +73,10 @@ namespace Moves.Mechanisms
         }
     }
     [Serializable]
-    public class SwitchParams : INewParams
+    public class SwitchParams : NewParams
     {
         public VariableDefinition variable;
         public int[] points;
-        public short CooldownTicks { get; private set; }
-        // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange;
         public MechanismRef[] switchFollowUps;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
     }
 }

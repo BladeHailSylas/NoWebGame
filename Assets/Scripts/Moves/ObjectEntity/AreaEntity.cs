@@ -30,7 +30,7 @@ namespace Moves.ObjectEntity
             _location = new FixedVector2(transform.position);
             if (areaShape is LaserArea laser)
             {
-                laser.SetMaxRange((int)param.maxRange);
+                laser.SetMaxRange((int)(param.MaxRange * 1000));
                 // 1. Start = 시전자 위치
                 var start = new FixedVector2(ctx.Caster.transform.position);
 
@@ -131,62 +131,22 @@ namespace Moves.ObjectEntity
             Ticker.Instance.OnTick -= TickHandler;
             if (_onExpire.Count == 0)
             {
-                if (!_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                AnchorRegistry.Instance.Return(anchor);
+                if (_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
+                {
+                    AnchorRegistry.Instance.Return(anchor);
+                }
             }
-            foreach (var followup in _onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                var ctxTarget = !followup.requireRetarget ? _ctx.Target : null;
-                SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
-                    mech, followup.@params, _ctx.Damage, ctxTarget);
-                CommandCollector.Instance.EnqueueCommand(cmd);
+            else {
+                foreach (var followup in _onExpire)
+                {
+                    if (followup.mechanism is not INewMechanism mech) continue;
+                    var ctxTarget = !followup.requireRetarget ? _ctx.Target : null;
+                    SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                        mech, followup.@params, _ctx.Damage, ctxTarget);
+                    CommandCollector.Instance.EnqueueCommand(cmd);
+                }
             }
             Destroy(gameObject);
         }
-        #if UNITY_EDITOR
-        private void OnDrawGizmosSelected()
-        {
-            if (areaShape is not IBoxLikeArea boxLike)
-                return;
-
-            var center = boxLike.CenterCoordinate.AsVector2;
-            var size = boxLike.GetBoxSize();
-            var angle = boxLike.GetRotation();
-
-            // 색상: Laser는 빨간색
-            Gizmos.color = Color.red;
-
-            // 회전된 박스를 그리기 위해 행렬 변환
-            var prev = Gizmos.matrix;
-            Gizmos.matrix = Matrix4x4.TRS(
-                center,
-                Quaternion.Euler(0, 0, angle),
-                Vector3.one
-            );
-
-            Gizmos.DrawWireCube(Vector3.zero, size);
-
-            Gizmos.matrix = prev;
-
-            // Center 점
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(center, 0.05f);
-
-            // Laser라면 Start / End도 추가로 표시
-            if (areaShape is not LaserArea laser) return;
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(laser.Start.AsVector2, 0.05f);
-
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(laser.End.AsVector2, 0.05f);
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(
-                laser.Start.AsVector2,
-                laser.End.AsVector2
-            );
-        }
-        #endif
     }
 }

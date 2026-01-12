@@ -29,10 +29,9 @@ namespace Moves.Mechanisms
     }
 
     [Serializable]
-    public class ProjectileParams : INewParams
+    public class ProjectileParams : NewParams
     {
         [Header("Time")]
-        [SerializeField] private short cooldownTicks;
         public ushort lifeTick;
 
         [Header("Projectile")]
@@ -40,15 +39,9 @@ namespace Moves.Mechanisms
         public int speed;
         public bool penetrative;
         // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange;
 
         [Header("Callbacks")]
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
-
-        public short CooldownTicks => cooldownTicks;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
     }
 }

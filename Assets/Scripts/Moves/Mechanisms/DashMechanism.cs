@@ -23,20 +23,14 @@ namespace Moves.Mechanisms
     }
 
     [Serializable]
-    public class DashParams : INewParams
+    public class DashParams : NewParams
     {
-        public short CooldownTicks { get; private set; }
         public ushort durationTicks;
         public int speed;
         public bool preventActivation;
         public bool penetrative;
         public bool expireWhenUnexpected;
-        // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange;
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
     }
 }

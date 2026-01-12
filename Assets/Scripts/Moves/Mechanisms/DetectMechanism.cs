@@ -77,21 +77,11 @@ namespace Moves.Mechanisms
 
     }
     [Serializable]
-    public class DetectParams : INewParams
+    public class DetectParams : NewParams
     {
         public TargetMode requiredMode;
         [CanBeNull] public MonoBehaviour requiredComponent;
         public MechanismRef[] onDetected;
         public MechanismRef[] onNotFound;
-
-        public short CooldownTicks { get; private set; }
-
-        // Range는 Detect 자체가 쓰지 않지만,
-        // 시스템 Mechanism 공통 인터페이스 유지를 위해 유지
-        public float minRange;
-        public float maxRange;
-
-        public float MinRange => minRange / 1000f;
-        public float MaxRange => maxRange / 1000f;
     }
 }

@@ -47,17 +47,14 @@ namespace PlayerScripts.Stack
             List<StackKey> expireKeys = null;
             List<StackKey> periodicKeys = null;
 
-            foreach (var kv in _stackStorage)
+            foreach (var key in 
+                     from kv in _stackStorage 
+                     let key = kv.Key 
+                     let status = kv.Value 
+                     where IsValidDelay(status.DelayId) 
+                     where _scheduler.IsCompleted(status.DelayId, _currentTick) 
+                     select key)
             {
-                var key = kv.Key;
-                var status = kv.Value;
-
-                if (!IsValidDelay(status.DelayId))
-                    continue;
-
-                if (!_scheduler.IsCompleted(status.DelayId, _currentTick))
-                    continue;
-
                 // DelayId가 완료되었을 때 "무슨 의미인지"는 Definition이 결정
                 if (key.def is VariableDefinition va && va.isPeriodic)
                 {
@@ -102,16 +99,16 @@ namespace PlayerScripts.Stack
             var def = stackKey.def;
 
             _stackStorage.TryGetValue(stackKey, out var oldStatus);
-            int before = oldStatus.Amount;
+            var before = oldStatus.Amount;
 
-            int after = TotalStack(def.maxStacks, before, amount);
+            var after = TotalStack(def.maxStacks, before, amount);
 
             // 0 이하로 떨어지는 Apply(음수 적용)는 ConsumeVariable 쪽으로 보내는 것을 권장하지만,
             // 방어적으로 clamp.
             if (after < 0) after = 0;
 
             // DelayId는 케이스별로 의미가 달라짐(Periodic 또는 Expiration)
-            DelayId nextDelayId = oldStatus.DelayId;
+            var nextDelayId = oldStatus.DelayId;
 
             switch (def)
             {
@@ -132,11 +129,8 @@ namespace PlayerScripts.Stack
 
                     if (va.isPeriodic)
                     {
-                        // -----------------------------
-                        // 합의된 "추가 트리거" 공식:
                         //   after < maxStacks 이면 재적용(= periodic delay 시작/유지)
-                        // -----------------------------
-                        bool shouldStartPeriodic = ShouldStartPeriodicOnApply(after, va.maxStacks);
+                        var shouldStartPeriodic = ShouldStartPeriodicOnApply(after, va.maxStacks);
 
                         if (shouldStartPeriodic)
                         {
@@ -256,11 +250,11 @@ namespace PlayerScripts.Stack
             if (!_stackStorage.TryGetValue(key, out var status))
                 return;
 
-            int before = status.Amount;
+            var before = status.Amount;
             if (before <= 0)
                 return;
 
-            int after = Math.Max(0, before - consumeAmount);
+            var after = Math.Max(0, before - consumeAmount);
 
             // Storage 갱신
             if (after <= 0)
@@ -279,9 +273,9 @@ namespace PlayerScripts.Stack
             // 합의된 "제거 트리거" 공식:
             //   before == maxStacks && after < maxStacks -> periodic 시작
             // -----------------------------
-            bool shouldStartPeriodic = ShouldStartPeriodicOnRemove(before, after, va.maxStacks);
+            var shouldStartPeriodic = ShouldStartPeriodicOnRemove(before, after, va.maxStacks);
 
-            DelayId nextDelayId = status.DelayId;
+            var nextDelayId = status.DelayId;
 
             if (shouldStartPeriodic)
             {
@@ -360,8 +354,8 @@ namespace PlayerScripts.Stack
             if (IsValidDelay(status.DelayId))
                 _scheduler.Remove(status.DelayId);
 
-            int before = status.Amount;
-            int after = before;
+            var before = status.Amount;
+            var after = before;
 
             if (before < va.maxStacks)
             {
@@ -444,7 +438,7 @@ namespace PlayerScripts.Stack
 
         private int TotalStack(int max, params int[] applies)
         {
-            int total = applies.Sum();
+            var total = applies.Sum();
             if (total < 0) total = 0;
             return Math.Min(total, max);
         }

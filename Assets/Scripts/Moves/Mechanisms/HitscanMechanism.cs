@@ -34,17 +34,17 @@ namespace Moves.Mechanisms
             var direction = ((Vector2)ctx.Target.position - origin).normalized;
             var distance = Vector2.Distance(origin, ctx.Target.position);
 
-            if (distance > param.maxRange || distance < param.minRange)
+            if (distance > param.MaxRange || distance < param.MinRange)
             {
                 //Debug.Log($"[HitscanMechanism] Target out of range ({distance:F2}) — skipping.");
                 return;
             }
 
-            var hit = Physics2D.Raycast(origin, direction, param.maxRange, param.layerMask);
+            var hit = Physics2D.Raycast(origin, direction, param.MaxRange, param.layerMask);
             if (param.debugDraw)
             {
                 var c = hit ? Color.red : Color.yellow;
-                Debug.DrawRay(origin, direction * param.maxRange, c, 0.5f);
+                Debug.DrawRay(origin, direction * param.MaxRange, c, 0.5f);
             }
 
             if (hit.collider is not null)
@@ -93,20 +93,11 @@ namespace Moves.Mechanisms
     }
 
     [System.Serializable]
-    public class HitscanParams : INewParams
+    public class HitscanParams : NewParams
     {
-        [Header("Hitscan Settings")]
-        // Range limits for this mechanism (world units).
-        public float minRange;
-        public float maxRange = 10f;
         [Header("Entity Settings")]
         public LayerMask layerMask = 1 << 8; // Default "Foe" layer
         public GameObject hitEffectPrefab;   // Placeholder — not used yet
-        [Header("Ticker")] 
-        [SerializeField] private short cooldownTicks;
-        public short CooldownTicks => cooldownTicks;
-        public float MinRange => minRange / 1000;
-        public float MaxRange => maxRange / 1000;
         [Header("FollowUp")] 
         public List<MechanismRef> onHit;
         public List<MechanismRef> onExpire;
