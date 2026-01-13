@@ -9,6 +9,7 @@ using PlayerScripts.Stack;
 using PlayerScripts.Stats;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
+using Systems.Stacks.Instances;
 using Systems.Time;
 using UnityEngine;
 using Logger = PlayerScripts.Core.Logger;
@@ -106,7 +107,7 @@ namespace Systems.Data
             _stackManager.Tick(tick);
             _actBridge.Tick(tick);
             _statsBridge.Tick(tick);
-            if (tick % 240 is 0)
+            if (tick % 60 is 0)
             {
                 Dev(tick);
             }
@@ -114,7 +115,19 @@ namespace Systems.Data
 
         private void Dev(ushort tick)
         {
-            Debug.Log($"I live at {tick}");
+            if (!StackStorage.Storage.TryGetValue("열상", out var def)) return;
+            ApplyStack(new StackKey(def), tick, 1, new StackMetadata(244));
+        }
+        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
+        {
+            if (metadata.Metadata is 0)
+            {
+                _stackManager.EnqueueStack(stackKey, amount);
+            }
+            else
+            {
+                _stackManager.EnqueueStack(stackKey, amount, metadata);
+            }
         }
 
         private Dictionary<SkillSlot, SkillBinding> BuildSkillDictionary()
@@ -152,12 +165,6 @@ namespace Systems.Data
         {
             Debug.Log("Oof");
             gameObject.SetActive(false);
-        }
-
-        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1)
-        {
-            Debug.Log($"I'm applying {stackKey.def.displayName}");
-            _stackManager.EnqueueStack(stackKey, amount);
         }
 
         public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)

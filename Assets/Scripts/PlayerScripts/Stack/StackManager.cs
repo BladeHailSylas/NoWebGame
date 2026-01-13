@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Moves;
 using PlayerScripts.Acts;
 using PlayerScripts.Core;
 using PlayerScripts.Stats;
+using Systems.Data;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
 using Systems.Time;
+using UnityEngine;
 
 namespace PlayerScripts.Stack
 {
@@ -28,6 +31,7 @@ namespace PlayerScripts.Stack
         private ushort _currentTick;
 
         private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
+        private readonly Dictionary<StackKey, StackMetadata> _metadata = new();
 
         public StackManager(Context ctx)
         {
@@ -44,7 +48,7 @@ namespace PlayerScripts.Stack
         //Overloading EnqueueStack explicitly to prevent confusion.
         public void EnqueueStack(StackKey stackKey, int amount, StackMetadata metadata)
         {
-            
+            _collecting.Add(new StackDelta(stackKey, amount, metadata));
         }
 
         public void EnqueueStack(StackDelta delta)
@@ -92,7 +96,7 @@ namespace PlayerScripts.Stack
             {
                 foreach (var key in expireKeys)
                 {
-                    RemoveStackCompletely(key, _currentTick);
+                    RemoveStackCompletely(key);
                 }
             }
 
@@ -112,7 +116,7 @@ namespace PlayerScripts.Stack
         /// - Variable(Periodic): Apply 트리거( after가 max 미만 )일 때 Periodic Delay(def.periodTick) 시작
         /// - Variable(NonPeriodic): 기본은 Expiration(def.duration)일 수도 있고 영구(duration==65535)일 수도 있음
         /// </summary>
-        public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort durationOverride = 0)
+        public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort durationOverride = 0, StackMetadata metadata = default)
         {
             var def = stackKey.def;
             //Debug.Log($"{def.displayName}을(를) 적용하려 합니다.");
@@ -231,6 +235,17 @@ namespace PlayerScripts.Stack
                     return;
                 }
 
+                case TriggerableDefinition trigger:
+                {
+                    int durationTick = durationOverride != 0 ? durationOverride : trigger.duration;
+                    if(IsValidDelay(nextDelayId))
+                        _scheduler.Remove(nextDelayId);
+                    nextDelayId = _scheduler.Start(tick, durationTick);
+                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
+                    ResolveTrigger(stackKey, tick, metadata, amount);
+                    return;
+                }
+
                 default:
                 {
                     // 기타 정의는 기본적으로 Expirable로 취급(필요 시 분기 확장)
@@ -312,29 +327,12 @@ namespace PlayerScripts.Stack
         }
 
         /// <summary>
-        /// 기존 DetachVariable은 "전부 제거"에 가까웠던 레거시 흐름이므로 Deprecated 처리 권장.
-        /// 현재는 RemoveStackCompletely 또는 ConsumeVariable로 역할을 분리하는 것이 안전합니다.
-        /// </summary>
-        [Obsolete("Use ConsumeVariable(...) for decrement, or RemoveStackCompletely(...) for full removal.")]
-        public void DetachVariable(StackKey key, ushort tick, int amount = 0)
-        {
-            // 레거시 호환을 위해: amount==0이면 완전 제거, amount>0이면 소비로 해석
-            if (amount > 0)
-            {
-                ConsumeVariable(key, amount, tick);
-                return;
-            }
-
-            RemoveStackCompletely(key, tick);
-        }
-
-        /// <summary>
         /// Expiration 등에 의해 스택을 완전히 제거한다.
         /// - Delay 제거
         /// - ResolveCache 호출(도메인 효과 해제)
         /// - Storage 제거(Variable)
         /// </summary>
-        private void RemoveStackCompletely(StackKey key, ushort tick)
+        private void RemoveStackCompletely(StackKey key)
         {
             if (!_stackStorage.TryGetValue(key, out var status))
                 return;
@@ -342,7 +340,7 @@ namespace PlayerScripts.Stack
             if (IsValidDelay(status.DelayId))
                 _scheduler.Remove(status.DelayId);
 
-            ResolveCache(key, tick);
+            ResolveCache(key);
 
             if (key.def is VariableDefinition)
                 Storage.RemoveStorage(key);
@@ -361,7 +359,7 @@ namespace PlayerScripts.Stack
             if (key.def is not VariableDefinition va || !va.isPeriodic)
             {
                 // 안전장치: periodic이 아닌데 periodicKeys에 들어온 경우
-                RemoveStackCompletely(key, tick);
+                RemoveStackCompletely(key);
                 return;
             }
 
@@ -435,7 +433,30 @@ namespace PlayerScripts.Stack
             //Debug.Log($"{stack.def.displayName}이 적용되었습니다.");
         }
 
-        private void ResolveCache(StackKey stack, ushort tick)
+        private void ResolveTrigger(StackKey stack, ushort tick, StackMetadata metadata, int amount = 1)
+        {
+            if (stack.def is not TriggerableDefinition trigger) return;
+            int storing;
+            if (!_metadata.TryGetValue(stack, out var storedmeta))
+            {
+                storing = metadata.Metadata;
+                _metadata.Add(stack, metadata);
+            }
+            else
+            {
+                storing = storedmeta.Metadata + metadata.Metadata;
+            }
+            _metadata[stack] = new StackMetadata(storing);
+            if (!_stackStorage.TryGetValue(stack, out var status) || status.Amount < trigger.threshold) return;
+            if (trigger.effect.mechanism is not INewMechanism mech) return;
+            DamageData dmg = new(DamageType.Normal, storing);
+            CastContext ctx = new(trigger.effect.@params, stack.applier, _context.Transform, dmg);
+            RemoveStackCompletely(stack);
+            _metadata[stack] = new StackMetadata(0);
+            mech.Execute(ctx);
+        }
+
+        private void ResolveCache(StackKey stack)
         {
             switch (stack.def)
             {
@@ -468,7 +489,7 @@ namespace PlayerScripts.Stack
             if (_resolving.Count <= 0) return;
             foreach (var delta in _resolving)
             {
-                ApplyStack(delta.Key, delta.Amount, tick);
+                ApplyStack(delta.Key, delta.Amount, tick, 0, delta.Metadata);
             }
             _resolving.Clear();
         }
@@ -478,11 +499,13 @@ namespace PlayerScripts.Stack
     {
         public readonly StackKey Key;
         public readonly int Amount;
+        public readonly StackMetadata Metadata;
 
-        public StackDelta(StackKey key, int amount)
+        public StackDelta(StackKey key, int amount, StackMetadata metadata = default)
         {
             Key = key;
             Amount = amount;
+            Metadata = metadata;
         }
     }
 }

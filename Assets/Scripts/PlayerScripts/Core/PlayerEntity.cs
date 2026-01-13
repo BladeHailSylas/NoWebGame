@@ -146,7 +146,7 @@ namespace PlayerScripts.Core
             _stackManager.Tick(tick);
             _actBridge.Tick(tick);
             _statsBridge.Tick(tick);
-            if (tick % 240 is 0)
+            if (tick % 60 is 0)
             {
                 Dev(tick);
             }
@@ -154,8 +154,8 @@ namespace PlayerScripts.Core
 
         private void Dev(ushort tick)
         {
-            if (!StackStorage.Storage.TryGetValue("Hello", out var def)) return;
-            ApplyStack(new StackKey(def), tick);
+            //if (!StackStorage.Storage.TryGetValue("열상", out var def)) return;
+            //(new StackKey(def), tick, 1, new StackMetadata(244));
         }
 
         private void OnMovePerformed(InputAction.CallbackContext ctx)

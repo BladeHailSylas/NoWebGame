@@ -12,7 +12,10 @@ namespace Moves.Mechanisms
         public void Execute(CastContext ctx)
         {
             if (ctx.Params is not DamageParams param) return;
-            if (!ctx.Target.TryGetComponent(out IVulnerable vul)) return;
+            if (!ctx.Target.TryGetComponent(out IVulnerable vul))
+            {
+                return;
+            }
             var finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - param.defaultAPRatio / 100.0);
             var finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
             //Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");

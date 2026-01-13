@@ -9,6 +9,7 @@ namespace Moves
 {
     /// <summary>
     /// Encapsulates damage configuration for hitscan or projectile skills.
+    /// DamageType Type, int Value, int Attack, double APRatio, double Amplitude, (Optional) Transform Attacker
     /// </summary>
     public readonly struct DamageData
     {
@@ -73,7 +74,9 @@ namespace Moves
         public float MaxRange => maxRange / 1000f;
         public LayerMask Mask => mask;
     }
-
+    /// <summary>
+    /// INewParams params, Transform Caster, Transform Target, TargetMode Mode, DamageData Damage, (Optional) SwitchVariable Var
+    /// </summary>
     public struct CastContext
     {
         public readonly INewParams Params;
