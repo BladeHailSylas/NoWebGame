@@ -41,16 +41,9 @@ namespace Moves.Mechanisms
                     if (angle > halfAngle)
                         continue;
                 }
-                Debug.Log(hit.transform.name);
+                //Debug.Log(hit.transform.name);
                 // OnHit follow-ups 실행
-                foreach (var followup in param.onHit)
-                {
-                    if (followup.mechanism is not INewMechanism mech) continue;
-                    var ctxTarget = !followup.requireRetarget ? hit.transform : null;
-                    SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                        mech, followup.@params, ctx.Damage, ctxTarget);
-                    CommandCollector.Instance.EnqueueCommand(cmd);
-                }
+                SkillUtils.ActivateFollowUp(param.onHit, ctx, hit.transform);
             }
             {
                 if (param.onExpire.Count == 0)

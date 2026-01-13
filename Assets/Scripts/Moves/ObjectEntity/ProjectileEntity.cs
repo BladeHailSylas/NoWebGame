@@ -111,16 +111,7 @@ namespace Moves.ObjectEntity
             if (!other.TryGetComponent<Entity>(out var entity)) return;
             if (_hitEntities.Contains(entity)) return;
 
-            foreach (var followup in _onHit)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                var ctxTarget = !followup.requireRetarget ? entity.transform : null;
-                SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
-                    mech, followup.@params, _ctx.Damage, ctxTarget);
-
-                CommandCollector.Instance.EnqueueCommand(cmd);
-                _hitEntities.Add(entity);
-            }
+            SkillUtils.ActivateFollowUp(_onHit, _ctx, entity.transform);
         }
 
         private void Expire()
@@ -133,17 +124,7 @@ namespace Moves.ObjectEntity
                     AnchorRegistry.Instance.Return(anchor);
                 }
             }
-            foreach (var followup in _onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mech)
-                    continue;
-
-                var ctxTarget = !followup.requireRetarget ? _ctx.Target : null;
-                SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
-                    mech, followup.@params, _ctx.Damage, ctxTarget);
-
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            SkillUtils.ActivateFollowUp(_onExpire, _ctx);
             Destroy(gameObject);
         }
     }

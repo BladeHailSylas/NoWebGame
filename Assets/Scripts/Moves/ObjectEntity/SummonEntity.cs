@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Moves.ObjectEntity
 {
-    public class AreaEntity : ObjectPrefab
+    public class SummonEntity : ObjectPrefab
     {
         [SerializeReference] public IAreaShapes areaShape;
         private const byte ActivateTick = 15;
@@ -89,7 +89,14 @@ namespace Moves.ObjectEntity
                         if (entity is null) continue;
 
                         // OnHit FollowUp 실행
-                        SkillUtils.ActivateFollowUp(_onInterval, _ctx, entity.transform);
+                        foreach (var followup in _onInterval)
+                        {
+                            if (followup.mechanism is not INewMechanism mech) continue;
+                            var ctxTarget = !followup.requireRetarget ? entity.transform : null;
+                            SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                                mech, followup.@params, _ctx.Damage, ctxTarget);
+                            CommandCollector.Instance.EnqueueCommand(cmd);
+                        }
                     }
                     break;
                 }
@@ -105,7 +112,14 @@ namespace Moves.ObjectEntity
                         col.TryGetComponent<Entity>(out var entity);
                         if (entity is null) continue;
 
-                        SkillUtils.ActivateFollowUp(_onInterval, _ctx, entity.transform);
+                        foreach (var followup in _onInterval)
+                        {
+                            if (followup.mechanism is not INewMechanism mech) continue;
+                            var ctxTarget = !followup.requireRetarget ? entity.transform : null;
+                            SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                                mech, followup.@params, _ctx.Damage, ctxTarget);
+                            CommandCollector.Instance.EnqueueCommand(cmd);
+                        }
                     }
                     break;
                 }
@@ -123,7 +137,14 @@ namespace Moves.ObjectEntity
                 }
             }
             else {
-                SkillUtils.ActivateFollowUp(_onExpire, _ctx);
+                foreach (var followup in _onExpire)
+                {
+                    if (followup.mechanism is not INewMechanism mech) continue;
+                    var ctxTarget = !followup.requireRetarget ? _ctx.Target : null;
+                    SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
+                        mech, followup.@params, _ctx.Damage, ctxTarget);
+                    CommandCollector.Instance.EnqueueCommand(cmd);
+                }
             }
             Destroy(gameObject);
         }

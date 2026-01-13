@@ -8,7 +8,8 @@ namespace Systems.Stacks
     {
         private StackRegistry _stack;
         public List<StackDefinition> stacks;
-        void OnEnable()
+
+        private void OnEnable()
         {
             _stack = new StackRegistry(stacks);
         }

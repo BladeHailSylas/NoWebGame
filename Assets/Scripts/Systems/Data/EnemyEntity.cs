@@ -1,20 +1,19 @@
 using System.Collections.Generic;
 using Characters;
+using JetBrains.Annotations;
 using Moves;
 using PlayerScripts.Acts;
+using PlayerScripts.Core;
 using PlayerScripts.Skills;
 using PlayerScripts.Stack;
 using PlayerScripts.Stats;
-using Systems.Data;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
-using Systems.Stacks.Instances;
 using Systems.Time;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using Time = Systems.Time.Time;
+using Logger = PlayerScripts.Core.Logger;
 
-namespace PlayerScripts.Core
+namespace Systems.Data
 {
     /// <summary>
     /// MonoBehaviour entry point that orchestrates all player-related modules. It
@@ -22,14 +21,13 @@ namespace PlayerScripts.Core
     /// systems for maintainability.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class PlayerEntity : Entity, IEntity, IDashable, ITeleportative
+    public sealed class EnemyEntity : Entity, IEntity
     {
         [Header("Configuration")]
         [SerializeField] private CharacterSpec spec;
-        [SerializeField] private TargetResolver targetResolver;
-        [SerializeField] private CommandCollector commandCollector;
+        [SerializeField] [CanBeNull] private TargetResolver targetResolver;
+        [SerializeField] [CanBeNull] private CommandCollector commandCollector;
         private List<VariableDefinition> _characterVariables;
-        private InputSystem_Actions _controls;
         private Logger _logger;
         private Context _context;
         private StatsBridge _statsBridge;
@@ -51,7 +49,6 @@ namespace PlayerScripts.Core
             }
 
             _context = new Context(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
-
             var baseStats = new BaseStatsContainer(
                 spec.baseHp,
                 spec.baseHpGen,
@@ -65,51 +62,26 @@ namespace PlayerScripts.Core
             _mover = new Mover(_context, _statsBridge, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
             _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
             _actBridge = new ActBridge(_mover, _attacker);
-            _context.RegisterScheduler(Time.DelayScheduler);
+            _context.RegisterScheduler(Time.Time.DelayScheduler);
             _context.RegisterStats(_statsBridge);
             _context.RegisterAct(_actBridge);
             _stackManager = new StackManager(_context);
             _context.RegisterStackManager(_stackManager);
-            _controls = new InputSystem_Actions();
         }
 
         private bool ValidateDependencies()
         {
-            if (spec is null)
-            {
-                _logger.Error("CharacterSpec reference missing.");
-                return false;
-            }
-
-            if (targetResolver is null)
-            {
-                _logger.Error("TargetResolver component missing.");
-                return false;
-            }
-
-            if (commandCollector is not null) return true;
-            _logger.Error("CommandCollector component missing.");
+            if (spec is not null) return true;
+            _logger.Error("CharacterSpec reference missing.");
             return false;
 
         }
 
         private void OnEnable()
         {
-            if (_controls == null)
-            {
-                return;
-            }
-            _controls.Enable();
-            _controls.Player.Move.performed += OnMovePerformed;
-            _controls.Player.Move.canceled += OnMoveCanceled;
-            _controls.Player.Attack.performed += OnAttackPrepared;
-            _controls.Player.Attack.canceled += OnAttackReleased;
-            _controls.Player.Skill1.canceled += OnSkill1Released;
-            _controls.Player.Skill2.canceled += OnSkill2Released;
-            _controls.Player.Ultimate.canceled += OnUltimateReleased;
             if (Ticker.Instance != null)
             {
-                Time.Ticker.OnTick += TickHandler;
+                Time.Time.Ticker.OnTick += TickHandler;
             }
             else
             {
@@ -121,23 +93,11 @@ namespace PlayerScripts.Core
 
         private void OnDisable()
         {
-            if (_controls != null)
-            {
-                _controls.Player.Move.performed -= OnMovePerformed;
-                _controls.Player.Move.canceled -= OnMoveCanceled;
-                _controls.Player.Attack.performed -= OnAttackPrepared;
-                _controls.Player.Attack.canceled -= OnAttackReleased;
-                _controls.Player.Skill1.canceled -= OnSkill1Released;
-                _controls.Player.Skill2.canceled -= OnSkill2Released;
-                _controls.Player.Ultimate.canceled -= OnUltimateReleased;
-                _controls.Disable();
-            }
-
             _actBridge?.ClearMovementInput();
 
             if (Ticker.Instance != null)
             {
-                Time.Ticker.OnTick -= TickHandler;
+                Time.Time.Ticker.OnTick -= TickHandler;
             }
         }
 
@@ -154,53 +114,7 @@ namespace PlayerScripts.Core
 
         private void Dev(ushort tick)
         {
-            if (!StackStorage.Storage.TryGetValue("Hello", out var def)) return;
-            ApplyStack(new StackKey(def), tick);
-        }
-
-        private void OnMovePerformed(InputAction.CallbackContext ctx)
-        {
-            _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
-        }
-
-        public void AddDashContract(DashContract contract)
-        {
-            _actBridge.AddDashContract(contract);
-        }
-
-        public void AddTeleportContract(TeleportContract tpc)
-        {
-            _actBridge.AddTeleportContract(tpc);
-        }
-
-        private void OnMoveCanceled(InputAction.CallbackContext ctx)
-        {
-            _actBridge.ClearMovementInput();
-        }
-
-        private void OnAttackPrepared(InputAction.CallbackContext ctx)
-        {
-            _actBridge.PrepareAttack(SkillSlot.Attack);
-        }
-
-        private void OnAttackReleased(InputAction.CallbackContext ctx)
-        {
-            _actBridge.ExecuteAttack(SkillSlot.Attack);
-        }
-
-        private void OnSkill1Released(InputAction.CallbackContext ctx)
-        {
-            _actBridge.ExecuteAttack(SkillSlot.Skill1);
-        }
-
-        private void OnSkill2Released(InputAction.CallbackContext ctx)
-        {
-            _actBridge.ExecuteAttack(SkillSlot.Skill2);
-        }
-
-        private void OnUltimateReleased(InputAction.CallbackContext ctx)
-        {
-            _actBridge.ExecuteAttack(SkillSlot.Ultimate);
+            Debug.Log($"I live at {tick}");
         }
 
         private Dictionary<SkillSlot, SkillBinding> BuildSkillDictionary()
@@ -240,16 +154,10 @@ namespace PlayerScripts.Core
             gameObject.SetActive(false);
         }
 
-        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
+        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1)
         {
-            if (metadata.Metadata is 0)
-            {
-                _stackManager.EnqueueStack(stackKey, amount);
-            }
-            else
-            {
-                _stackManager.EnqueueStack(stackKey, amount, metadata);
-            }
+            Debug.Log($"I'm applying {stackKey.def.displayName}");
+            _stackManager.EnqueueStack(stackKey, amount);
         }
 
         public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)

@@ -118,15 +118,7 @@ namespace Systems.SubSystems
                 if (entity.transform == _col.transform)
                     continue;
                 var _ctx = contract.Context;
-                foreach (var followup in contract.OnHit)
-                {
-                    if (followup.mechanism is not INewMechanism mech) continue; //Negate when the followUp is not a INewMechanism
-                    var ctxTarget = !followup.requireRetarget ? entity.transform : null;
-                    SkillCommand cmd = new(_ctx.Caster, _ctx.Mode, new FixedVector2(_ctx.Caster.position),
-                        mech, followup.@params, _ctx.Damage, ctxTarget);
-                    CommandCollector.Instance.EnqueueCommand(cmd);
-                    dashHits.Add(entity);
-                }
+                SkillUtils.ActivateFollowUp(contract.OnHit, _ctx, entity.transform);
                 return contract.Penetrative && contract.Context.Target != entity.transform;
                 //False when not penetrative since it needs to stop when touches an enemy
                 //True only when penetrative and not target; It needs to stop if it hits the target

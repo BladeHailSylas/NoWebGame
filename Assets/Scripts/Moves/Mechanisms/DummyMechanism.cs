@@ -17,22 +17,10 @@ namespace Moves.Mechanisms
         {
             if (ctx.Params is not DummyParams param) return;
             Debug.Log($"Hello {ctx.Caster} {ctx.Target}");
-            foreach (var followup in param.onHit)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctx.Target);
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            SkillUtils.ActivateFollowUp(param.onHit, ctx);
             //Debug.Log("Dummy: OnHit FollowUps are cast");
         
-            foreach (var followup in param.onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctx.Target);
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
             //Debug.Log("Dummy: OnExpire FollowUps are cast");
         }
     }

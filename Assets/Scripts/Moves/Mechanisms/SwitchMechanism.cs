@@ -63,7 +63,7 @@ namespace Moves.Mechanisms
                 selected = followUps[0]; // 디폴트 분기
             }
         
-// 이제 selected를 실행
+// 이제 selected를 실행: 코드가 일반적인 형태와 다르기 때문에 SkillUtils.ActivateFollowUp()를 사용하지 않고 보류
             if (!chosen || selected.mechanism is not INewMechanism mech) return;
             
             var ctxTarget = !selected.requireRetarget ? ctx.Target : null;

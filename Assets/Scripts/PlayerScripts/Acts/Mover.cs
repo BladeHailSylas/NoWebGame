@@ -117,14 +117,7 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            foreach (var followup in param.onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget);
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
         }
     }
 

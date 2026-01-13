@@ -1,24 +1,23 @@
 using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
-using Systems.Data;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(menuName = "Skills/Mechanisms/Area")]
-    public class AreaMechanism : ObjectGeneratingMechanism
+    [CreateAssetMenu(fileName = "SummonMechanism", menuName = "Skills/Mechanisms/Summon")]
+    public class SummonMechanism : ObjectGeneratingMechanism
     {
         public override void Execute(CastContext ctx)
         {
-            if (ctx.Params is not AreaParams param)
+            if (ctx.Params is not SummonParams param)
             {
                 Debug.LogError("[AreaMechanism] Invalid parameter type.");
                 return;
             }
             
             var centerPos = ctx.Target?.position ?? ctx.Caster.position;
-            var go = Instantiate(param.areaPrefab, centerPos, Quaternion.identity);
+            var go = Instantiate(param.summonPrefab, centerPos, Quaternion.identity);
             var dir = ctx.Target is not null
                 ? (ctx.Target.position - ctx.Caster.position).normalized
                 : ctx.Caster.right;
@@ -29,13 +28,13 @@ namespace Moves.Mechanisms
     }
     
     [Serializable]
-    public class AreaParams : NewParams
+    public class SummonParams : NewParams
     {
         [Header("Time")]
         public ushort lifeTick;
 
         [Header("Settings")] 
-        public AreaEntity areaPrefab;
+        public SummonEntity summonPrefab;
         public List<MechanismRef> onEnter;
         public List<MechanismRef> onExpire;
     }

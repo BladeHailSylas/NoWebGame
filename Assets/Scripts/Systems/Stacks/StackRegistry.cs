@@ -9,15 +9,13 @@ namespace Systems.Stacks
     public sealed class StackRegistry
     {
         public static StackRegistry Instance { get; private set; }
-        private List<StackDefinition> Stacks;
 
         public StackRegistry(List<StackDefinition> stacks)
         {
             //Let the maxStack of Expirable Periodic Variables be 1
             Instance = this;
-            Stacks = stacks;
             StackStorage.Storage = new Dictionary<string, StackDefinition>();
-            foreach (var stack in Stacks)
+            foreach (var stack in stacks)
             {
                 if (stack is VariableDefinition va)
                 {
@@ -33,11 +31,6 @@ namespace Systems.Stacks
                 }
                 StackStorage.Storage.Add(stack.displayName, stack);
             }
-        }
-
-        public void AddToStackList(StackDefinition stack)
-        {
-            Stacks.Add(stack);
         }
     }
 }

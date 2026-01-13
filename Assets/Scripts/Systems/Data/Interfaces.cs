@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Moves;
+using PlayerScripts.Acts;
+using Systems.Stacks;
+using Systems.Stacks.Definition;
 using UnityEngine;
 
 namespace Systems.Data
@@ -12,8 +15,7 @@ namespace Systems.Data
 
 	public interface IStackable
 	{
-
-		public void ApplyStack();
+		public void ApplyStack(StackKey key, ushort tick = 0, int amount = 1, StackMetadata metadata = default);
 	}
 
 	#region ===== Effect =====
@@ -95,6 +97,16 @@ namespace Systems.Data
 	{
 		bool IsOn { get; }
 		void Toggle();
+	}
+	
+	public interface IDashable
+	{
+		public void AddDashContract(DashContract contract);
+	}
+
+	public interface ITeleportative
+	{
+		public void AddTeleportContract(TeleportContract tpc);
 	}
 
 	public interface IPullable

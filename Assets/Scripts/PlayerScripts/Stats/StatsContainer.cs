@@ -85,19 +85,13 @@ namespace PlayerScripts.Stats
             if (IsDead || data.Value <= 0) return;
 
             // -- Percent damage types --
-            var damage = data.Attack * data.Value / 100.0;
-            switch (data.Type)
+            var damage = data.Type switch
             {
-                case DamageType.MaxPercent:
-                    damage = Math.Round((double)MaxHealth * data.Value / 100);
-                    break;
-                case DamageType.CurrentPercent:
-                    damage = Math.Round((double)Health * data.Value / 100);
-                    break;
-                case DamageType.LostPercent:
-                    damage = Math.Round(((double)MaxHealth - Health) * data.Value / 100);
-                    break;
-            }
+                DamageType.MaxPercent => Math.Round((double)MaxHealth * data.Value / 100),
+                DamageType.CurrentPercent => Math.Round((double)Health * data.Value / 100),
+                DamageType.LostPercent => Math.Round(((double)MaxHealth - Health) * data.Value / 100),
+                _ => data.Attack * data.Value / 100.0
+            };
 
             // -- Armor & reduction --
             if (data.Type != DamageType.Fixed)
@@ -126,7 +120,6 @@ namespace PlayerScripts.Stats
                 if (Health <= 0)
                     IsDead = true;
             }
-
             Debug.Log($"{damage} oof, {SpecialShield} {Shield} {Health}");
         }
 

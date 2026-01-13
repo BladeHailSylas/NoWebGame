@@ -68,11 +68,14 @@ namespace PlayerScripts.Skills
                 {
                     return ResolveTowardsCursor(request);
                 }
-
                 case TargetMode.TowardsMovement:
                 case TargetMode.TowardsCoordinate:
                 {
                     return new TargetResolveResult(null, request.CasterPos, false);
+                }
+                case TargetMode.TowardsSelf:
+                {
+                    return new TargetResolveResult(request.Caster, request.CasterPos, true);
                 }
                 default:
                 {

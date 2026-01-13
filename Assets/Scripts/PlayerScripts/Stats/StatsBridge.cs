@@ -1,6 +1,7 @@
 using Moves;
 using PlayerScripts.Core;
 using Systems.Data;
+using UnityEngine;
 
 namespace PlayerScripts.Stats
 {
@@ -24,10 +25,10 @@ namespace PlayerScripts.Stats
         {
             Stats.TickRegen(deltaMs);
         }
-        public double AP() => Stats.TotalArmorPenetration();
-        public double DR() => Stats.TotalDamageReduction();
-        public double DA() => Stats.TotalDamageAmplitude();
-        public DamageData DamageData() => new(DamageType.Normal, Stats.AttackDamage, 1, AP(), DA());
+        public double AP => Stats.TotalArmorPenetration();
+        public double DR => Stats.TotalDamageReduction();
+        public double DA => Stats.TotalDamageAmplitude();
+        public DamageData DamageData() => new(DamageType.Normal, Stats.AttackDamage, 1, AP, DA);
         public void ApplyManaCost(int amount)
         {
             Stats.ReduceStat(ReduceType.Mana, amount);

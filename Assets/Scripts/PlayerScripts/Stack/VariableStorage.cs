@@ -21,7 +21,7 @@ namespace PlayerScripts.Stack
         public void AddStorage(StackKey key, VariableState state)
         {
             if (key.def is not VariableDefinition) return;
-            Debug.Log($"{key.def.displayName} 이(가) {state.Amount} 추가되었습니다.");
+            //Debug.Log($"{key.def.displayName} 이(가) {state.Amount} 추가되었습니다.");
             _raw[key] = state;
             UpdateExclusiveGroups(key);
             RebuildPublic();
@@ -30,7 +30,7 @@ namespace PlayerScripts.Stack
         public void RemoveStorage(StackKey key, int amount = 0)
         {
             if (key.def is not VariableDefinition) return;
-            Debug.Log($"{key.def.displayName} 이(가) 삭제되었습니다.");
+            //Debug.Log($"{key.def.displayName} 이(가) 삭제되었습니다.");
             _raw.Remove(key);
             UpdateExclusiveGroups(key);
             RebuildPublic();

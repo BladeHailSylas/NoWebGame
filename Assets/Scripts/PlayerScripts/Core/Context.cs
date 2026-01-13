@@ -3,6 +3,7 @@ using PlayerScripts.Acts;
 using PlayerScripts.Skills;
 using PlayerScripts.Stack;
 using PlayerScripts.Stats;
+using Systems.Data;
 using Systems.Time;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace PlayerScripts.Core
     /// </summary>
     public sealed class Context
     {
-        public PlayerEntity Owner { get; }
+        public Entity Owner { get; }
         public GameObject GameObject { get; }
         public Transform Transform { get; }
         public TargetResolver TargetResolver { get; }
@@ -29,7 +30,7 @@ namespace PlayerScripts.Core
         
         public DelayScheduler DelayScheduler { get; private set; }
 
-        public Context(PlayerEntity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, ILogger logger)
+        public Context(Entity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, ILogger logger)
         {
             Owner = owner;
             GameObject = gameObject;
@@ -52,6 +53,7 @@ namespace PlayerScripts.Core
 
         public void RegisterStackManager(StackManager stackManager)
         {
+            Debug.Log($"StackManager {stackManager} is here");
             StackManager = stackManager;
         }
 

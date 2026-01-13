@@ -35,4 +35,14 @@ namespace Systems.Stacks.Definition
         Recharging,
         Accumulating,
     }
+
+    public readonly struct StackMetadata
+    {
+        public readonly int Metadata;
+
+        public StackMetadata(int metadata = 0)
+        {
+            Metadata = metadata;
+        }
+    }
 }

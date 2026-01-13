@@ -16,27 +16,11 @@ namespace Moves.Mechanisms
             var finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - param.defaultAPRatio / 100.0);
             var finalDA = ctx.Damage.Amplitude * (1 + param.defaultAmplitude / 100.0);
             //Debug.Log($"Now that we have {finalAP} = (1 - {ctx.Damage.APRatio}) * (1 - {param.defaultAPRatio / 100.0})");
-            vul.TakeDamage(new DamageData(param.type, ctx.Damage.Attack, param.damageValue, finalAP, finalDA));
-            foreach (var followup in param.onHit)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget);
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            vul.TakeDamage(new DamageData(param.type, ctx.Damage.Attack, param.damageValue, finalAP, finalDA, ctx.Caster));
+            SkillUtils.ActivateFollowUp(param.onHit, ctx);
             //Debug.Log("Damage: OnHit FollowUps are cast");
         
-            foreach (var followup in param.onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                /*SkillCommand cmd = new(ctx.Caster, TargetMode.TowardsEntity, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctx.Target);*/
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget);
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
             //Debug.Log("Damage: OnExpire FollowUps are casted");
         }
     }

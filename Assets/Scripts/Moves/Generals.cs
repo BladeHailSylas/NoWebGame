@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using PlayerScripts.Skills;
 using Systems.Data;
 using Systems.Stacks.Definition;
 using UnityEngine;
@@ -15,14 +17,16 @@ namespace Moves
         public readonly int Attack;
         public readonly double APRatio;
         public readonly double Amplitude;
+        public readonly Transform Attacker;
 
-        public DamageData(DamageType type, int attack, int value = 1, double apRatio = 0, double amplitude = 1)
+        public DamageData(DamageType type, int attack, int value = 1, double apRatio = 0, double amplitude = 1, Transform attacker = null)
         {
             Type = type;
             Attack = attack;
             Value = value;
             APRatio = apRatio;
             Amplitude = amplitude;
+            Attacker = attacker;
         }
     }
 // DamageType Normal, Fixed, MaxPercent, CurrentPercent, LostPercent
@@ -37,7 +41,15 @@ namespace Moves
     
     }
 
-    public enum TargetMode { TowardsEntity, TowardsCursor, TowardsMovement, TowardsCoordinate }
+    public enum TargetMode
+    {
+        TowardsEntity, 
+        TowardsCursor, 
+        TowardsMovement, 
+        TowardsCoordinate,
+        TowardsSelf,
+        AutoDetection,
+    }
 
     public interface INewParams
     {
@@ -45,6 +57,7 @@ namespace Moves
         byte DelayTicks { get; }
         float MinRange { get; }
         float MaxRange { get; }
+        LayerMask Mask { get; }
     }
 
     public abstract class NewParams : INewParams
@@ -53,11 +66,12 @@ namespace Moves
         [SerializeField] private byte delayTicks;
         [SerializeField] private int minRange;
         [SerializeField] private int maxRange;
+        [SerializeField] private LayerMask mask;
         public short CooldownTicks => cooldownTicks;
         public byte DelayTicks => delayTicks;
         public float MinRange => minRange / 1000f;
         public float MaxRange => maxRange / 1000f;
-
+        public LayerMask Mask => mask;
     }
 
     public struct CastContext
@@ -132,11 +146,42 @@ namespace Moves
         }
     }
 
+    public static class SkillUtils
+    {
+        public static void ActivateFollowUp(List<MechanismRef> followups, CastContext ctx, Transform target = null)
+        {
+            if (followups.Count == 0) return;
+            foreach (var followup in followups)
+            {
+                if (followup.mechanism is not INewMechanism mech) continue;
+                target ??= ctx.Target;
+                var ctxTarget = !followup.requireRetarget ? target : null;
+                SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
+                CommandCollector.Instance.EnqueueCommand(cmd);
+            }
+        }
+
+        public static void ActivateFollowUp(MechanismRef[] followups, CastContext ctx)
+        {
+            if (followups.Length == 0) return;
+            foreach (var followup in followups)
+            {
+                if (followup.mechanism is not INewMechanism mech) continue;
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
+                    mech, followup.@params, ctx.Damage, ctxTarget);
+                CommandCollector.Instance.EnqueueCommand(cmd);
+            }
+        }
+    }
+
     [Serializable]
     public struct MechanismRef
     {
         public ScriptableObject mechanism;
         [SerializeReference] public INewParams @params;
+        public TargetMode mode;
         public bool requireRetarget;
         public bool respectBusy;
     }

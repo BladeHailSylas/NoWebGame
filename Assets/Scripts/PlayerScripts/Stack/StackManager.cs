@@ -21,6 +21,8 @@ namespace PlayerScripts.Stack
         private readonly Context _context;
         public VariableStorage Storage;
         private readonly DelayScheduler _scheduler;
+        private List<StackDelta> _resolving = new();
+        private List<StackDelta> _collecting = new();
 
         // 현재 Tick 캐시 (모듈이 "마지막으로 실행된 시점"만 기억)
         private ushort _currentTick;
@@ -34,6 +36,22 @@ namespace PlayerScripts.Stack
             _scheduler = _context.DelayScheduler;
         }
 
+        public void EnqueueStack(StackKey stackKey, int amount)
+        {
+            _collecting.Add(new StackDelta(stackKey, amount));
+        }
+
+        //Overloading EnqueueStack explicitly to prevent confusion.
+        public void EnqueueStack(StackKey stackKey, int amount, StackMetadata metadata)
+        {
+            
+        }
+
+        public void EnqueueStack(StackDelta delta)
+        {
+            _collecting.Add(delta);
+        }
+
         /// <summary>
         /// 매 Tick 호출.
         /// - Expirable(Buff/CC/Expirable Variable): 만료되면 제거
@@ -42,7 +60,7 @@ namespace PlayerScripts.Stack
         public void Tick(ushort tick)
         {
             _currentTick = tick;
-
+            SwapAndApply(tick);
             // 순회 중 컬렉션 변경을 피하기 위해 처리 대상 수집
             List<StackKey> expireKeys = null;
             List<StackKey> periodicKeys = null;
@@ -97,7 +115,7 @@ namespace PlayerScripts.Stack
         public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort durationOverride = 0)
         {
             var def = stackKey.def;
-
+            //Debug.Log($"{def.displayName}을(를) 적용하려 합니다.");
             _stackStorage.TryGetValue(stackKey, out var oldStatus);
             var before = oldStatus.Amount;
 
@@ -414,6 +432,7 @@ namespace PlayerScripts.Stack
                     _context.Act.ApplyCC(new CCData(cc.Type, cc.Value));
                     break;
             }
+            //Debug.Log($"{stack.def.displayName}이 적용되었습니다.");
         }
 
         private void ResolveCache(StackKey stack, ushort tick)
@@ -441,6 +460,29 @@ namespace PlayerScripts.Stack
             var total = applies.Sum();
             if (total < 0) total = 0;
             return Math.Min(total, max);
+        }
+
+        private void SwapAndApply(ushort tick)
+        {
+            (_resolving, _collecting) = (_collecting, _resolving);
+            if (_resolving.Count <= 0) return;
+            foreach (var delta in _resolving)
+            {
+                ApplyStack(delta.Key, delta.Amount, tick);
+            }
+            _resolving.Clear();
+        }
+    }
+
+    public readonly struct StackDelta
+    {
+        public readonly StackKey Key;
+        public readonly int Amount;
+
+        public StackDelta(StackKey key, int amount)
+        {
+            Key = key;
+            Amount = amount;
         }
     }
 }

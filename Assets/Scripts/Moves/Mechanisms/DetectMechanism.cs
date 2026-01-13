@@ -52,27 +52,7 @@ namespace Moves.Mechanisms
                 return;
 
             // 4. Switch와 동일한 방식으로 FollowUp 실행
-            foreach (var selected in followUps)
-            {
-                if (selected.mechanism is not INewMechanism mech)
-                    continue;
-
-                var ctxTarget = !selected.requireRetarget
-                    ? ctx.Target
-                    : null;
-
-                SkillCommand cmd = new(
-                    ctx.Caster,
-                    ctx.Mode,
-                    new FixedVector2(ctx.Caster.position),
-                    mech,
-                    selected.@params,
-                    ctx.Damage,
-                    ctxTarget
-                );
-
-                CommandCollector.Instance.EnqueueCommand(cmd);
-            }
+            SkillUtils.ActivateFollowUp(followUps, ctx);
         }
 
     }
