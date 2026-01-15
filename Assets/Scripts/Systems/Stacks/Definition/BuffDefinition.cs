@@ -1,9 +1,12 @@
-using EffectInterfaces;
+using Systems.Data;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Stacks/BuffDefinition")]
-public class BuffStackDefinition : StackDefinition
+namespace Systems.Stacks.Definition
 {
-    public EffectType Type;
-    public byte Value;
+    [CreateAssetMenu(menuName = "Stacks/BuffDefinition")]
+    public class BuffDefinition : StackDefinition
+    {
+        public EffectType Type;
+        public byte Value;
+    }
 }

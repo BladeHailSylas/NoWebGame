@@ -1,12 +1,17 @@
 using System.Collections.Generic;
+using Systems.Stacks.Definition;
 using UnityEngine;
 
-public class StackRegistryObject : MonoBehaviour
+namespace Systems.Stacks
 {
-    private StackRegistry _stack;
-    public List<StackDefinition> stacks;
-    void OnEnable()
+    public class StackRegistryObject : MonoBehaviour
     {
-        _stack = new StackRegistry(stacks);
+        private StackRegistry _stack;
+        public List<StackDefinition> stacks;
+
+        private void OnEnable()
+        {
+            _stack = new StackRegistry(stacks);
+        }
     }
 }

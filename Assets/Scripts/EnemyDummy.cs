@@ -2,8 +2,9 @@
 
 using System;
 using UnityEngine;
-using ActInterfaces;
-using StatsInterfaces;
+using Moves;
+using PlayerScripts.Core;
+using Systems.Data;
 using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody2D))]

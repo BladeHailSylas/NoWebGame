@@ -1,7 +1,10 @@
 using UnityEngine;
 
-public class PlayerInfo : MonoBehaviour
+namespace PlayerScripts.Core
 {
-    public ushort id;
-    public LayerMask mask;
+    public class PlayerInfo : MonoBehaviour
+    {
+        public ushort id;
+        public LayerMask mask;
+    }
 }

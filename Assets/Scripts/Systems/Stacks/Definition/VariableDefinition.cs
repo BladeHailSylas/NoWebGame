@@ -1,12 +1,17 @@
+using Systems.Stacks.ExclusiveGroups;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Stacks/VariableDefinition")]
-public class VariableDefinition : StackDefinition
+namespace Systems.Stacks.Definition
 {
-    public bool isPeriodic;
-    public bool isExclusive;
-    public ushort periodTick; // Don't need to change if not periodic
-    public ExclusiveGroup[] exclusiveGroup;
-    public byte exclusivePriority;
+    [CreateAssetMenu(menuName = "Stacks/VariableDefinition")]
+    public class VariableDefinition : StackDefinition
+    {
+        public bool isPeriodic;
+        public PeriodicType periodicType;
+        public bool isExclusive;
+        public ushort periodTick; // Don't need to change if not periodic
+        public ExclusiveGroup[] exclusiveGroup;
+        public byte exclusivePriority;
 
+    }
 }

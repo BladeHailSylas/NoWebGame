@@ -1,7 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu(menuName="Variables/ExclusiveGroup")]
-public class ExclusiveGroup : ScriptableObject
+
+namespace Systems.Stacks.ExclusiveGroups
 {
-    public ushort groupId;
+    [CreateAssetMenu(menuName="Variables/ExclusiveGroup")]
+    public class ExclusiveGroup : ScriptableObject
+    {
+        public ushort groupId;
+    }
 }
