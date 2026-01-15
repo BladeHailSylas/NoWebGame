@@ -110,8 +110,8 @@ namespace Moves.ObjectEntity
         {
             if (!other.TryGetComponent<Entity>(out var entity)) return;
             if (_hitEntities.Contains(entity)) return;
-
             SkillUtils.ActivateFollowUp(_onHit, _ctx, entity.transform);
+            _hitEntities.Add(entity);
         }
 
         private void Expire()

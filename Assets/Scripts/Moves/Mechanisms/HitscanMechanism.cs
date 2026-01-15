@@ -23,9 +23,9 @@ namespace Moves.Mechanisms
                 return;
             }
 
-            if ((param.layerMask.value & (1 << ctx.Target.gameObject.layer)) == 0)
+            if ((param.Mask.value & (1 << ctx.Target.gameObject.layer)) == 0)
             {
-                //Debug.Log("[HitscanMechanism] Target layer not allowed — skipping.");
+                Debug.Log("[HitscanMechanism] Target layer not allowed — skipping.");
                 return;
             }
 
@@ -35,11 +35,11 @@ namespace Moves.Mechanisms
 
             if (distance > param.MaxRange || distance < param.MinRange)
             {
-                //Debug.Log($"[HitscanMechanism] Target out of range ({distance:F2}) — skipping.");
+                Debug.Log($"[HitscanMechanism] Target out of range ({distance:F2}) — skipping.");
                 return;
             }
 
-            var hit = Physics2D.Raycast(origin, direction, param.MaxRange, param.layerMask);
+            var hit = Physics2D.Raycast(origin, direction, param.MaxRange, param.Mask);
             if (param.debugDraw)
             {
                 var c = hit ? Color.red : Color.yellow;
@@ -59,7 +59,6 @@ namespace Moves.Mechanisms
     public class HitscanParams : NewParams
     {
         [Header("Entity Settings")]
-        public LayerMask layerMask = 1 << 8; // Default "Foe" layer
         public GameObject hitEffectPrefab;   // Placeholder — not used yet
         [Header("FollowUp")] 
         public List<MechanismRef> onHit;

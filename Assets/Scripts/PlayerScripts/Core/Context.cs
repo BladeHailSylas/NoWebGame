@@ -27,6 +27,7 @@ namespace PlayerScripts.Core
         public ActBridge Act { get; private set; }
     
         public StackManager StackManager { get; private set; }
+        public VariableStorage VariableStorage { get; private set; }
         
         public DelayScheduler DelayScheduler { get; private set; }
 
@@ -53,13 +54,17 @@ namespace PlayerScripts.Core
 
         public void RegisterStackManager(StackManager stackManager)
         {
-            Debug.Log($"StackManager {stackManager} is here");
             StackManager = stackManager;
         }
 
         public void RegisterScheduler(DelayScheduler scheduler)
         {
             DelayScheduler = scheduler;
+        }
+
+        public void RegisterVariableStorage(VariableStorage storage)
+        {
+            VariableStorage = storage;
         }
     }
 

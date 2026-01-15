@@ -66,12 +66,7 @@ namespace PlayerScripts.Acts
             _tick = tick;
             _mover.MakeMove(new FixedVector2(_inputVector), _immovableCount);
             _mover.DashTick(tick, _immovableCount);
-            /*_moveVector = (_immovableCount == 0) ? _inputVector : Vector2.zero;
-            if (_moveVector.sqrMagnitude > 1e-6f)
-            {
-                _mover.MakeMove(new FixedVector2(_moveVector));
-            
-            }*/
+            _attacker.Tick(tick, _innoxiousCount);
         }
 
         /// <summary>
@@ -90,7 +85,7 @@ namespace PlayerScripts.Acts
         public void ExecuteAttack(SkillSlot slot)
         {
             if (_mover.PreventingActivation) return;
-            _attacker.TryCast(slot, _innoxiousCount);
+            _attacker.EnqueueCast(slot);
         }
 
         public void ApplyCC(CCData cc)

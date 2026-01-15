@@ -17,7 +17,7 @@ namespace Systems.Stacks
             StackStorage.Storage = new Dictionary<string, StackDefinition>();
             foreach (var stack in stacks)
             {
-                if (stack is VariableDefinition va)
+                if (stack is VariableDefinition { isPeriodic: true } va)
                 {
                     switch (va.periodicType)
                     {

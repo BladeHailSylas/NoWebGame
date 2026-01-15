@@ -25,17 +25,17 @@ namespace Moves.Mechanisms
             switch (detected)
             {
                 case false:
-                    Debug.Log($"Nah {ctx.Mode} is not {param.requiredMode}");
+                    //Debug.Log($"Nah {ctx.Mode} is not {param.requiredMode}");
                     break;
                 // 2. Component 검사 (선택)
                 case true when param.requiredComponent is not null:
                 {
-                    Debug.Log("Detecting");
+                    //Debug.Log("Detecting");
                     if (!ctx.Target.TryGetComponent(
                             param.requiredComponent.GetType(),
                             out _))
                     {
-                        Debug.LogWarning("Nah");
+                        //Debug.LogWarning("Nah");
                         detected = false;
                     }
 

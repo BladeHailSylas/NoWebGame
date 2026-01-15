@@ -1,48 +1,45 @@
 using System.Collections.Generic;
 using Characters;
 using JetBrains.Annotations;
-using Moves;
+using Moves.Mechanisms;
 using PlayerScripts.Acts;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
 using PlayerScripts.Stack;
 using PlayerScripts.Stats;
+using Systems.Data;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
-using Systems.Stacks.Instances;
 using Systems.Time;
 using UnityEngine;
 using Logger = PlayerScripts.Core.Logger;
+using Time = Systems.Time;
 
-namespace Systems.Data
+namespace Moves.ObjectEntity
 {
-    /// <summary>
-    /// MonoBehaviour entry point that orchestrates all player-related modules. It
-    /// centralises lifecycle management and bridges Unity callbacks into pure C#
-    /// systems for maintainability.
-    /// </summary>
-    [DisallowMultipleComponent]
-    public sealed class EnemyEntity : Entity, IEntity
+    public abstract class SummonEntityBase : Entity
     {
         [Header("Configuration")]
-        [SerializeField] private CharacterSpec spec;
         [SerializeField] [CanBeNull] private TargetResolver targetResolver;
         [SerializeField] [CanBeNull] private CommandCollector commandCollector;
-        private List<VariableDefinition> _characterVariables;
-        private Logger _logger;
-        private Context _context;
-        private StatsBridge _statsBridge;
-        private Mover _mover;
-        private Attacker _attacker;
-        private ActBridge _actBridge;
-        private StackManager _stackManager;
-        private InteractionFilter _filter;
-
-        private void Awake()
+        protected Logger _logger;
+        protected Context _context;
+        protected StatsBridge _statsBridge;
+        protected Mover _mover;
+        protected Attacker _attacker;
+        protected ActBridge _actBridge;
+        protected StackManager _stackManager;
+        protected InteractionFilter _filter;
+        protected VariableStorage _storage;
+        public int baseHp; public int baseHpGen; public int baseMana; public int baseManaGen; public int baseAttack; public int baseDefense; public int baseSpeed;
+        protected void Awaken(SummonParams spec)
         {
+            Debug.Log("SummonEntity Awaken... AYAYAY AYAYYYYYY");
             _logger = new Logger(gameObject.name);
-            targetResolver ??= GetComponent<TargetResolver>();
-            commandCollector ??= GetComponent<CommandCollector>();
+            TryGetComponent<TargetResolver>(out var resolver);
+            targetResolver ??= resolver;
+            TryGetComponent<CommandCollector>(out var collector);
+            commandCollector ??= collector;
 
             if (!ValidateDependencies())
             {
@@ -50,37 +47,38 @@ namespace Systems.Data
                 return;
             }
 
-            _context = new Context(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
+            _context = new Context(this, gameObject, transform, targetResolver, commandCollector, null, _logger);
             var baseStats = new BaseStatsContainer(
-                spec.baseHp,
-                spec.baseHpGen,
-                spec.baseMana,
-                spec.baseManaGen,
-                spec.baseAttack,
-                spec.baseDefense,
-                spec.baseSpeed
+                baseHp,
+                baseHpGen,
+                baseMana,
+                baseManaGen,
+                baseAttack,
+                baseDefense,
+                baseSpeed
             );
             _statsBridge = new StatsBridge(_context, baseStats);
-            _mover = new Mover(_context, _statsBridge, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
+            TryGetComponent<Rigidbody2D>(out var rb);
+            TryGetComponent<Collider2D>(out var col);
+            _mover = new Mover(_context, _statsBridge, rb, col);
             _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
             _actBridge = new ActBridge(_mover, _attacker);
             _context.RegisterScheduler(Time.Time.DelayScheduler);
             _context.RegisterStats(_statsBridge);
             _context.RegisterAct(_actBridge);
-            _stackManager = new StackManager(_context, new VariableStorage());
+            _storage = new VariableStorage();
+            _stackManager = new StackManager(_context, _storage);
+            _context.RegisterVariableStorage(_storage);
             _context.RegisterStackManager(_stackManager);
             _filter = new InteractionFilter(this, _statsBridge, _stackManager);
         }
 
         private bool ValidateDependencies()
         {
-            if (spec is not null) return true;
-            _logger.Error("CharacterSpec reference missing.");
-            return false;
-
+            return true;
         }
 
-        private void OnEnable()
+        protected void OnEnabled()
         {
             if (Ticker.Instance != null)
             {
@@ -90,8 +88,6 @@ namespace Systems.Data
             {
                 _logger.Warn("Ticker instance missing. Movement tick updates disabled.");
             }
-            _characterVariables = spec.CharacterVariables;
-            InitStacks();
         }
 
         private void OnDisable()
@@ -106,6 +102,10 @@ namespace Systems.Data
 
         private void TickHandler(ushort tick)
         {
+            if (_statsBridge.IsDead)
+            {
+                Die();
+            }
             _stackManager.Tick(tick);
             _actBridge.Tick(tick);
             _statsBridge.Tick(tick);
@@ -117,8 +117,7 @@ namespace Systems.Data
 
         private void Dev(ushort tick)
         {
-            //if (!StackStorage.Storage.TryGetValue("열상", out var def)) return;
-            //ApplyStack(new StackKey(def), tick, 1, new StackMetadata(244));
+            //Debug.Log($"Hello again at {tick}");
         }
         public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
         {
@@ -134,36 +133,16 @@ namespace Systems.Data
 
         private Dictionary<SkillSlot, SkillBinding> BuildSkillDictionary()
         {
-            return new Dictionary<SkillSlot, SkillBinding>
-            {
-                { SkillSlot.Attack, spec.attack },
-                { SkillSlot.Skill1, spec.skill1 },
-                { SkillSlot.Skill2, spec.skill2 },
-                { SkillSlot.Ultimate, spec.ultimate }
-            };
+            return new Dictionary<SkillSlot, SkillBinding>();
         }
-
-        private void InitStacks()
+        
+        
+        public new void TakeDamage(DamageData damage)
         {
-            foreach (var stack in _characterVariables)
-            {
-                ApplyStack(new StackKey(stack), 0);
-            }
-        }
-
-        /// <summary>
-        /// Allows installers to inject a character specification before the player
-        /// is initialised.
-        /// </summary>
-        public void InstallSpec(CharacterSpec newSpec)
-        {
-            spec = newSpec;
-        }
-        public void TakeDamage(DamageData damage)
-        {
+            Debug.Log("Taking damage");
             _filter.FilterDamage(damage);
         }
-        public void Die()
+        public new void Die()
         {
             Debug.Log("Oof");
             gameObject.SetActive(false);

@@ -28,6 +28,7 @@ namespace PlayerScripts.Stats
         public double AP => Stats.TotalArmorPenetration();
         public double DR => Stats.TotalDamageReduction();
         public double DA => Stats.TotalDamageAmplitude();
+        public bool IsDead => Stats.IsDead;
         public DamageData DamageData() => new(DamageType.Normal, Stats.AttackDamage, 1, AP, DA);
         public void ApplyManaCost(int amount)
         {

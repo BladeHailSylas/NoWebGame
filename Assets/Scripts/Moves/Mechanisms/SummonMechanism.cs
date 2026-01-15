@@ -6,13 +6,13 @@ using UnityEngine;
 namespace Moves.Mechanisms
 {
     [CreateAssetMenu(fileName = "SummonMechanism", menuName = "Skills/Mechanisms/Summon")]
-    public class SummonMechanism : ObjectGeneratingMechanism
+    public class SummonMechanism : ScriptableObject, INewMechanism
     {
-        public override void Execute(CastContext ctx)
+        public void Execute(CastContext ctx)
         {
             if (ctx.Params is not SummonParams param)
             {
-                Debug.LogError("[AreaMechanism] Invalid parameter type.");
+                //Debug.LogError("[AreaMechanism] Invalid parameter type.");
                 return;
             }
             
@@ -22,8 +22,9 @@ namespace Moves.Mechanisms
                 ? (ctx.Target.position - ctx.Caster.position).normalized
                 : ctx.Caster.right;
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
-            if (!go.TryGetComponent<AreaEntity>(out var entity)) return;
+            if (!go.TryGetComponent<SummonEntity>(out var entity)) return;
             entity.Init(ctx);
+            SkillUtils.ActivateFollowUp(param.onSummoned, ctx);
         }
     }
     
@@ -33,9 +34,8 @@ namespace Moves.Mechanisms
         [Header("Time")]
         public ushort lifeTick;
 
-        [Header("Settings")] 
-        public SummonEntity summonPrefab;
-        public List<MechanismRef> onEnter;
-        public List<MechanismRef> onExpire;
+        [Header("Settings")] public SummonEntity summonPrefab;
+
+        public List<MechanismRef> onSummoned;
     }
 }

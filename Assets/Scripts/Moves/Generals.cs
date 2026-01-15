@@ -106,10 +106,12 @@ namespace Moves
         public readonly INewMechanism Mech;
         public readonly INewParams Params;
         public readonly DamageData Damage;
+        public readonly LayerMask Mask;
         public readonly SwitchVariable Var;
 
         public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
-            INewMechanism mech, INewParams @params, DamageData damage, Transform target = null, SwitchVariable va = default)
+            INewMechanism mech, INewParams @params, DamageData damage, Transform target = null,
+            SwitchVariable va = default, int masker = 0)
         {
             Caster = caster;
             Target = target;
@@ -119,6 +121,7 @@ namespace Moves
             Params = @params;
             Damage = damage;
             Var = va;
+            Mask = 1 << masker;
         }
 
         public bool Equals(SkillCommand other)
@@ -160,7 +163,7 @@ namespace Moves
                 target ??= ctx.Target;
                 var ctxTarget = !followup.requireRetarget ? target : null;
                 SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget);
+                    mech, followup.@params, ctx.Damage, ctxTarget, ctx.Var, ctx.Params.Mask);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }
@@ -173,7 +176,7 @@ namespace Moves
                 if (followup.mechanism is not INewMechanism mech) continue;
                 var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
                 SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget);
+                    mech, followup.@params, ctx.Damage, ctxTarget, ctx.Var, ctx.Params.Mask);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }

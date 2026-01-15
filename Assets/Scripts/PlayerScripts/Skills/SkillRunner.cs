@@ -27,7 +27,7 @@ namespace PlayerScripts.Skills
             //TODO: Consider refactoring into: single target acquisition / post-acquisition interpretation
             if (target is null)
             {
-                var req = new TargetRequest(cmd.Caster, cmd.Params.MinRange, cmd.Params.MaxRange, cmd.TargetMode, LayerMask.GetMask("Foe"));
+                var req = new TargetRequest(cmd.Caster, cmd.Params.MinRange, cmd.Params.MaxRange, cmd.TargetMode, cmd.Mask);
                 //Temporarily Foe, should be added further target request
                 // TODO: Later support range/mask overrides from skill data.
                 var result = _targetResolver.ResolveTarget(req);

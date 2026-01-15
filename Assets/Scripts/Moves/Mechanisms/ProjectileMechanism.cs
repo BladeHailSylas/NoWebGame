@@ -6,13 +6,13 @@ using UnityEngine;
 namespace Moves.Mechanisms
 {
     [CreateAssetMenu(menuName = "Skills/Mechanisms/Projectile")]
-    public class ProjectileMechanism : ObjectGeneratingMechanism
+    public class ProjectileMechanism : ScriptableObject, INewMechanism
     {
-        public override void Execute(CastContext ctx)
+        public void Execute(CastContext ctx)
         {
             if (ctx.Params is not ProjectileParams param)
             {
-                Debug.LogError("[ProjectileMechanism] Invalid parameter type.");
+                //Debug.LogError("[ProjectileMechanism] Invalid parameter type.");
                 return;
             }
 

@@ -7,16 +7,14 @@ using UnityEngine;
 namespace Moves.Mechanisms
 {
     [CreateAssetMenu(menuName = "Skills/Mechanisms/Area")]
-    public class AreaMechanism : ObjectGeneratingMechanism
+    public class AreaMechanism : ScriptableObject, INewMechanism
     {
-        public override void Execute(CastContext ctx)
+        public void Execute(CastContext ctx)
         {
             if (ctx.Params is not AreaParams param)
             {
-                Debug.LogError("[AreaMechanism] Invalid parameter type.");
                 return;
             }
-            
             var centerPos = ctx.Target?.position ?? ctx.Caster.position;
             var go = Instantiate(param.areaPrefab, centerPos, Quaternion.identity);
             var dir = ctx.Target is not null

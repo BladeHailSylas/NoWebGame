@@ -33,10 +33,10 @@ namespace PlayerScripts.Stack
         private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
         private readonly Dictionary<StackKey, StackMetadata> _metadata = new();
 
-        public StackManager(Context ctx)
+        public StackManager(Context ctx, VariableStorage storage)
         {
             _context = ctx;
-            Storage = new VariableStorage();
+            Storage = storage;
             _scheduler = _context.DelayScheduler;
         }
 
@@ -211,7 +211,6 @@ namespace PlayerScripts.Stack
 
                     if (IsValidDelay(nextDelayId))
                         _scheduler.Remove(nextDelayId);
-
                     nextDelayId = _scheduler.Start(tick, durationTick);
 
                     _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
@@ -266,6 +265,17 @@ namespace PlayerScripts.Stack
             }
         }
 
+
+        public void TryConsume(SwitchVariable sv)
+        {
+            StackKey stack = default;
+            foreach (var key in _stackStorage.Keys.Where(key => key.def.ID.Equals(sv.Variable.ID)))
+            {
+                stack = key;
+                break;
+            }
+            ConsumeVariable(stack, sv.Amount, _currentTick);
+        }
         /// <summary>
         /// Variable 소비(Amount 감소) 전용 API.
         /// - 합의된 "제거 트리거" 공식을 적용:

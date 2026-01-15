@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moves;
+using Moves.Mechanisms;
+using Systems.Data;
 using UnityEngine;
 using Systems.Time;
 using Time = Systems.Time.Time;
@@ -109,9 +111,12 @@ namespace PlayerScripts.Skills
 
                 // 즉시 실행
                 _runner.Activate(entry.Command);
-
-                // 실행된 위치 기록
                 executedIndices.Add(i);
+                if (entry.Command is not { Mech: SwitchMechanism sw, Params: SwitchParams param }) continue;
+                var caster = entry.Command.Caster;
+                if (!caster.TryGetComponent<IStackable>(out var entity)) continue;
+                if (entry.Command.Var.Variable is null) continue;
+                entity.TryRemoveStack(entry.Command.Var);
             }
 
             

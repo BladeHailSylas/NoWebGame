@@ -9,19 +9,14 @@ namespace PlayerScripts.Stack
 {
     public class VariableStorage
     {
-        public static VariableStorage Instance;
         private readonly Dictionary<StackKey, VariableState> _raw = new();
         private readonly Dictionary<ushort, StackKey> _exclusiveWinners = new();
         public readonly Dictionary<StackKey, VariableState> Public = new();
-        public VariableStorage()
-        {
-            Instance = this;
-        }
 
         public void AddStorage(StackKey key, VariableState state)
         {
             if (key.def is not VariableDefinition) return;
-            //Debug.Log($"{key.def.displayName} 이(가) {state.Amount} 추가되었습니다.");
+            Debug.Log($"{key.def.displayName} 이(가) {state.Amount} 추가되었습니다.");
             _raw[key] = state;
             UpdateExclusiveGroups(key);
             RebuildPublic();
@@ -30,7 +25,7 @@ namespace PlayerScripts.Stack
         public void RemoveStorage(StackKey key, int amount = 0)
         {
             if (key.def is not VariableDefinition) return;
-            //Debug.Log($"{key.def.displayName} 이(가) 삭제되었습니다.");
+            Debug.Log($"{key.def.displayName} 이(가) 삭제되었습니다.");
             _raw.Remove(key);
             UpdateExclusiveGroups(key);
             RebuildPublic();
@@ -40,14 +35,14 @@ namespace PlayerScripts.Stack
         {
             if (ignoreExclusive)
             {
-                foreach (var key in Public.Keys)
+                foreach (var key in _raw.Keys)
                 {
-                    Debug.Log($"{key.def.displayName}이 공개되었습니다.");
+                    Debug.Log($"{key.def.displayName}이 존재합니다.");
                 }
             }
             else
             {
-                foreach (var key in _raw.Keys)
+                foreach (var key in Public.Keys)
                 {
                     Debug.Log($"{key.def.displayName}이 공개되었습니다.");
                 }
@@ -58,6 +53,28 @@ namespace PlayerScripts.Stack
         {
             var key = new StackKey(def);
             return Public.TryGetValue(key, out var value) ? new SwitchVariable(def, value.Amount) : new SwitchVariable(def, 0);
+        }
+
+        public bool Has(StackDefinition def) //Don't check applier since VariableDefinition itself doesn't have its applier
+        {
+            var found = false;
+            foreach (var key in Public.Keys)
+            {
+                found = key.def == def;
+                if (found) break;
+            }
+            return found;
+        }
+
+        public bool Has(StackKey stack) //It checks applier
+        {
+            var found = false;
+            foreach (var key in Public.Keys)
+            {
+                found = key.Equals(stack);
+                if (found) break;
+            }
+            return found;
         }
         private void UpdateExclusiveGroups(StackKey key)
         {

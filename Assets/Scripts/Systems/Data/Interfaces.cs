@@ -16,6 +16,7 @@ namespace Systems.Data
 	public interface IStackable
 	{
 		public void ApplyStack(StackKey key, ushort tick = 0, int amount = 1, StackMetadata metadata = default);
+		public void TryRemoveStack(SwitchVariable sv);
 	}
 
 	#region ===== Effect =====
@@ -169,7 +170,7 @@ namespace Systems.Data
 	}
 	public enum DamageType
 	{
-		Normal = 0, Fixed, CurrentPercent, LostPercent, MaxPercent
+		Normal, Fixed, CurrentPercent, LostPercent, MaxPercent
 	}
 	public interface IStatProvider
 	{

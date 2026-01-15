@@ -46,6 +46,16 @@ namespace Moves.ObjectEntity
         public Vector2 GetBoxSize() => new Vector2(Width, Height) / 1000f;
 
         public float GetRotation() => RotationZ;
+
+        public void SetCenter(FixedVector2 center)
+        {
+            CenterCoordinate = center;
+        }
+
+        public void SetCenter(Vector2 center)
+        {
+            CenterCoordinate = new FixedVector2(center);
+        }
     }
     public class LaserArea : IBoxLikeArea
     {

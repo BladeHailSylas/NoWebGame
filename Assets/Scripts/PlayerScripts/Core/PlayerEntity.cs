@@ -37,13 +37,14 @@ namespace PlayerScripts.Core
         private Attacker _attacker;
         private ActBridge _actBridge;
         private StackManager _stackManager;
+        private InteractionFilter _filter;
+        private VariableStorage _storage;
 
         private void Awake()
         {
             _logger = new Logger(gameObject.name);
             targetResolver ??= GetComponent<TargetResolver>();
             commandCollector ??= GetComponent<CommandCollector>();
-
             if (!ValidateDependencies())
             {
                 enabled = false;
@@ -61,15 +62,18 @@ namespace PlayerScripts.Core
                 spec.baseDefense,
                 spec.baseSpeed
             );
+            _context.RegisterScheduler(Time.DelayScheduler);
+            _storage = new VariableStorage();
+            _stackManager = new StackManager(_context, _storage);
+            _context.RegisterVariableStorage(_storage);
+            _context.RegisterStackManager(_stackManager);
             _statsBridge = new StatsBridge(_context, baseStats);
             _mover = new Mover(_context, _statsBridge, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
             _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
             _actBridge = new ActBridge(_mover, _attacker);
-            _context.RegisterScheduler(Time.DelayScheduler);
             _context.RegisterStats(_statsBridge);
             _context.RegisterAct(_actBridge);
-            _stackManager = new StackManager(_context);
-            _context.RegisterStackManager(_stackManager);
+            _filter = new InteractionFilter(this, _statsBridge, _stackManager);
             _controls = new InputSystem_Actions();
         }
 
@@ -154,6 +158,7 @@ namespace PlayerScripts.Core
 
         private void Dev(ushort tick)
         {
+            _storage.Tell();
             //if (!StackStorage.Storage.TryGetValue("열상", out var def)) return;
             //(new StackKey(def), tick, 1, new StackMetadata(244));
         }
@@ -230,9 +235,9 @@ namespace PlayerScripts.Core
         {
             spec = newSpec;
         }
-        public void TakeDamage(DamageData damage)
+        public new void TakeDamage(DamageData damage)
         {
-            _statsBridge.TakeDamage(damage);
+            _filter.FilterDamage(damage);
         }
         public void Die()
         {
@@ -250,6 +255,13 @@ namespace PlayerScripts.Core
             {
                 _stackManager.EnqueueStack(stackKey, amount, metadata);
             }
+        }
+        
+        public new void TryRemoveStack(SwitchVariable sv)
+        {
+            if (sv.Variable is null || sv.Amount <= 0) return;
+            Debug.Log($"I try to remove the stack {sv.Variable.displayName}");
+            _stackManager.TryConsume(sv);
         }
 
         public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)

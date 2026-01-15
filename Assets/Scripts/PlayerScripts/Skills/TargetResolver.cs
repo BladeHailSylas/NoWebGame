@@ -90,7 +90,6 @@ namespace PlayerScripts.Skills
             var screenPos = Input.mousePosition;
             var worldPos = Camera.main.ScreenToWorldPoint(screenPos);
             worldPos.z = 0f;
-
             var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
             if (hit is null)
             {
@@ -150,7 +149,6 @@ namespace PlayerScripts.Skills
                 distance > req.MaxRange
                     ? casterPos + direction * req.MaxRange
                     : cursorWorld;
-
             // 5. Anchor 대여
             var anchor = AnchorRegistry.Instance.Rent(
                 owner: req.Caster,
@@ -175,7 +173,7 @@ namespace PlayerScripts.Skills
         }
         public TargetResolveResult Detect(Transform caster, DetectParams detect)
         {
-            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, LayerMask.GetMask("Foe"));
+            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask);
             TargetResolveResult result;
             switch (request.Mode)
             {
