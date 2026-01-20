@@ -11,12 +11,12 @@ namespace PlayerScripts.Stack
     {
         private readonly Dictionary<StackKey, VariableState> _raw = new();
         private readonly Dictionary<ushort, StackKey> _exclusiveWinners = new();
-        public readonly Dictionary<StackKey, VariableState> Public = new();
+        private readonly Dictionary<StackKey, VariableState> _public = new();
 
         public void AddStorage(StackKey key, VariableState state)
         {
             if (key.def is not VariableDefinition) return;
-            Debug.Log($"{key.def.displayName} 이(가) {state.Amount} 추가되었습니다.");
+            //Debug.Log($"{key.def.displayName} 이(가) {state.Amount} 추가되었습니다.");
             _raw[key] = state;
             UpdateExclusiveGroups(key);
             RebuildPublic();
@@ -25,7 +25,7 @@ namespace PlayerScripts.Stack
         public void RemoveStorage(StackKey key, int amount = 0)
         {
             if (key.def is not VariableDefinition) return;
-            Debug.Log($"{key.def.displayName} 이(가) 삭제되었습니다.");
+            //Debug.Log($"{key.def.displayName} 이(가) 삭제되었습니다.");
             _raw.Remove(key);
             UpdateExclusiveGroups(key);
             RebuildPublic();
@@ -33,32 +33,36 @@ namespace PlayerScripts.Stack
 
         public void Tell(bool ignoreExclusive = false)
         {
-            if (ignoreExclusive)
+            if (!ignoreExclusive)
             {
-                foreach (var key in _raw.Keys)
-                {
-                    Debug.Log($"{key.def.displayName}이 존재합니다.");
-                }
-            }
-            else
-            {
-                foreach (var key in Public.Keys)
+                foreach (var key in _public.Keys)
                 {
                     Debug.Log($"{key.def.displayName}이 공개되었습니다.");
                 }
+                return;
             }
+            foreach (var key in _raw.Keys)
+            {
+                if (!_public.ContainsKey(key))
+                {
+                    Debug.Log($"{key.def.displayName}이 존재하지만 숨겨졌습니다.");
+                    continue;
+                }
+                Debug.Log($"공개된 {key.def.displayName}이 존재합니다.");
+            }
+            
         }
 
         public SwitchVariable GetVariable(VariableDefinition def)
         {
             var key = new StackKey(def);
-            return Public.TryGetValue(key, out var value) ? new SwitchVariable(def, value.Amount) : new SwitchVariable(def, 0);
+            return _public.TryGetValue(key, out var value) ? new SwitchVariable(def, value.Amount) : new SwitchVariable(def, 0);
         }
 
         public bool Has(StackDefinition def) //Don't check applier since VariableDefinition itself doesn't have its applier
         {
             var found = false;
-            foreach (var key in Public.Keys)
+            foreach (var key in _public.Keys)
             {
                 found = key.def == def;
                 if (found) break;
@@ -69,7 +73,7 @@ namespace PlayerScripts.Stack
         public bool Has(StackKey stack) //It checks applier
         {
             var found = false;
-            foreach (var key in Public.Keys)
+            foreach (var key in _public.Keys)
             {
                 found = key.Equals(stack);
                 if (found) break;
@@ -127,11 +131,9 @@ namespace PlayerScripts.Stack
                         {
                             int oldPri = ((VariableDefinition)winner.Value.def).exclusivePriority;
                             int newPri = vd.exclusivePriority;
-                            if (newPri > oldPri)
-                            {
-                                winner = stackKey;
-                                winnerState = variableState;
-                            }
+                            if (newPri <= oldPri) continue;
+                            winner = stackKey;
+                            winnerState = variableState;
                         }
                     }
                 }
@@ -145,7 +147,7 @@ namespace PlayerScripts.Stack
         }
         private void RebuildPublic()
         {
-            Public.Clear();
+            _public.Clear();
 
             // 1) exclusive가 아닌 Variable은 모두 추가
             foreach (var kv in _raw)
@@ -159,7 +161,7 @@ namespace PlayerScripts.Stack
                 if (key.def is VariableDefinition { exclusiveGroup: { Length: > 0 } }) continue; // exclusive는 이 단계에서 보류
 
                 // non-exclusive는 그대로 공개
-                Public[key] = state;
+                _public[key] = state;
             }
 
             // 2) exclusive winner만 추가
@@ -167,7 +169,7 @@ namespace PlayerScripts.Stack
             {
                 if (_raw.TryGetValue(winnerKey, out var state) && state.Amount > 0)
                 {
-                    Public[winnerKey] = state;
+                    _public[winnerKey] = state;
                 }
             }
         }

@@ -732,7 +732,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Systems.Data.EnemyEntity
   targetable: 1
   Owner: {fileID: 0}
-  spec: {fileID: 11400000, guid: f4afef2b6294afb448b5084b95567066, type: 2}
+  spec: {fileID: 11400000, guid: ba36a303aff0ad643b7c60be4ed6161b, type: 2}
   targetResolver: {fileID: 0}
   commandCollector: {fileID: 0}
 --- !u!1 &977408137
@@ -769,7 +769,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   rayDistance: 50
-  debugLog: 1
+  debugLog: 0
 --- !u!4 &977408139
 Transform:
   m_ObjectHideFlags: 0
@@ -1500,6 +1500,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7bba607f57a8d974793180efb63d55b2, type: 2}
   - {fileID: 11400000, guid: 9cd5746326c9a48488a8bb9a52bbd770, type: 2}
   - {fileID: 11400000, guid: e987529f010a6df48b34f45c9c8b70eb, type: 2}
+  - {fileID: 11400000, guid: 3b5ffe37414f45d429b0940d397c5689, type: 2}
 --- !u!4 &1611561276
 Transform:
   m_ObjectHideFlags: 0

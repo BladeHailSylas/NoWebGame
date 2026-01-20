@@ -16,7 +16,6 @@ namespace Moves.ObjectEntity
         public void Init(CastContext ctx)
         {
             if (ctx.Params is not SummonParams param) return;
-            Debug.Log("I live");
             Owner = ctx.Caster;
             gameObject.layer = LayerMask.NameToLayer("You");
             Awaken(param);
