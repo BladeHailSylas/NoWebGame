@@ -78,7 +78,7 @@ namespace PlayerScripts.Stack
                      select key)
             {
                 // DelayId가 완료되었을 때 "무슨 의미인지"는 Definition이 결정
-                if (key.def is VariableDefinition va && va.isPeriodic)
+                if (key.def is VariableDefinition { isPeriodic: true })
                 {
                     periodicKeys ??= new List<StackKey>();
                     periodicKeys.Add(key);

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Characters;
 using JetBrains.Annotations;
@@ -13,6 +14,7 @@ using Systems.Stacks.Instances;
 using Systems.Time;
 using UnityEngine;
 using Logger = PlayerScripts.Core.Logger;
+using Random = System.Random;
 
 namespace Systems.Data
 {
@@ -37,6 +39,8 @@ namespace Systems.Data
         private ActBridge _actBridge;
         private StackManager _stackManager;
         private InteractionFilter _filter;
+        private Random _rand;
+        private Vector2 _vec;
 
         private void Awake()
         {
@@ -49,6 +53,8 @@ namespace Systems.Data
                 enabled = false;
                 return;
             }
+
+            _rand = new Random();
 
             _context = new Context(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
             var baseStats = new BaseStatsContainer(
@@ -69,6 +75,7 @@ namespace Systems.Data
             _context.RegisterAct(_actBridge);
             _stackManager = new StackManager(_context, new VariableStorage());
             _context.RegisterStackManager(_stackManager);
+            
             _filter = new InteractionFilter(this, _statsBridge, _stackManager);
         }
 
@@ -109,16 +116,36 @@ namespace Systems.Data
             _stackManager.Tick(tick);
             _actBridge.Tick(tick);
             _statsBridge.Tick(tick);
-            if (tick % 60 is 0)
+            switch (tick % 30)
             {
-                Dev(tick);
+                case >= 15:
+                    return;
+                case 0:
+                {
+                    var movement = _rand.Next(8);
+                    _vec = movement switch
+                    {
+                        0 => new Vector2(-1, 1).normalized,
+                        1 => new Vector2(1, 0),
+                        2 => new Vector2(1, 1).normalized,
+                        3 => new Vector2(0, 1),
+                        4 => new Vector2(-1, 0),
+                        5 => new Vector2(-1, -1).normalized,
+                        6 => new Vector2(0, -1),
+                        7 => new Vector2(1, -1).normalized,
+                        _ => Vector2.zero
+                    };
+                    break;
+                }
+                default:
+                    //Dev(tick, _vec);
+                    break;
             }
         }
 
-        private void Dev(ushort tick)
+        private void Dev(ushort tick, Vector2 vec)
         {
-            //if (!StackStorage.Storage.TryGetValue("열상", out var def)) return;
-            //ApplyStack(new StackKey(def), tick, 1, new StackMetadata(244));
+            _actBridge.SetMovementInput(vec);
         }
         public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
         {

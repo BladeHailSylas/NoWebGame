@@ -4,8 +4,8 @@ using Moves.Mechanisms;
 using Systems.Anchor;
 using Systems.Data;
 using Systems.SubSystems;
-using Systems.Time;
 using UnityEngine;
+using Time = Systems.Time.Time;
 
 namespace Moves.ObjectEntity
 {
@@ -57,7 +57,7 @@ namespace Moves.ObjectEntity
                 return;
             }
 
-            Ticker.Instance.OnTick += TickHandler;
+            Time.Ticker.OnTick += TickHandler;
         }
         private void TickHandler(ushort tick)
         {
@@ -122,7 +122,7 @@ namespace Moves.ObjectEntity
 
         private void Expire()
         {
-            Ticker.Instance.OnTick -= TickHandler;
+            Time.Ticker.OnTick -= TickHandler;
             if (_onExpire.Count == 0)
             {
                 if (_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))

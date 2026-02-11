@@ -43,6 +43,10 @@ namespace PlayerScripts.Stats
             Stats.ResetToBase();
         }
 
+        public float GetSpeed()
+        {
+            return Stats.Speed / 1000f;
+        }
         private void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
         {
             Stats.ReduceStat(stat, amount, apRatio, type);

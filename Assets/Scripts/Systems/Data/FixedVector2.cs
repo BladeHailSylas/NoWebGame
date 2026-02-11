@@ -53,8 +53,8 @@ namespace Systems.Data
 
 		public FixedVector2(float x, float y)
 		{
-			_rawX = (int)Math.Round(x * UnitsPerFloat);
-			_rawY = (int)Math.Round(y * UnitsPerFloat);
+			_rawX = (int)Math.Round(x);
+			_rawY = (int)Math.Round(y);
 		}
 
 		public FixedVector2(Vector2 vector)
@@ -96,6 +96,11 @@ namespace Systems.Data
 		}
 
 		public static FixedVector2 operator *(FixedVector2 vector, int scalar)
+		{
+			return new FixedVector2(scalar * vector._rawX, scalar * vector._rawY);
+		}
+
+		public static FixedVector2 operator *(FixedVector2 vector, float scalar)
 		{
 			return new FixedVector2(scalar * vector._rawX, scalar * vector._rawY);
 		}

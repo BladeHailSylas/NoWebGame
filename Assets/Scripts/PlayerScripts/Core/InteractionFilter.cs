@@ -3,6 +3,7 @@ using PlayerScripts.Stack;
 using PlayerScripts.Stats;
 using Systems.Data;
 using Systems.Stacks.Instances;
+using Systems.SubSystems;
 using UnityEngine;
 
 namespace PlayerScripts.Core
@@ -87,10 +88,10 @@ namespace PlayerScripts.Core
 
             // 4. Layer 기반 아군 / 적 판정
             // (정책이 아니라 '사실 계산'이므로 여기서 사용해도 됨)
-            if (IsAllyLayer(sourceEntity.gameObject.layer, baseLayer))
+            if (AllyEnemyChecker.IsAlly(sourceEntity.gameObject.layer, baseLayer))
                 return RelationType.Ally;
 
-            if (IsEnemyLayer(sourceEntity.gameObject.layer, baseLayer))
+            if (AllyEnemyChecker.IsEnemy(sourceEntity.gameObject.layer, baseLayer))
                 return RelationType.Enemy;
 
             return RelationType.Neutral;
@@ -103,31 +104,5 @@ namespace PlayerScripts.Core
             Enemy,
             Neutral
         }
-        private bool IsAllyLayer(int layer, int source)
-        {
-            if(source == LayerMask.NameToLayer("You"))
-            {
-                return layer == LayerMask.NameToLayer("You") || layer == LayerMask.NameToLayer("Ally");
-            }
-            if (source == LayerMask.NameToLayer("Foe"))
-            {
-                return layer == LayerMask.NameToLayer("Foe");
-            }
-            return false;
-        }
-
-        private bool IsEnemyLayer(int layer, int source)
-        {
-            if(source == LayerMask.NameToLayer("Foe"))
-            {
-                return layer == LayerMask.NameToLayer("You") || layer == LayerMask.NameToLayer("Ally");
-            }
-            if (source == LayerMask.NameToLayer("You") || source == LayerMask.NameToLayer("Ally"))
-            {
-                return layer == LayerMask.NameToLayer("Foe");
-            }
-            return false;
-        }
-
     }
 }
