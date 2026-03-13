@@ -10,7 +10,7 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
-.plastic/
+/.plastic/
 *.log
 
 # MemoryCaptures can get excessive in size.

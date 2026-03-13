@@ -36,6 +36,7 @@ namespace PlayerScripts.Stats
         }
         public void TakeDamage(DamageData data)
         {
+            _context.SpriteManager?.Flash();
             Stats.ReduceStat(ReduceType.Health, data);
         }
         public void ResetStats()

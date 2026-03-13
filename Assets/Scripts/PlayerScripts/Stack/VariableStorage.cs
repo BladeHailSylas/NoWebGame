@@ -121,7 +121,7 @@ namespace PlayerScripts.Stack
                     {
                         var ws = winnerState.Value;
                         // ① lastTick이 큰 쪽 승자
-                        if (variableState.LastTick > ws.LastTick)
+                        if (variableState.LastTick < ws.LastTick)
                         {
                             winner = stackKey;
                             winnerState = variableState;

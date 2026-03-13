@@ -60,7 +60,7 @@ namespace Utils
 
         void Update()
         {
-            if (_cam == null) return;
+            if (_cam is null) return;
 
             // 1) 시작점: 플레이어(현재 오브젝트) 위치
             var start = transform.position;

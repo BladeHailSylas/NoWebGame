@@ -6,6 +6,7 @@ using PlayerScripts.Stats;
 using Systems.Data;
 using Systems.SubSystems;
 using Systems.Time;
+using UIs;
 using UnityEngine;
 
 namespace PlayerScripts.Core
@@ -31,6 +32,11 @@ namespace PlayerScripts.Core
         public VariableStorage VariableStorage { get; private set; }
         
         public DelayScheduler DelayScheduler { get; private set; }
+        public SpriteManager SpriteManager { get; private set; } //Temporary
+        public void RegisterSpriteManager(SpriteManager manager) //Also temporary
+        {
+            SpriteManager = manager;
+        }
 
         public Context(Entity owner, GameObject gameObject, Transform transform, TargetResolver resolver, CommandCollector collector, CharacterSpec spec, ILogger logger)
         {

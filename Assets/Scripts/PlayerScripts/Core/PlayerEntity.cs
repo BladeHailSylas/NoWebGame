@@ -11,6 +11,7 @@ using Systems.Stacks.Definition;
 using Systems.Stacks.Instances;
 using Systems.SubSystems;
 using Systems.Time;
+using UIs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Time = Systems.Time.Time;
@@ -19,7 +20,7 @@ namespace PlayerScripts.Core
 {
     /// <summary>
     /// MonoBehaviour entry point that orchestrates all player-related modules. It
-    /// centralises lifecycle management and bridges Unity callbacks into pure C#
+    /// centralizes lifecycle management and bridges Unity callbacks into pure C#
     /// systems for maintainability.
     /// </summary>
     [DisallowMultipleComponent]
@@ -76,6 +77,11 @@ namespace PlayerScripts.Core
             _context.RegisterAct(_actBridge);
             _filter = new InteractionFilter(this, _statsBridge, _stackManager);
             _controls = new InputSystem_Actions();
+            gameObject.TryGetComponent<SpriteManager>(out var spriteManager);
+            if (spriteManager is not null)
+            {
+                _context.RegisterSpriteManager(spriteManager);
+            }
         }
 
         private bool ValidateDependencies()
@@ -105,6 +111,11 @@ namespace PlayerScripts.Core
                 return;
             }
             _controls.Enable();
+            if(_controls.Player.Move == null)
+            {
+                _logger.Error("Player.Move input action missing.");
+                return;
+            }
             _controls.Player.Move.performed += OnMovePerformed;
             _controls.Player.Move.canceled += OnMoveCanceled;
             _controls.Player.Attack.performed += OnAttackPrepared;
@@ -166,6 +177,7 @@ namespace PlayerScripts.Core
 
         private void OnMovePerformed(InputAction.CallbackContext ctx)
         {
+            _logger.Info("Move input: " + ctx.ReadValue<Vector2>());
             _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
         }
 

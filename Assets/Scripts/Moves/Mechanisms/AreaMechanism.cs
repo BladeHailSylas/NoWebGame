@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Moves.Effects.Definitions;
 using Moves.ObjectEntity;
 using Systems.Data;
 using UnityEngine;
@@ -36,5 +37,6 @@ namespace Moves.Mechanisms
         public AreaEntity areaPrefab;
         public List<MechanismRef> onEnter;
         public List<MechanismRef> onExpire;
+        public AreaEffectEntity effectPrefab;
     }
 }

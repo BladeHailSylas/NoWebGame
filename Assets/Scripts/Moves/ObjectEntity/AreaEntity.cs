@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Moves.Effects.Definitions;
 using Moves.Mechanisms;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
@@ -84,6 +85,7 @@ namespace Moves.ObjectEntity
 
         private void ActivateInterval()
         {
+            Effect();
             switch (areaShape)
             {
                 case CircleArea circle:
@@ -139,6 +141,27 @@ namespace Moves.ObjectEntity
                 SkillUtils.ActivateFollowUp(_onExpire, _ctx);
             }
             Destroy(gameObject);
+        }
+
+        private void Effect()
+        {
+            if(_ctx.Params is not AreaParams param) return;
+            if (param.effectPrefab is null) return;
+            var go = Instantiate(param.effectPrefab, transform.position, Quaternion.identity);
+            if (!go.TryGetComponent<AreaEffectEntity>(out var effect)) return;
+            switch (areaShape)
+            {
+                case CircleArea circle:
+                    effect.InitCircle(transform.position, circle.Radius / 1000f);
+                    break;
+                case BoxArea box:
+                    effect.InitBox(transform.position, box.GetBoxSize(), box.RotationZ);
+                    break;
+                case LaserArea laser:
+                    effect.transform.position = Vector3.zero;
+                    effect.InitLaser(laser.Start.AsVector2, laser.End.AsVector2, laser.Width / 1000f);
+                    break;
+            }
         }
     }
 }

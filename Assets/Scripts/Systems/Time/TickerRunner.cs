@@ -14,6 +14,7 @@ namespace Systems.Time
             _scheduler = new DelayScheduler();
             Time.Ticker = _ticker;
             Time.DelayScheduler = _scheduler;
+            Time.Initialize();
             Debug.Log("AYAYAY AYAYYYYY");
             StartCoroutine(TickLoop());
         }

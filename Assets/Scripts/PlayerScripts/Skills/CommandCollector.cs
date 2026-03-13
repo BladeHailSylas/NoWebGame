@@ -25,6 +25,7 @@ namespace PlayerScripts.Skills
     {
         private SkillRunner _runner;
         private DelayScheduler _scheduler;
+        private EffectDisplayer _displayer;
         private Ticker _ticker;
 
         // 이중 버퍼: "수집 중" / "이번 Tick에 해결(Resolve)할 입력"
@@ -38,7 +39,8 @@ namespace PlayerScripts.Skills
 
         private void OnEnable()
         {
-            _runner = new SkillRunner(GetComponent<TargetResolver>());
+            _displayer = new EffectDisplayer();
+            _runner = new SkillRunner(GetComponent<TargetResolver>(), _displayer);
             _scheduler = Time.DelayScheduler;
             _ticker = Time.Ticker;
 

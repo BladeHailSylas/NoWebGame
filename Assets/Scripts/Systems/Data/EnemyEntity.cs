@@ -12,6 +12,7 @@ using Systems.Stacks;
 using Systems.Stacks.Definition;
 using Systems.Stacks.Instances;
 using Systems.Time;
+using UIs;
 using UnityEngine;
 using Logger = PlayerScripts.Core.Logger;
 using Random = System.Random;
@@ -77,6 +78,8 @@ namespace Systems.Data
             _context.RegisterStackManager(_stackManager);
             
             _filter = new InteractionFilter(this, _statsBridge, _stackManager);
+            gameObject.TryGetComponent<SpriteManager>(out var spriteManager);
+            _context.RegisterSpriteManager(spriteManager);
         }
 
         private bool ValidateDependencies()
