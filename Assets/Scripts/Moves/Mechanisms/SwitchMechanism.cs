@@ -8,16 +8,11 @@ using UnityEngine;
 namespace Moves.Mechanisms
 {
     /// <summary>
-    /// SwitchMechanism (Exclusive Variable Based)
-    ///
     /// - CastContext에 포함된 Variable은 최대 하나 (Exclusive 정책)
+    /// -> 추후 Public인 모든 Variable을 넘길 필요도 있으나 이 경우에는 Variable 제거를 고려하기 어려움
     /// - Variable "종류"를 기준으로 순차 분기한다.
     /// - 첫 번째로 일치하는 FollowUp을 실행한다.
     /// - 어떤 것도 일치하지 않으면 defaultFollowUp을 실행한다.
-    ///
-    /// 책임:
-    /// - 어떤 FollowUp을 실행할지 결정
-    /// - 수치 / 비례 / 스케일링은 다루지 않음
     /// </summary>
     [CreateAssetMenu(fileName = "SwitchMechanism", menuName = "Skills/Mechanisms/Switch")]
     public class SwitchMechanism : ScriptableObject, INewMechanism
@@ -44,16 +39,12 @@ namespace Moves.Mechanisms
             {
                 foreach (var swCase in param.cases)
                 {
-                    if (swCase.variable is null)
-                        continue;
-
+                    if (swCase.variable is null) continue;
                     // 핵심: "이 Variable이 A인가?"
-                    if (ctxVar.Variable.ID.Equals(swCase.variable.ID))
-                    {
-                        selected = swCase.followUp;
-                        chosen = true;
-                        break;
-                    }
+                    if (!ctxVar.Variable.ID.Equals(swCase.variable.ID)) continue;
+                    selected = swCase.followUp;
+                    chosen = true;
+                    break;
                 }
             }
 

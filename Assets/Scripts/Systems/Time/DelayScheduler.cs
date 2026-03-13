@@ -104,6 +104,18 @@ namespace Systems.Time
             return remaining < 0 ? 0 : remaining;
         }
 
+        public Dictionary<DelayId, (int, int)> GetAllEntries()
+        {
+            var result = new Dictionary<DelayId, (int, int)>();
+            foreach(var (id, value) in _entries)
+            {
+                var end = value.EndTick;
+                var delta = value.DeltaTick;
+                result[id] = (end, delta);
+            }
+            return result;
+        }
+
         /// <summary>
         /// 내부 저장용 Delay 정보
         /// </summary>

@@ -36,6 +36,7 @@ namespace PlayerScripts.Stats
         }
         public void TakeDamage(DamageData data)
         {
+            _context.SpriteManager?.Flash();
             Stats.ReduceStat(ReduceType.Health, data);
         }
         public void ResetStats()
@@ -43,6 +44,10 @@ namespace PlayerScripts.Stats
             Stats.ResetToBase();
         }
 
+        public float GetSpeed()
+        {
+            return Stats.Speed / 1000f;
+        }
         private void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
         {
             Stats.ReduceStat(stat, amount, apRatio, type);

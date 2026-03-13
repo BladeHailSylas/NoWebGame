@@ -78,7 +78,7 @@ namespace PlayerScripts.Stack
                      select key)
             {
                 // DelayId가 완료되었을 때 "무슨 의미인지"는 Definition이 결정
-                if (key.def is VariableDefinition va && va.isPeriodic)
+                if (key.def is VariableDefinition { isPeriodic: true })
                 {
                     periodicKeys ??= new List<StackKey>();
                     periodicKeys.Add(key);
@@ -440,27 +440,26 @@ namespace PlayerScripts.Stack
                     _context.Act.ApplyCC(new CCData(cc.Type, cc.Value));
                     break;
             }
-            //Debug.Log($"{stack.def.displayName}이 적용되었습니다.");
         }
 
         private void ResolveTrigger(StackKey stack, ushort tick, StackMetadata metadata, int amount = 1)
         {
             if (stack.def is not TriggerableDefinition trigger) return;
             int storing;
-            if (!_metadata.TryGetValue(stack, out var storedmeta))
+            if (!_metadata.TryGetValue(stack, out var storedData))
             {
                 storing = metadata.Metadata;
                 _metadata.Add(stack, metadata);
             }
             else
             {
-                storing = storedmeta.Metadata + metadata.Metadata;
+                storing = storedData.Metadata + metadata.Metadata;
             }
             _metadata[stack] = new StackMetadata(storing);
             if (!_stackStorage.TryGetValue(stack, out var status) || status.Amount < trigger.threshold) return;
             if (trigger.effect.mechanism is not INewMechanism mech) return;
             DamageData dmg = new(DamageType.Normal, storing);
-            CastContext ctx = new(trigger.effect.@params, stack.applier, _context.Transform, dmg);
+            CastContext ctx = new(trigger.effect.@params, stack.applier, null, dmg, default, trigger.effect.mode);
             RemoveStackCompletely(stack);
             _metadata[stack] = new StackMetadata(0);
             mech.Execute(ctx);

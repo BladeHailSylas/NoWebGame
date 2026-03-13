@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Moves.Mechanisms;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
 using Systems.Anchor;
 using Systems.Data;
 using Systems.SubSystems;
-using Systems.Time;
 using UnityEngine;
+using Time = Systems.Time.Time;
 
 namespace Moves.ObjectEntity
 {
@@ -59,7 +57,7 @@ namespace Moves.ObjectEntity
                 return;
             }
 
-            Ticker.Instance.OnTick += TickHandler;
+            Time.Ticker.OnTick += TickHandler;
         }
         private void TickHandler(ushort tick)
         {
@@ -77,9 +75,13 @@ namespace Moves.ObjectEntity
         /// </summary>
         private void Move()
         {
-            _velocity = new FixedVector2(
-                (_ctx.Target is not null ? (Vector2)_ctx.Target.transform.position - _location.AsVector2 : Vector2.right)
-                .normalized * _speed);
+            if (_ctx.Target is null)
+            {
+                //Instant kill
+                Expire();
+                return;
+            }
+            _velocity = new FixedVector2(((Vector2)_ctx.Target.transform.position - _location.AsVector2).normalized * _speed);
             _motor.TryMove(_velocity, _penetrative, out var hit);
             {
                 switch (hit.type)
@@ -104,6 +106,10 @@ namespace Moves.ObjectEntity
 
             // 위치 동기화
             _location = new FixedVector2(transform.position);
+            if ((transform.position  - _ctx.Target.position).magnitude < 0.1f)
+            {
+                Expire();
+            }
         }
 
         private void ApplyHit(Collider2D other)
@@ -116,7 +122,7 @@ namespace Moves.ObjectEntity
 
         private void Expire()
         {
-            Ticker.Instance.OnTick -= TickHandler;
+            Time.Ticker.OnTick -= TickHandler;
             if (_onExpire.Count == 0)
             {
                 if (_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))

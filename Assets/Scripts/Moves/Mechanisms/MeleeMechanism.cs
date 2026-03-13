@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Moves;
+using Moves.Effects.Definitions;
 using PlayerScripts.Skills;
 using Systems.Anchor;
 using Systems.Data;
@@ -22,6 +23,14 @@ namespace Moves.Mechanisms
             Vector2 dir = target.position - caster.position;
             var radius = param.MaxRange;
             var halfAngle = param.angleDeg * 0.5f;
+            if (param.effectPrefab is not null)
+            {
+                var go = Instantiate(param.effectPrefab, origin, Quaternion.identity);
+                if (go.TryGetComponent<MeleeEffectEntity>(out var effect))
+                {
+                    effect.Init(origin, radius, param.angleDeg, dir.normalized);
+                }
+            }
 
             // 1) 원형 탐색
             var hits = Physics2D.OverlapCircleAll(origin, radius, param.enemyMask);
@@ -70,6 +79,7 @@ public class MeleeParams : NewParams
     [Header("Area")]
     [Range(0, 360)] public float angleDeg = 120f;
     public LayerMask enemyMask;
+    public MeleeEffectEntity effectPrefab;
     public List<MechanismRef> onHit = new();
     public List<MechanismRef> onExpire = new();
 }

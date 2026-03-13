@@ -146,6 +146,7 @@ namespace Moves.ObjectEntity
         {
             Debug.Log("Oof");
             gameObject.SetActive(false);
+            Destroy(gameObject);
         }
 
         public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)

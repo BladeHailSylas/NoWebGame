@@ -7,9 +7,16 @@ namespace PlayerScripts.Skills
     public class SkillRunner
     {
         private readonly TargetResolver _targetResolver;
+        private readonly EffectDisplayer _displayer;
         public SkillRunner(TargetResolver resolver)
         {
             _targetResolver = resolver;
+        }
+
+        public SkillRunner(TargetResolver resolver, EffectDisplayer displayer)
+        {
+            _targetResolver = resolver;
+            _displayer = displayer;
         }
 
         public void Activate(in SkillCommand cmd)
@@ -39,8 +46,8 @@ namespace PlayerScripts.Skills
                 target = result.Target;
                 mode = cmd.TargetMode;
             }
-            cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target,
-                cmd.Damage, cmd.Var, mode));
+            cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target, cmd.Damage, cmd.Var, mode));
+            _displayer?.Display(cmd);
         }
     }
 }

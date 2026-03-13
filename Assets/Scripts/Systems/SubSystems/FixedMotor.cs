@@ -59,16 +59,23 @@ namespace Systems.SubSystems
             var delta = desiredDelta.ToVector2() / 60f;
             if (delta.sqrMagnitude <= 0f)
                 return;
-
-            // 1️⃣ Remove wall collision normals
-            delta = RemoveNormalComponent(delta, Policy.wallsMask);
-
-            // 2️⃣ Remove enemy collision normals if treated as blockers
-            if (Policy.enemyAsBlocker) delta = RemoveNormalComponent(delta, Policy.enemyMask);
-            if (delta != RemoveNormalComponent(delta, Policy.wallsMask) ||
-                delta != RemoveNormalComponent(delta, Policy.enemyMask))
+            // 벽
+            int selfLayer = _col.gameObject.layer;
+            delta = RemoveNormalComponent(
+                delta,
+                Policy.wallsMask,
+                selfLayer,
+                (target, self) => true // 벽은 항상 blocker
+            );
+            // 유닛
+            if (Policy.enemyAsBlocker)
             {
-                return;
+                delta = RemoveNormalComponent(
+                    delta,
+                    Policy.enemyMask,
+                    selfLayer,
+                    AllyEnemyChecker.IsEnemy // ← 여기!
+                );
             }
             // 3️⃣ Apply movement
             var target = _rb.position + delta;
@@ -132,7 +139,12 @@ namespace Systems.SubSystems
         }
 
 
-        private Vector2 RemoveNormalComponent(Vector2 vector, LayerMask mask, bool treatedAsBlocker = true)
+        private Vector2 RemoveNormalComponent(
+            Vector2 vector,
+            LayerMask detectMask,
+            int selfLayer,
+            Func<int, int, bool> isBlocker // (targetLayer, selfLayer) => bool
+        )
         {
             var vFinal = vector;
             var magnitude = vFinal.magnitude;
@@ -144,17 +156,24 @@ namespace Systems.SubSystems
             var skinRadius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
             var distance = vector.magnitude;
 
-            var hits = Physics2D.CircleCastAll(origin, skinRadius, direction, distance, mask);
+            var hits = Physics2D.CircleCastAll(origin, skinRadius, direction, distance, detectMask);
+
             foreach (var hit in hits)
             {
                 if (!hit.collider) continue;
-                if (mask == Policy.enemyMask && !Policy.enemyAsBlocker) continue;
+
+                var targetLayer = hit.collider.gameObject.layer;
+
+                // 🔴 여기서만 차단 여부 판단
+                if (!isBlocker(targetLayer, selfLayer))
+                    continue;
 
                 var n = hit.normal.normalized;
                 var dot = Vector2.Dot(vFinal, n);
-                if (Mathf.Abs(dot) > 0f && treatedAsBlocker)
+                if (Mathf.Abs(dot) > 0f)
                     vFinal -= dot * n;
             }
+
 
             return vFinal;
         }
@@ -195,6 +214,11 @@ namespace Systems.SubSystems
             _rb.MovePosition(newPos);
             _pos = new FixedVector2(newPos);
             _needsSync = true;
+        }
+
+        private Vector2 ComputeDepenetration(Func<int, int, bool> isBlocker)
+        {
+            return Vector2.zero;
         }
     }
 

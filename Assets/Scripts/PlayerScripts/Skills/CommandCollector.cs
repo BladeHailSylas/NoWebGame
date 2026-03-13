@@ -25,6 +25,7 @@ namespace PlayerScripts.Skills
     {
         private SkillRunner _runner;
         private DelayScheduler _scheduler;
+        private EffectDisplayer _displayer;
         private Ticker _ticker;
 
         // 이중 버퍼: "수집 중" / "이번 Tick에 해결(Resolve)할 입력"
@@ -38,7 +39,8 @@ namespace PlayerScripts.Skills
 
         private void OnEnable()
         {
-            _runner = new SkillRunner(GetComponent<TargetResolver>());
+            _displayer = new EffectDisplayer();
+            _runner = new SkillRunner(GetComponent<TargetResolver>(), _displayer);
             _scheduler = Time.DelayScheduler;
             _ticker = Time.Ticker;
 
@@ -112,11 +114,12 @@ namespace PlayerScripts.Skills
                 // 즉시 실행
                 _runner.Activate(entry.Command);
                 executedIndices.Add(i);
+                // 아래는 SwitchVariable 처리 로직
                 if (entry.Command is not { Mech: SwitchMechanism sw, Params: SwitchParams param }) continue;
                 var caster = entry.Command.Caster;
-                if (!caster.TryGetComponent<IStackable>(out var entity)) continue;
+                if (!caster.TryGetComponent<IStackable>(out var stackable)) continue;
                 if (entry.Command.Var.Variable is null) continue;
-                entity.TryRemoveStack(entry.Command.Var);
+                stackable.TryRemoveStack(entry.Command.Var);
             }
 
             

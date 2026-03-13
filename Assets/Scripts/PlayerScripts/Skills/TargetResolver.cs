@@ -135,10 +135,8 @@ namespace PlayerScripts.Skills
             // 2. 최소 사거리 검사
             if (distance < req.MinRange)
             {
-                if (debugLog)
-                    Debug.Log($"[TargetResolver] 커서가 최소 사거리보다 가까움 ({distance:F2})");
-
-                return new TargetResolveResult(null, req.CasterPos, false);
+                //if (debugLog) Debug.Log($"[TargetResolver] 커서가 최소 사거리보다 가까움 ({distance:F2})");
+                distance = req.MinRange;
             }
 
             // 3. 방향 계산

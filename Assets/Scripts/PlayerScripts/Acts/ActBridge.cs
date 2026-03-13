@@ -46,7 +46,7 @@ namespace PlayerScripts.Acts
 
         public void AddDashContract(DashContract contract)
         {
-            DashContract dashContract = new DashContract(
+            var dashContract = new DashContract(
                 contract.Context, (ushort)(contract.EndTick + _tick), contract.Speed, contract.PreventActivation, contract.Penetrative,
                 contract.OnHit, contract.OnExpire, contract.ExpireWhenUnexpected
             );

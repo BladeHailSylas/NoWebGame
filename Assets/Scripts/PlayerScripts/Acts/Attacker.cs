@@ -115,7 +115,7 @@ namespace PlayerScripts.Acts
             
             if (_onCooldown.TryGetValue(slot, out var delayId) && !delayId.Equals(default))
             {
-                Debug.Log("Cooldown...");
+                _context.Logger.Warn($"Skill in slot {slot} is on cooldown.");
                 // 쿨타임 중 → 발동 불가
                 return;
             }

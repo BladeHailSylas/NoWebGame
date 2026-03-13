@@ -83,8 +83,9 @@ namespace PlayerScripts.Acts
             _motor.Depenetrate(); //Always depenetrate, even when neutral(Enemies can overlap the player)
             _moveVector = move.AsVector2;
             if (!(_moveVector.sqrMagnitude > 1e-6f)) return;
-            var speed = _stats.Stats.Speed;
-            _motor.Move(move.Normalized * speed);
+            var speed = _stats.GetSpeed();
+            var vector = move.Normalized * speed;
+            _motor.Move(vector);
             _motor.Depenetrate();
         }
 
