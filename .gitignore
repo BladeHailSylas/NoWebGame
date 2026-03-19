@@ -10,7 +10,10 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
-/.plastic/
+/[Aa]ssets/[Tt]extMesh Pro/
+/[Aa]ssets/_Recovery/
+.plastic/
+
 *.log
 
 # MemoryCaptures can get excessive in size.
