@@ -1,35 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
+using PlayerScripts.Skills;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
     [CreateAssetMenu(menuName = "Skills/Mechanisms/Projectile")]
-    public class ProjectileMechanism : ScriptableObject, INewMechanism
-    {
-        public void Execute(CastContext ctx)
-        {
-            if (ctx.Params is not ProjectileParams param)
-            {
-                //Debug.LogError("[ProjectileMechanism] Invalid parameter type.");
-                return;
-            }
-
-            // 1️⃣ Spawn position
-            var spawnPos = ctx.Caster.position;
-
-            // 2️⃣ Projectile 생성
-            var go = Instantiate(param.projectilePrefab, spawnPos, Quaternion.identity);
-            if (!go.TryGetComponent<ProjectileEntity>(out var entity))
-                return;
-            // 4️⃣ Projectile 초기화
-            entity.Init(ctx);
-        }
-    }
-
-    [Serializable]
-    public class ProjectileParams : NewParams
+    public class ProjectileMechanism : NewMechanism
     {
         [Header("Time")]
         public ushort lifeTick;
@@ -38,10 +15,25 @@ namespace Moves.Mechanisms
         public ProjectileEntity projectilePrefab;
         public int speed;
         public bool penetrative;
-        // Range limits for this mechanism (world units).
 
         [Header("Callbacks")]
         public List<SkillData> onHit;
         public List<SkillData> onExpire;
+
+        public new void Execute(CastContext ctx)
+        {
+            if (ctx.Mech is not ProjectileMechanism mech)
+            {
+                return;
+            }
+
+            var spawnPos = ctx.Caster.position;
+            var go = Instantiate(mech.projectilePrefab, spawnPos, Quaternion.identity);
+            if (!go.TryGetComponent<ProjectileEntity>(out var entity))
+                return;
+
+            // The projectile reads the originating mechanism through CastContext.
+            entity.Init(ctx);
+        }
     }
 }

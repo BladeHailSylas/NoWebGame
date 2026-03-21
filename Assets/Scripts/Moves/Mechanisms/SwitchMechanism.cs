@@ -1,4 +1,3 @@
-using System;
 using PlayerScripts.Skills;
 using Systems.Anchor;
 using Systems.Data;
@@ -15,32 +14,34 @@ namespace Moves.Mechanisms
     /// - 어떤 것도 일치하지 않으면 defaultFollowUp을 실행한다.
     /// </summary>
     [CreateAssetMenu(fileName = "SwitchMechanism", menuName = "Skills/Mechanisms/Switch")]
-    public class SwitchMechanism : ScriptableObject, INewMechanism
+    public class SwitchMechanism : NewMechanism
     {
+        [Tooltip("우선순위 순으로 검사되는 Variable 분기 목록")]
+        public SwitchCase[] cases;
+
+        [Tooltip("어떤 Variable에도 해당하지 않을 때 실행될 기본 FollowUp")]
+        public SkillData defaultFollowUp;
+
         public void Prepare(CastContext ctx)
         {
             // 현재는 의도적으로 비워 둔다.
             // Hold / Preview / UI 표시가 필요해질 경우 이 지점에서 확장.
         }
 
-        public void Execute(CastContext ctx)
+        public new void Execute(CastContext ctx)
         {
-            if (ctx.Params is not SwitchParams param)
+            if (ctx.Mech is not SwitchMechanism mech)
                 return;
 
             SkillData selected = default;
             var chosen = false;
-
-            // CastContext에 Variable이 없는 경우도 고려
             var ctxVar = ctx.Var;
 
-            // 1) Variable 분기 검사 (순서 = 우선순위)
-            if (ctxVar.Variable is not null && param.cases != null)
+            if (ctxVar.Variable is not null && mech.cases != null)
             {
-                foreach (var swCase in param.cases)
+                foreach (var swCase in mech.cases)
                 {
                     if (swCase.variable is null) continue;
-                    // 핵심: "이 Variable이 A인가?"
                     if (!ctxVar.Variable.ID.Equals(swCase.variable.ID)) continue;
                     selected = swCase.followUp;
                     chosen = true;
@@ -48,52 +49,35 @@ namespace Moves.Mechanisms
                 }
             }
 
-            // 2) 어떤 case도 매칭되지 않았으면 default
             if (!chosen)
             {
-                selected = param.defaultFollowUp;
+                selected = mech.defaultFollowUp;
             }
 
-            // 3) 실행 가능하지 않으면 종료
-            if (selected.mechanism is not INewMechanism mech)
+            if (selected.mechanism is not INewMechanism selectedMechanism)
             {
-                if(ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
+                if (ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
                     AnchorRegistry.Instance.Return(anchor);
                 return;
             }
 
-            // 4) FollowUp 실행
             var target = selected.requireRetarget ? null : ctx.Target;
-
             SkillCommand cmd = new(
                 ctx.Caster,
                 ctx.Mode,
                 new FixedVector2(ctx.Caster.position),
-                mech,
-                selected.@params,
+                selectedMechanism,
                 ctx.Damage,
-                target
+                target,
+                ctx.Var,
+                ctx.Mech.Mask
             );
 
             CommandCollector.Instance.EnqueueCommand(cmd);
         }
     }
 
-    // =========================
-    // Params & Case Definitions
-    // =========================
-
-    [Serializable]
-    public class SwitchParams : NewParams
-    {
-        [Tooltip("우선순위 순으로 검사되는 Variable 분기 목록")]
-        public SwitchCase[] cases;
-
-        [Tooltip("어떤 Variable에도 해당하지 않을 때 실행될 기본 FollowUp")]
-        public SkillData defaultFollowUp;
-    }
-
-    [Serializable]
+    [System.Serializable]
     public class SwitchCase
     {
         [Tooltip("이 Variable이면 해당 FollowUp 실행")]

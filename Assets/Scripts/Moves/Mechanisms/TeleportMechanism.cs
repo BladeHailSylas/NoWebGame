@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using PlayerScripts.Acts;
 using PlayerScripts.Core;
@@ -8,23 +7,20 @@ using UnityEngine;
 namespace Moves.Mechanisms
 {
     [CreateAssetMenu(fileName = "TeleportMechanism", menuName = "Skills/Mechanisms/Teleport")]
-    public class TeleportMechanism : ScriptableObject, INewMechanism
+    public class TeleportMechanism : NewMechanism
     {
-        public void Execute(CastContext ctx)
+        [Header("Settings")]
+        public bool ignoreEnemy;
+        public List<SkillData> onArrival;
+
+        public new void Execute(CastContext ctx)
         {
-            //ITeleportative
-            if (ctx.Params is not TeleportParams param) return;
-            if(!ctx.Caster.TryGetComponent<ITeleportative>(out var tp)) return;
+            if (ctx.Mech is not TeleportMechanism mech) return;
+            if (!ctx.Caster.TryGetComponent<ITeleportative>(out var tp)) return;
+
+            // The runtime contract now resolves all teleport options from the mechanism itself.
             var contract = new TeleportContract(ctx);
             tp.AddTeleportContract(contract);
         }
-    }
-
-    [Serializable]
-    public class TeleportParams : NewParams
-    {
-        // Range limits for this mechanism (world units).
-        public bool ignoreEnemy;
-        public List<SkillData> onArrival;
     }
 }
