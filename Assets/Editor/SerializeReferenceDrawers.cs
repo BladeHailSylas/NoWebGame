@@ -4,6 +4,13 @@ using UnityEditor;
 
 namespace Editor
 {
+    [CustomPropertyDrawer(typeof(INewParams), true)]
+    public class INewParamsDrawer : SerializeReferenceDrawerBase<INewParams>
+    {
+        protected override string DropdownLabel => "Param Type";
+        protected override string FieldLabel => "Param Data";
+    }
+    
     [CustomPropertyDrawer(typeof(INewMechanism), true)]
     public class INewMechanismDrawer : SerializeReferenceDrawerBase<INewMechanism>
     {
@@ -23,12 +30,5 @@ namespace Editor
     {
         protected override string DropdownLabel => "Shape Type";
         protected override string FieldLabel => "Shape Data";
-    }
-
-    [CustomPropertyDrawer(typeof(MechanismData), true)]
-    public class SkillDataDrawer : SerializeReferenceDrawerBase<MechanismData>
-    {
-        protected override string DropdownLabel => "Skill Type";
-        protected override string FieldLabel => "Skill Data";
     }
 }

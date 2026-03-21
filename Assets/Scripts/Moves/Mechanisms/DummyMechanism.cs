@@ -6,19 +6,19 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class DummyMechanism : NewMechanism, INewMechanism
+    public class DummyMechanism : NewMechanism
     {
-        [SerializeReference] public List<MechanismData> onHit;
-        [SerializeReference] public List<MechanismData> onExpire;
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
 
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not DummyMechanism param) return;
             Debug.Log($"{ctx.Caster} casted a skill towards {ctx.Target}");
-            SkillUtils.ActivateChain(param.onHit, ctx);
+            SkillUtils.ActivateFollowUp(param.onHit, ctx);
             //Debug.Log("Dummy: OnHit FollowUps are cast");
         
-            SkillUtils.ActivateChain(param.onExpire, ctx);
+            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
             //Debug.Log("Dummy: OnExpire FollowUps are cast");
         }
     }

@@ -7,6 +7,6 @@ namespace Systems.Stacks.Definition
     public class TriggerableDefinition : StackDefinition
     {
         public int threshold;
-        public MechanismData effect;
+        public SkillData effect;
     }
 }

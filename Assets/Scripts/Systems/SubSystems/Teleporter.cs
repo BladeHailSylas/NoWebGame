@@ -45,7 +45,7 @@ namespace Systems.SubSystems
             TeleportContract tpc)
         {
             Vector2 start = tpc.Context.Caster.position;
-            if (tpc.Context.Mech is not TeleportMechanism tparam)
+            if (tpc.Context.Params is not TeleportParams tparam)
             {
                 return start;
             }
@@ -85,7 +85,7 @@ namespace Systems.SubSystems
         private static void CastFollowUps(TeleportContract tpc)
         {
             var ctx = tpc.Context;
-            if (ctx.Mech is not TeleportMechanism param) return;
+            if (ctx.Params is not TeleportParams param) return;
             if (param.onArrival.Count == 0)
             {
                 if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
@@ -96,7 +96,7 @@ namespace Systems.SubSystems
                 if (followup.mechanism is not INewMechanism mech) continue;
                 var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
                 SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mech, ctx.Damage, ctxTarget);
+                    mech, followup.@params, ctx.Damage, ctxTarget);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }

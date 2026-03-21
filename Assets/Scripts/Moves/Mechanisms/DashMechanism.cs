@@ -7,15 +7,15 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class DashMechanism : NewMechanism, INewMechanism
+    public class DashMechanism : NewMechanism
     {
         public ushort durationTicks;
         public int speed;
         public bool preventActivation;
         public bool penetrative;
         public bool expireWhenUnexpected;
-        [SerializeReference] public List<MechanismData> onHit;
-        [SerializeReference] public List<MechanismData> onExpire;
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not DashMechanism mech) return;

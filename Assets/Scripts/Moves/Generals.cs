@@ -48,21 +48,16 @@ namespace Moves
         {
             Debug.LogError("You have executed a mechanism without any actions;");
         }
-        [SerializeField] private short cooldownTicks;
-        [SerializeField] private byte delayTicks;
-        [SerializeField] private int minRange;
-        [SerializeField] private int maxRange;
-        [SerializeField] private LayerMask mask;
+        private short cooldownTicks;
+        private byte delayTicks;
+        private int minRange;
+        private int maxRange;
+        private LayerMask mask;
         public short CooldownTicks => cooldownTicks;
         public byte DelayTicks => delayTicks;
         public float MinRange => minRange / 1000f;
         public float MaxRange => maxRange / 1000f;
         public LayerMask Mask => mask;
-    }
-
-    public abstract class ObjectGeneratingMechanism
-    {
-        
     }
 
     public interface ISystemMechanism : INewMechanism
@@ -79,6 +74,29 @@ namespace Moves
         TowardsSelf,
         TowardsCaster,
         AutoDetection,
+    }
+
+    public interface INewParams
+    {
+        short CooldownTicks { get; }
+        byte DelayTicks { get; }
+        float MinRange { get; }
+        float MaxRange { get; }
+        LayerMask Mask { get; }
+    }
+
+    public abstract class NewParams : INewParams
+    {
+        private short cooldownTicks;
+        private byte delayTicks;
+        private int minRange;
+        private int maxRange;
+        private LayerMask mask;
+        public short CooldownTicks => cooldownTicks;
+        public byte DelayTicks => delayTicks;
+        public float MinRange => minRange / 1000f;
+        public float MaxRange => maxRange / 1000f;
+        public LayerMask Mask => mask;
     }
     /// <summary>
     /// INewParams params, Transform Caster, Transform Target, TargetMode Mode, DamageData Damage, (Optional) SwitchVariable Var
@@ -158,48 +176,41 @@ namespace Moves
 
     public static class SkillUtils
     {
-        public static void ActivateChain(List<MechanismData> chains, CastContext ctx, Transform target = null)
+        public static void ActivateFollowUp(List<SkillData> followups, CastContext ctx, Transform target = null)
         {
-            if (chains.Count == 0) return;
-            foreach (var chain in chains)
+            if (followups.Count == 0) return;
+            foreach (var followup in followups)
             {
-                if (chain.mechanism is not { } mech) continue;
+                if (followup.mechanism is not INewMechanism mech) continue;
                 target ??= ctx.Target;
-                var ctxTarget = !chain.requireRetarget ? target : null;
-                SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
+                var ctxTarget = !followup.requireRetarget ? target : null;
+                SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                Debug.Log("Chain: " + cmd.Mech);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }
 
-        public static void ActivateChain(MechanismData[] chains, CastContext ctx)
+        public static void ActivateFollowUp(SkillData[] followups, CastContext ctx)
         {
-            if (chains.Length == 0) return;
-            foreach (var chain in chains)
+            if (followups.Length == 0) return;
+            foreach (var followup in followups)
             {
-                if (chain.mechanism is not { } mech) continue;
-                var ctxTarget = !chain.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
+                if (followup.mechanism is not INewMechanism mech) continue;
+                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }
-    }
-
-    [Serializable]
-    public class MechanismData
-    {
-        [SerializeReference] public INewMechanism mechanism;
-        public TargetMode mode;
-        public bool requireRetarget;
-        public bool respectBusy;
     }
 
     [Serializable]
     [CreateAssetMenu(menuName = "Skills/SkillData", fileName = "SkillData")]
     public class SkillData : ScriptableObject
     {
-        [SerializeReference] public MechanismData mechanismData;
+        [SerializeReference] public INewMechanism mechanism;
+        public TargetMode mode;
+        public bool requireRetarget;
+        public bool respectBusy;
     }
 }

@@ -1,34 +1,41 @@
+using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
-using PlayerScripts.Skills;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class SummonMechanism : NewMechanism, INewMechanism
+    [CreateAssetMenu(fileName = "SummonMechanism", menuName = "Skills/Mechanisms/Summon")]
+    public class SummonMechanism : ScriptableObject, INewMechanism
+    {
+        public void Execute(CastContext ctx)
+        {
+            if (ctx.Params is not SummonParams param)
+            {
+                //Debug.LogError("[AreaMechanism] Invalid parameter type.");
+                return;
+            }
+            
+            var centerPos = ctx.Target?.position ?? ctx.Caster.position;
+            var go = Instantiate(param.summonPrefab, centerPos, Quaternion.identity);
+            var dir = ctx.Target is not null
+                ? (ctx.Target.position - ctx.Caster.position).normalized
+                : ctx.Caster.right;
+            go.transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
+            if (!go.TryGetComponent<SummonEntity>(out var entity)) return;
+            entity.Init(ctx);
+            SkillUtils.ActivateFollowUp(param.onSummoned, ctx);
+        }
+    }
+    
+    [Serializable]
+    public class SummonParams : NewParams
     {
         [Header("Time")]
         public ushort lifeTick;
 
-        [Header("Settings")]
-        [SerializeReference] public SummonEntity summonPrefab;
-        [SerializeReference] public List<MechanismData> onSummoned;
+        [Header("Settings")] public SummonEntity summonPrefab;
 
-        public new void Execute(CastContext ctx)
-        {
-            if (ctx.Mech is not SummonMechanism mech)
-            {
-                return;
-            }
-            var prefab = mech.summonPrefab;
-
-            var instance = Object.Instantiate(
-                prefab,
-                ctx.Caster.position,
-                Quaternion.identity
-            );
-
-            instance.Init(ctx);
-        }
+        public List<SkillData> onSummoned;
     }
 }
