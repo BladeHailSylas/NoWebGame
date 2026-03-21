@@ -7,46 +7,54 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class RayMechanism : NewMechanism, INewMechanism
+    [CreateAssetMenu(fileName = "RayMechanism", menuName = "Skills/Mechanisms/Ray")]
+    public class RayMechanism : ScriptableObject, INewMechanism
     {
-        [Header("Ray")]
-        [SerializeReference] public float rangeMultiplier = 1f;
-        [SerializeReference] public List<MechanismData> onHit;
-
-        public new void Execute(CastContext ctx)
+        public void Execute(CastContext ctx)
         {
-            if (ctx.Mech is not RayMechanism mech) return;
-
+            if (ctx.Params is not RayParams param) return;
             Vector2 origin = ctx.Caster.position;
             Vector2 target = ctx.Target.position;
             var dist = target - origin;
             var direction = dist.normalized;
-            var distance = dist.magnitude * mech.rangeMultiplier;
+            var distance = dist.magnitude * param.rangeMultiplier;
 
-            // Detect both hostile targets and blockers in distance order.
+            // 감지: 적과 장애물 모두 탐색
             var hits = Physics2D.RaycastAll(origin, direction, distance, LayerMask.GetMask("Foe", "Walls&Obstacles"));
             System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
             foreach (var hit in hits)
             {
                 var layer = hit.collider.gameObject.layer;
+
+                // 벽을 만나면 중단
                 if (layer == LayerMask.NameToLayer("Walls&Obstacles"))
                     break;
 
-                if (!hit.collider.TryGetComponent<Entity>(out _)) continue;
+                // 적 판정
+                if (!hit.collider.TryGetComponent<Entity>(out var entity)) continue;
 
-                if (mech.onHit.Count == 0)
+                // FollowUp 즉시 발동
+                foreach (var followup in param.onHit)
                 {
-                    if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                    AnchorRegistry.Instance.Return(anchor);
-                    continue;
+                    if (param.onHit.Count == 0)
+                    {
+                        if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                        AnchorRegistry.Instance.Return(anchor);
+                    }
+                    SkillUtils.ActivateFollowUp(param.onHit, ctx);
                 }
-
-                SkillUtils.ActivateChain(mech.onHit, ctx);
             }
 
-            /* Debug helper: keep the ray visible for a short duration when tuning hit logic. */
+            // 시각 효과 (디버그용)
             Debug.DrawRay(origin, direction * distance, Color.blue, 0.1f);
         }
+    }
+
+    [System.Serializable]
+    public class RayParams : NewParams
+    {
+        public float rangeMultiplier = 1f;
+        public List<SkillData> onHit;
     }
 }

@@ -1,14 +1,35 @@
 using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
-using PlayerScripts.Skills;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Moves.Mechanisms
 {
+    [CreateAssetMenu(menuName = "Skills/Mechanisms/Projectile")]
+    public class ProjectileMechanism : ScriptableObject, INewMechanism
+    {
+        public void Execute(CastContext ctx)
+        {
+            if (ctx.Params is not ProjectileParams param)
+            {
+                //Debug.LogError("[ProjectileMechanism] Invalid parameter type.");
+                return;
+            }
+
+            // 1️⃣ Spawn position
+            var spawnPos = ctx.Caster.position;
+
+            // 2️⃣ Projectile 생성
+            var go = Instantiate(param.projectilePrefab, spawnPos, Quaternion.identity);
+            if (!go.TryGetComponent<ProjectileEntity>(out var entity))
+                return;
+            // 4️⃣ Projectile 초기화
+            entity.Init(ctx);
+        }
+    }
+
     [Serializable]
-    public class ProjectileMechanism : NewMechanism, INewMechanism
+    public class ProjectileParams : NewParams
     {
         [Header("Time")]
         public ushort lifeTick;
@@ -17,26 +38,10 @@ namespace Moves.Mechanisms
         public ProjectileEntity projectilePrefab;
         public int speed;
         public bool penetrative;
+        // Range limits for this mechanism (world units).
 
         [Header("Callbacks")]
-        [SerializeReference] public List<MechanismData> onHit;
-        [SerializeReference] public List<MechanismData> onExpire;
-
-        public new void Execute(CastContext ctx)
-        {
-            if (ctx.Mech is not ProjectileMechanism mech)
-            {
-                return;
-            }
-            var prefab = mech.projectilePrefab;
-
-            var instance = Object.Instantiate(
-                prefab,
-                ctx.Caster.position,
-                Quaternion.identity
-            );
-
-            instance.Init(ctx);
-        }
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
     }
 }

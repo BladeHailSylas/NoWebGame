@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Moves;
 using Moves.Effects.Definitions;
 using PlayerScripts.Skills;
 using Systems.Anchor;
@@ -7,64 +8,78 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class MeleeMechanism : NewMechanism, INewMechanism
+    [CreateAssetMenu(menuName = "Skills/Mechanisms/Melee")]
+    public class MeleeMechanism : ScriptableObject, INewMechanism
     {
-        [Header("Area")]
-        [Range(0, 360)] public float angleDeg = 120f;
-        public LayerMask enemyMask;
-        public MeleeEffectEntity effectPrefab;
-
-        [Header("Callbacks")]
-        [SerializeReference] public List<MechanismData> onHit = new();
-        [SerializeReference] public List<MechanismData> onExpire = new();
-
-        public new void Execute(CastContext ctx)
+        public void Execute(CastContext ctx)
         {
-            Debug.Log("MeleeMechanism.Execute");
-            if (ctx.Mech is not MeleeMechanism mech)
+            if (ctx.Params is not MeleeParams param)
                 return;
 
             var caster = ctx.Caster;
-            var target = ctx.Target; // Anchor fallback remains unchanged.
+            var target = ctx.Target; // anchor fallback
 
             Vector2 origin = caster.position;
             Vector2 dir = target.position - caster.position;
-            var radius = mech.MaxRange;
-            var halfAngle = mech.angleDeg * 0.5f;
-            mech.effectPrefab?.Init(origin, radius, mech.angleDeg, dir);
+            var radius = param.MaxRange;
+            var halfAngle = param.angleDeg * 0.5f;
+            if (param.effectPrefab is not null)
+            {
+                var go = Instantiate(param.effectPrefab, origin, Quaternion.identity);
+                if (go.TryGetComponent<MeleeEffectEntity>(out var effect))
+                {
+                    effect.Init(origin, radius, param.angleDeg, dir.normalized);
+                }
+            }
 
-            var hits = Physics2D.OverlapCircleAll(origin, radius, mech.enemyMask);
+            // 1) 원형 탐색
+            var hits = Physics2D.OverlapCircleAll(origin, radius, param.enemyMask);
+
             foreach (var hit in hits)
             {
+                // 자기 자신 제거
                 if (hit.transform == caster)
                     continue;
 
                 var toTarget = ((Vector2)hit.transform.position - origin).normalized;
-                if (mech.angleDeg < 360f)
+
+                // angle filter (부채꼴)
+                if (param.angleDeg < 360f)
                 {
                     var angle = Vector2.Angle(dir, toTarget);
                     if (angle > halfAngle)
                         continue;
                 }
-                Debug.Log(hit.transform.name);
-                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
+                //Debug.Log(hit.transform.name);
+                // OnHit follow-ups 실행
+                SkillUtils.ActivateFollowUp(param.onHit, ctx, hit.transform);
             }
-
-            if (mech.onExpire.Count == 0)
             {
-                if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                AnchorRegistry.Instance.Return(anchor);
-                return;
-            }
-
-            foreach (var followup in mech.onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mechFollowUp) continue;
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mechFollowUp, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                CommandCollector.Instance.EnqueueCommand(cmd);
+                if (param.onExpire.Count == 0)
+                {
+                    if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
+                    AnchorRegistry.Instance.Return(anchor);
+                }
+                foreach (var followup in param.onExpire)
+                {
+                    if (followup.mechanism is not INewMechanism mech) continue;
+                    var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
+                    SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
+                        mech, followup.@params, ctx.Damage, ctxTarget);
+                    CommandCollector.Instance.EnqueueCommand(cmd);
+                }
             }
         }
     }
+}
+
+[System.Serializable]
+public class MeleeParams : NewParams
+{
+    [Header("Area")]
+    [Range(0, 360)] public float angleDeg = 120f;
+    public LayerMask enemyMask;
+    public MeleeEffectEntity effectPrefab;
+    public List<SkillData> onHit = new();
+    public List<SkillData> onExpire = new();
 }

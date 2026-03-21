@@ -125,7 +125,7 @@ namespace Systems.SubSystems
                 if (entity.transform == _col.transform)
                     continue;
                 var _ctx = contract.Context;
-                SkillUtils.ActivateChain(contract.OnHit, _ctx, entity.transform);
+                SkillUtils.ActivateFollowUp(contract.OnHit, _ctx, entity.transform);
                 return contract.Penetrative && contract.Context.Target != entity.transform;
                 //False when not penetrative since it needs to stop when touches an enemy
                 //True only when penetrative and not target; It needs to stop if it hits the target

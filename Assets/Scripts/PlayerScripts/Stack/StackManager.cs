@@ -459,7 +459,7 @@ namespace PlayerScripts.Stack
             if (!_stackStorage.TryGetValue(stack, out var status) || status.Amount < trigger.threshold) return;
             if (trigger.effect.mechanism is not INewMechanism mech) return;
             DamageData dmg = new(DamageType.Normal, storing);
-            CastContext ctx = new(trigger.effect.mechanism, stack.applier, null, dmg, default, trigger.effect.mode);
+            CastContext ctx = new(trigger.effect.@params, stack.applier, null, dmg, default, trigger.effect.mode);
             RemoveStackCompletely(stack);
             _metadata[stack] = new StackMetadata(0);
             mech.Execute(ctx);

@@ -32,7 +32,7 @@ namespace Moves.ObjectEntity
         protected InteractionFilter _filter;
         protected VariableStorage _storage;
         public int baseHp; public int baseHpGen; public int baseMana; public int baseManaGen; public int baseAttack; public int baseDefense; public int baseSpeed;
-        protected void Awaken(SummonMechanism spec)
+        protected void Awaken(SummonParams spec)
         {
             Debug.Log("SummonEntity Awaken... AYAYAY AYAYYYYYY");
             _logger = new Logger(gameObject.name);

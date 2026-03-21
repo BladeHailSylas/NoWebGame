@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PlayerScripts.Skills;
 using Systems.Data;
@@ -7,27 +8,32 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class StackMechanism : NewMechanism, INewMechanism
+    [CreateAssetMenu(fileName = "StackMechanism", menuName = "Skills/Mechanisms/Stack")]
+    public class StackMechanism : ScriptableObject, INewMechanism
     {
-        [Header("Stack")]
-        public StackDefinition stack;
-        public int amount = 1;
-
-        [Header("Callbacks")]
-        [SerializeReference] public List<MechanismData> onHit;
-        [SerializeReference] public List<MechanismData> onExpire;
-
-        public new void Execute(CastContext ctx)
+        public void Execute(CastContext ctx)
         {
-            if (ctx.Mech is not StackMechanism mech) return;
+            if (ctx.Params is not StackParams param) return;
             if (!ctx.Target.TryGetComponent(out IStackable stacker))
             {
                 return;
             }
-
-            stacker.ApplyStack(new StackKey(mech.stack, ctx.Caster.name, ctx.Caster), 65535, mech.amount);
-            SkillUtils.ActivateChain(mech.onHit, ctx);
-            SkillUtils.ActivateChain(mech.onExpire, ctx);
+            stacker.ApplyStack(new StackKey(param.stack, ctx.Caster.name, ctx.Caster), 65535, param.amount);
+            SkillUtils.ActivateFollowUp(param.onHit, ctx);
+            //Debug.Log("Damage: OnHit FollowUps are cast");
+        
+            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
+            //Debug.Log("Damage: OnExpire FollowUps are casted");
         }
+    }
+    [Serializable]
+    public class StackParams : NewParams
+    {
+        public StackDefinition stack;
+
+        public int amount = 1;
+        // Range limits for this mechanism (world units).
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
     }
 }
