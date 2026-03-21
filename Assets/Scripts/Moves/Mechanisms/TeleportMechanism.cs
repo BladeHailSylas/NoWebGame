@@ -6,12 +6,11 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(fileName = "TeleportMechanism", menuName = "Skills/Mechanisms/Teleport")]
     public class TeleportMechanism : NewMechanism
     {
         [Header("Settings")]
         public bool ignoreEnemy;
-        public List<SkillData> onArrival;
+        public List<MechanismData> onArrival;
 
         public new void Execute(CastContext ctx)
         {

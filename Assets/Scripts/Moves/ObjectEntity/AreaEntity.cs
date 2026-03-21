@@ -17,8 +17,8 @@ namespace Moves.ObjectEntity
         private ushort _limitTick;
         private ushort _lifeTick;
         private ushort _tickElapsed;
-        private List<SkillData> _onInterval;
-        private List<SkillData> _onExpire;
+        private List<MechanismData> _onInterval;
+        private List<MechanismData> _onExpire;
         private FixedVector2 _location;
         private CastContext _ctx;
         public void Init(CastContext ctx)

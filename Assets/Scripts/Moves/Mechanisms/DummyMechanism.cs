@@ -8,8 +8,8 @@ namespace Moves.Mechanisms
 {
     public class DummyMechanism : NewMechanism
     {
-        public List<SkillData> onHit;
-        public List<SkillData> onExpire;
+        public List<MechanismData> onHit;
+        public List<MechanismData> onExpire;
 
         public new void Execute(CastContext ctx)
         {

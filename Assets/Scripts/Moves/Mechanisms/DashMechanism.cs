@@ -14,8 +14,8 @@ namespace Moves.Mechanisms
         public bool preventActivation;
         public bool penetrative;
         public bool expireWhenUnexpected;
-        public List<SkillData> onHit;
-        public List<SkillData> onExpire;
+        public List<MechanismData> onHit;
+        public List<MechanismData> onExpire;
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not DashMechanism mech) return;

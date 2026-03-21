@@ -7,12 +7,11 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(fileName = "RayMechanism", menuName = "Skills/Mechanisms/Ray")]
     public class RayMechanism : NewMechanism
     {
         [Header("Ray")]
         public float rangeMultiplier = 1f;
-        public List<SkillData> onHit;
+        public List<MechanismData> onHit;
 
         public new void Execute(CastContext ctx)
         {

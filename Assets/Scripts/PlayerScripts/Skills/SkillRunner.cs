@@ -25,7 +25,7 @@ namespace PlayerScripts.Skills
             //Determine target
             var target = cmd.Target;
             var mode = TargetMode.TowardsEntity; // default
-            if (cmd.Params is DetectParams detect && target is null)
+            if (cmd.Mech is DetectMechanism detect && target is null)
             {
                 var result = _targetResolver.Detect(cmd.Caster, detect);
                 target = result.Target;
@@ -34,7 +34,7 @@ namespace PlayerScripts.Skills
             //TODO: Consider refactoring into: single target acquisition / post-acquisition interpretation
             if (target is null)
             {
-                var req = new TargetRequest(cmd.Caster, cmd.Params.MinRange, cmd.Params.MaxRange, cmd.TargetMode, cmd.Mask);
+                var req = new TargetRequest(cmd.Caster, cmd.Mech.MinRange, cmd.Mech.MaxRange, cmd.TargetMode, cmd.Mask);
                 //Temporarily Foe, should be added further target request
                 // TODO: Later support range/mask overrides from skill data.
                 var result = _targetResolver.ResolveTarget(req);
@@ -46,7 +46,7 @@ namespace PlayerScripts.Skills
                 target = result.Target;
                 mode = cmd.TargetMode;
             }
-            cmd.Mech.Execute(new CastContext(cmd.Params, cmd.Caster, target, cmd.Damage, cmd.Var, mode));
+            cmd.Mech.Execute(new CastContext(cmd.Mech, cmd.Caster, target, cmd.Damage, cmd.Var, mode));
             _displayer?.Display(cmd);
         }
     }

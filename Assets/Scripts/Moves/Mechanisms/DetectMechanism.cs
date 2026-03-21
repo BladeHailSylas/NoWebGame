@@ -10,8 +10,8 @@ namespace Moves.Mechanisms
     {
         public TargetMode requiredMode;
         public MonoBehaviour? requiredComponent;
-        public SkillData[] onDetected;
-        public SkillData[] onNotFound;
+        public MechanismData[] onDetected;
+        public MechanismData[] onNotFound;
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not DetectMechanism mech)

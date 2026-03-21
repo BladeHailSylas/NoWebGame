@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Moves.ObjectEntity;
 using PlayerScripts.Skills;
@@ -5,7 +6,7 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(menuName = "Skills/Mechanisms/Projectile")]
+    [Serializable]
     public class ProjectileMechanism : NewMechanism
     {
         [Header("Time")]
@@ -17,8 +18,8 @@ namespace Moves.Mechanisms
         public bool penetrative;
 
         [Header("Callbacks")]
-        public List<SkillData> onHit;
-        public List<SkillData> onExpire;
+        [SerializeReference] public List<MechanismData> onHit;
+        [SerializeReference] public List<MechanismData> onExpire;
 
         public new void Execute(CastContext ctx)
         {
@@ -27,13 +28,7 @@ namespace Moves.Mechanisms
                 return;
             }
 
-            var spawnPos = ctx.Caster.position;
-            var go = Instantiate(mech.projectilePrefab, spawnPos, Quaternion.identity);
-            if (!go.TryGetComponent<ProjectileEntity>(out var entity))
-                return;
-
-            // The projectile reads the originating mechanism through CastContext.
-            entity.Init(ctx);
+            projectilePrefab.Init(ctx);
         }
     }
 }

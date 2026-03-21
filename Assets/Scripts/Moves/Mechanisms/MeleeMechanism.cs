@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(menuName = "Skills/Mechanisms/Melee")]
     public class MeleeMechanism : NewMechanism
     {
         [Header("Area")]
@@ -16,8 +15,8 @@ namespace Moves.Mechanisms
         public MeleeEffectEntity effectPrefab;
 
         [Header("Callbacks")]
-        public List<SkillData> onHit = new();
-        public List<SkillData> onExpire = new();
+        public List<MechanismData> onHit = new();
+        public List<MechanismData> onExpire = new();
 
         public new void Execute(CastContext ctx)
         {
@@ -31,14 +30,7 @@ namespace Moves.Mechanisms
             Vector2 dir = target.position - caster.position;
             var radius = mech.MaxRange;
             var halfAngle = mech.angleDeg * 0.5f;
-            if (mech.effectPrefab is not null)
-            {
-                var go = Instantiate(mech.effectPrefab, origin, Quaternion.identity);
-                if (go.TryGetComponent<MeleeEffectEntity>(out var effect))
-                {
-                    effect.Init(origin, radius, mech.angleDeg, dir.normalized);
-                }
-            }
+            mech.effectPrefab?.Init(origin, radius, mech.angleDeg, dir);
 
             var hits = Physics2D.OverlapCircleAll(origin, radius, mech.enemyMask);
             foreach (var hit in hits)

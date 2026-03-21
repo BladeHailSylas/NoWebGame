@@ -16,8 +16,8 @@ namespace Moves.ObjectEntity
         private ushort _limitTick;
         private ushort _lifeTick;
         
-        private List<SkillData> _onHit;
-        private List<SkillData> _onExpire;
+        private List<MechanismData> _onHit;
+        private List<MechanismData> _onExpire;
 
         private FixedVector2 _location;
         private FixedVector2 _velocity;
@@ -34,16 +34,17 @@ namespace Moves.ObjectEntity
 
         public void Init(CastContext ctx)
         {
-            if (ctx.Params is not ProjectileParams param) return;
+            Instantiate(this, _location.AsVector2, Quaternion.identity);
+            if (ctx.Mech is not ProjectileMechanism proj) return;
             _ctx = ctx;
-            _onHit = param.onHit;
-            _onExpire = param.onExpire;
-            _limitTick = param.lifeTick;
-            _penetrative = param.penetrative;
+            _onHit = proj.onHit;
+            _onExpire = proj.onExpire;
+            _limitTick = proj.lifeTick;
+            _penetrative = proj.penetrative;
             _hitEntities = new HashSet<Entity>();
 
             _location = new FixedVector2(transform.position);
-            _speed = param.speed;
+            _speed = proj.speed;
             // 🔹 ThinMotor 생성 (Entity 소유)
             _motor = new ThinMotor(rb, col)
             {

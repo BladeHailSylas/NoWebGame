@@ -77,7 +77,7 @@ namespace PlayerScripts.Skills
                 foreach (var cmd in _resolving)
                 {
                     // Params가 delayTick을 소유한다는 합의 반영
-                    var delayTick = cmd.Params.DelayTicks;
+                    var delayTick = cmd.Mech.DelayTicks;
 
                     // Start는 TickHandler에서만 호출한다 (시간 통보 모델)
                     var delayId = _scheduler.Start(tick, delayTick);
@@ -115,7 +115,7 @@ namespace PlayerScripts.Skills
                 _runner.Activate(entry.Command);
                 executedIndices.Add(i);
                 // 아래는 SwitchVariable 처리 로직
-                if (entry.Command is not { Mech: SwitchMechanism sw, Params: SwitchParams param }) continue;
+                if (entry.Command is not { Mech: SwitchMechanism sw }) continue;
                 var caster = entry.Command.Caster;
                 if (!caster.TryGetComponent<IStackable>(out var stackable)) continue;
                 if (entry.Command.Var.Variable is null) continue;

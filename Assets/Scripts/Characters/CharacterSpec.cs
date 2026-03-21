@@ -12,7 +12,7 @@ namespace Characters
 	{
 		public SkillSlot slot;
 		public TargetMode mode;
-		public SkillData skillData;
+		public MechanismData mechanismData;
 	}
 
 	[CreateAssetMenu(menuName = "Game/Characters/Spec")]

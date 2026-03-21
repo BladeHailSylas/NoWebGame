@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(fileName = "StackMechanism", menuName = "Skills/Mechanisms/Stack")]
     public class StackMechanism : NewMechanism
     {
         [Header("Stack")]
@@ -15,8 +14,8 @@ namespace Moves.Mechanisms
         public int amount = 1;
 
         [Header("Callbacks")]
-        public List<SkillData> onHit;
-        public List<SkillData> onExpire;
+        public List<MechanismData> onHit;
+        public List<MechanismData> onExpire;
 
         public new void Execute(CastContext ctx)
         {

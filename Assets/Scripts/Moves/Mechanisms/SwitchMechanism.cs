@@ -13,14 +13,13 @@ namespace Moves.Mechanisms
     /// - 첫 번째로 일치하는 FollowUp을 실행한다.
     /// - 어떤 것도 일치하지 않으면 defaultFollowUp을 실행한다.
     /// </summary>
-    [CreateAssetMenu(fileName = "SwitchMechanism", menuName = "Skills/Mechanisms/Switch")]
     public class SwitchMechanism : NewMechanism
     {
         [Tooltip("우선순위 순으로 검사되는 Variable 분기 목록")]
         public SwitchCase[] cases;
 
         [Tooltip("어떤 Variable에도 해당하지 않을 때 실행될 기본 FollowUp")]
-        public SkillData defaultFollowUp;
+        public MechanismData defaultFollowUp;
 
         public void Prepare(CastContext ctx)
         {
@@ -33,7 +32,7 @@ namespace Moves.Mechanisms
             if (ctx.Mech is not SwitchMechanism mech)
                 return;
 
-            SkillData selected = default;
+            MechanismData selected = default;
             var chosen = false;
             var ctxVar = ctx.Var;
 
@@ -84,6 +83,6 @@ namespace Moves.Mechanisms
         public VariableDefinition variable;
 
         [Tooltip("조건을 만족했을 때 실행할 FollowUp")]
-        public SkillData followUp;
+        public MechanismData followUp;
     }
 }

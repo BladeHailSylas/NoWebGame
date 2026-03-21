@@ -13,8 +13,8 @@ namespace Moves.Mechanisms
         public byte defaultAmplitude;
         public DamageType type;
         // Range limits for this mechanism (world units).
-        public List<SkillData> onHit;
-        public List<SkillData> onExpire;
+        public List<MechanismData> onHit;
+        public List<MechanismData> onExpire;
         public new void Execute(CastContext ctx)
         {
             if (!ctx.Target.TryGetComponent(out IVulnerable vul))

@@ -19,7 +19,7 @@ namespace PlayerScripts.Skills
 
         private void SpawnMeleeEffect(SkillCommand cmd)
         {
-            if (cmd.Mech is not MeleeMechanism mech || cmd.Params is not MeleeParams param) return;
+            if (cmd.Mech is not MeleeMechanism mech) return;
         }
     }
 }

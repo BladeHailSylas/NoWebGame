@@ -75,29 +75,6 @@ namespace Moves
         TowardsCaster,
         AutoDetection,
     }
-
-    public interface INewParams
-    {
-        short CooldownTicks { get; }
-        byte DelayTicks { get; }
-        float MinRange { get; }
-        float MaxRange { get; }
-        LayerMask Mask { get; }
-    }
-
-    public abstract class NewParams : INewParams
-    {
-        private short cooldownTicks;
-        private byte delayTicks;
-        private int minRange;
-        private int maxRange;
-        private LayerMask mask;
-        public short CooldownTicks => cooldownTicks;
-        public byte DelayTicks => delayTicks;
-        public float MinRange => minRange / 1000f;
-        public float MaxRange => maxRange / 1000f;
-        public LayerMask Mask => mask;
-    }
     /// <summary>
     /// INewParams params, Transform Caster, Transform Target, TargetMode Mode, DamageData Damage, (Optional) SwitchVariable Var
     /// </summary>
@@ -176,7 +153,7 @@ namespace Moves
 
     public static class SkillUtils
     {
-        public static void ActivateFollowUp(List<SkillData> followups, CastContext ctx, Transform target = null)
+        public static void ActivateFollowUp(List<MechanismData> followups, CastContext ctx, Transform target = null)
         {
             if (followups.Count == 0) return;
             foreach (var followup in followups)
@@ -190,7 +167,7 @@ namespace Moves
             }
         }
 
-        public static void ActivateFollowUp(SkillData[] followups, CastContext ctx)
+        public static void ActivateFollowUp(MechanismData[] followups, CastContext ctx)
         {
             if (followups.Length == 0) return;
             foreach (var followup in followups)
@@ -205,12 +182,18 @@ namespace Moves
     }
 
     [Serializable]
-    [CreateAssetMenu(menuName = "Skills/SkillData", fileName = "SkillData")]
-    public class SkillData : ScriptableObject
+    public class MechanismData
     {
         [SerializeReference] public INewMechanism mechanism;
         public TargetMode mode;
         public bool requireRetarget;
         public bool respectBusy;
+    }
+
+    [Serializable]
+    [CreateAssetMenu(menuName = "Skills/SkillData", fileName = "SkillData")]
+    public class SkillData : ScriptableObject
+    {
+        [SerializeReference] public MechanismData mechanismData;
     }
 }
