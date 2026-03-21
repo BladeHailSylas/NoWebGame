@@ -169,7 +169,7 @@ namespace PlayerScripts.Skills
                 found: true
             );
         }
-        public TargetResolveResult Detect(Transform caster, DetectParams detect)
+        public TargetResolveResult Detect(Transform caster, DetectMechanism detect)
         {
             var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask);
             TargetResolveResult result;

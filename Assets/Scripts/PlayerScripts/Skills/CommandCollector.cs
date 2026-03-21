@@ -60,6 +60,7 @@ namespace PlayerScripts.Skills
         /// </summary>
         public void EnqueueCommand(SkillCommand cmd)
         {
+            Debug.Log($"Got {cmd.Mech}");
             // TickHandler 실행 중에 호출되어도 안전:
             // TickHandler는 _resolving만 처리하며, Enqueue는 _collecting에만 쌓이기 때문.
             _collecting.Add(cmd);
@@ -77,7 +78,7 @@ namespace PlayerScripts.Skills
                 foreach (var cmd in _resolving)
                 {
                     // Params가 delayTick을 소유한다는 합의 반영
-                    var delayTick = cmd.Params.DelayTicks;
+                    var delayTick = cmd.Mech.DelayTicks;
 
                     // Start는 TickHandler에서만 호출한다 (시간 통보 모델)
                     var delayId = _scheduler.Start(tick, delayTick);
@@ -115,7 +116,7 @@ namespace PlayerScripts.Skills
                 _runner.Activate(entry.Command);
                 executedIndices.Add(i);
                 // 아래는 SwitchVariable 처리 로직
-                if (entry.Command is not { Mech: SwitchMechanism sw, Params: SwitchParams param }) continue;
+                if (entry.Command is not { Mech: SwitchMechanism sw }) continue;
                 var caster = entry.Command.Caster;
                 if (!caster.TryGetComponent<IStackable>(out var stackable)) continue;
                 if (entry.Command.Var.Variable is null) continue;
