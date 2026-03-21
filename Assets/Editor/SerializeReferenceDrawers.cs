@@ -10,6 +10,20 @@ namespace Editor
         protected override string DropdownLabel => "Param Type";
         protected override string FieldLabel => "Param Data";
     }
+    
+    [CustomPropertyDrawer(typeof(INewMechanism), true)]
+    public class INewMechanismDrawer : SerializeReferenceDrawerBase<INewMechanism>
+    {
+        protected override string DropdownLabel => "Mechanism Type";
+        protected override string FieldLabel => "Mechanism Data";
+    }
+    
+    [CustomPropertyDrawer(typeof(NewMechanism), true)]
+    public class NewMechanismDrawer : SerializeReferenceDrawerBase<NewMechanism>
+    {
+        protected override string DropdownLabel => "Mechanism Type";
+        protected override string FieldLabel => "Mechanism Data";
+    }
 
     [CustomPropertyDrawer(typeof(IAreaShapes), true)]
     public class IAreaShapesDrawer : SerializeReferenceDrawerBase<IAreaShapes>

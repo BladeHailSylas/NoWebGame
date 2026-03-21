@@ -36,6 +36,6 @@ namespace Moves.Mechanisms
 
         [Header("Settings")] public SummonEntity summonPrefab;
 
-        public List<MechanismRef> onSummoned;
+        public List<SkillData> onSummoned;
     }
 }

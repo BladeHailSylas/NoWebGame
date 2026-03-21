@@ -55,6 +55,6 @@ namespace Moves.Mechanisms
     public class RayParams : NewParams
     {
         public float rangeMultiplier = 1f;
-        public List<MechanismRef> onHit;
+        public List<SkillData> onHit;
     }
 }

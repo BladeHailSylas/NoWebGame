@@ -33,7 +33,7 @@ namespace Moves.Mechanisms
 
         public int amount = 1;
         // Range limits for this mechanism (world units).
-        public List<MechanismRef> onHit;
-        public List<MechanismRef> onExpire;
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
     }
 }

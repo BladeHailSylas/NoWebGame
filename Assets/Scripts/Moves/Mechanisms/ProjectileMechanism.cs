@@ -41,7 +41,7 @@ namespace Moves.Mechanisms
         // Range limits for this mechanism (world units).
 
         [Header("Callbacks")]
-        public List<MechanismRef> onHit;
-        public List<MechanismRef> onExpire;
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
     }
 }

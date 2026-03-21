@@ -132,11 +132,11 @@ namespace PlayerScripts.Acts
         public readonly int Speed;
         public readonly bool PreventActivation;
         public readonly bool Penetrative;
-        public readonly List<MechanismRef> OnHit;
-        public readonly List<MechanismRef> OnExpire;
+        public readonly List<SkillData> OnHit;
+        public readonly List<SkillData> OnExpire;
         public readonly bool ExpireWhenUnexpected;
         public DashContract(CastContext context, ushort endTick, int speed, bool preventActivation,
-            bool penetrative, List<MechanismRef> onHit, List<MechanismRef> onExpire,
+            bool penetrative, List<SkillData> onHit, List<SkillData> onExpire,
             bool unexpected)
         {
             Context = context;

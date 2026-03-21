@@ -34,7 +34,30 @@ namespace Moves
 
     public interface INewMechanism
     {
+        public short CooldownTicks { get; }
+        public byte DelayTicks { get; }
+        public float MinRange { get; }
+        public float MaxRange { get; }
+        public LayerMask Mask { get; }
         void Execute(CastContext ctx);
+    }
+
+    public abstract class NewMechanism : INewMechanism
+    {
+        public void Execute(CastContext ctx)
+        {
+            Debug.LogError("You have executed a mechanism without any actions;");
+        }
+        private short cooldownTicks;
+        private byte delayTicks;
+        private int minRange;
+        private int maxRange;
+        private LayerMask mask;
+        public short CooldownTicks => cooldownTicks;
+        public byte DelayTicks => delayTicks;
+        public float MinRange => minRange / 1000f;
+        public float MaxRange => maxRange / 1000f;
+        public LayerMask Mask => mask;
     }
 
     public interface ISystemMechanism : INewMechanism
@@ -49,6 +72,7 @@ namespace Moves
         TowardsMovement, 
         TowardsCoordinate,
         TowardsSelf,
+        TowardsCaster,
         AutoDetection,
     }
 
@@ -63,11 +87,11 @@ namespace Moves
 
     public abstract class NewParams : INewParams
     {
-        [SerializeField] private short cooldownTicks;
-        [SerializeField] private byte delayTicks;
-        [SerializeField] private int minRange;
-        [SerializeField] private int maxRange;
-        [SerializeField] private LayerMask mask;
+        private short cooldownTicks;
+        private byte delayTicks;
+        private int minRange;
+        private int maxRange;
+        private LayerMask mask;
         public short CooldownTicks => cooldownTicks;
         public byte DelayTicks => delayTicks;
         public float MinRange => minRange / 1000f;
@@ -79,16 +103,16 @@ namespace Moves
     /// </summary>
     public struct CastContext
     {
-        public readonly INewParams Params;
+        public readonly INewMechanism Mech;
         public readonly Transform Caster;
         public readonly Transform Target;
         public readonly TargetMode Mode;
         public DamageData Damage;
         public SwitchVariable Var;
 
-        public CastContext(INewParams param, Transform caster, Transform target, DamageData damage, SwitchVariable va = default, TargetMode mode = TargetMode.TowardsEntity)
+        public CastContext(INewMechanism mech, Transform caster, Transform target, DamageData damage, SwitchVariable va = default, TargetMode mode = TargetMode.TowardsEntity)
         {
-            Params = param;
+            Mech = mech;
             Caster = caster;
             Target = target;
             Damage = damage;
@@ -104,13 +128,12 @@ namespace Moves
         public readonly TargetMode TargetMode;
         public readonly FixedVector2 CastPosition;
         public readonly INewMechanism Mech;
-        public readonly INewParams Params;
         public readonly DamageData Damage;
         public readonly LayerMask Mask;
         public readonly SwitchVariable Var;
 
         public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
-            INewMechanism mech, INewParams @params, DamageData damage, Transform target = null,
+            INewMechanism mech, DamageData damage, Transform target = null,
             SwitchVariable va = default, int masker = 0)
         {
             Caster = caster;
@@ -118,7 +141,6 @@ namespace Moves
             TargetMode = mode;
             CastPosition = castPosition;
             Mech = mech;
-            Params = @params;
             Damage = damage;
             Var = va;
             Mask = 1 << masker;
@@ -126,7 +148,7 @@ namespace Moves
 
         public bool Equals(SkillCommand other)
         {
-            return Caster.Equals(other.Caster) && Target.Equals(other.Target) && Mech.Equals(other.Mech) && Params.Equals(other.Params);
+            return Caster.Equals(other.Caster) && Target.Equals(other.Target) && Mech.Equals(other.Mech);
         }
 
         public override bool Equals(object obj)
@@ -136,7 +158,7 @@ namespace Moves
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Caster, Target, (int)TargetMode, CastPosition, Mech, Params);
+            return HashCode.Combine(Caster, Target, (int)TargetMode, CastPosition, Mech);
         }
     }
 
@@ -154,7 +176,7 @@ namespace Moves
 
     public static class SkillUtils
     {
-        public static void ActivateFollowUp(List<MechanismRef> followups, CastContext ctx, Transform target = null)
+        public static void ActivateFollowUp(List<SkillData> followups, CastContext ctx, Transform target = null)
         {
             if (followups.Count == 0) return;
             foreach (var followup in followups)
@@ -163,12 +185,12 @@ namespace Moves
                 target ??= ctx.Target;
                 var ctxTarget = !followup.requireRetarget ? target : null;
                 SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget, ctx.Var, ctx.Params.Mask);
+                    mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }
 
-        public static void ActivateFollowUp(MechanismRef[] followups, CastContext ctx)
+        public static void ActivateFollowUp(SkillData[] followups, CastContext ctx)
         {
             if (followups.Length == 0) return;
             foreach (var followup in followups)
@@ -176,17 +198,17 @@ namespace Moves
                 if (followup.mechanism is not INewMechanism mech) continue;
                 var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
                 SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
-                    mech, followup.@params, ctx.Damage, ctxTarget, ctx.Var, ctx.Params.Mask);
+                    mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }
     }
 
     [Serializable]
-    public struct MechanismRef
+    [CreateAssetMenu(menuName = "Skills/SkillData", fileName = "SkillData")]
+    public class SkillData : ScriptableObject
     {
-        public ScriptableObject mechanism;
-        [SerializeReference] public INewParams @params;
+        [SerializeReference] public INewMechanism mechanism;
         public TargetMode mode;
         public bool requireRetarget;
         public bool respectBusy;

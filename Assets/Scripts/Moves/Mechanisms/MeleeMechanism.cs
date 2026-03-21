@@ -80,6 +80,6 @@ public class MeleeParams : NewParams
     [Range(0, 360)] public float angleDeg = 120f;
     public LayerMask enemyMask;
     public MeleeEffectEntity effectPrefab;
-    public List<MechanismRef> onHit = new();
-    public List<MechanismRef> onExpire = new();
+    public List<SkillData> onHit = new();
+    public List<SkillData> onExpire = new();
 }

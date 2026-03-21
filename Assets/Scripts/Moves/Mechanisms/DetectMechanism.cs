@@ -1,19 +1,20 @@
+#nullable enable
 using System;
-using JetBrains.Annotations;
 using PlayerScripts.Skills;
 using Systems.Data;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(
-        fileName = "DetectMechanism",
-        menuName = "Skills/Mechanisms/Detect")]
-    public class DetectMechanism : ScriptableObject, INewMechanism
+    public class DetectMechanism : NewMechanism
     {
-        public void Execute(CastContext ctx)
+        public TargetMode requiredMode;
+        public MonoBehaviour? requiredComponent;
+        public SkillData[] onDetected;
+        public SkillData[] onNotFound;
+        public new void Execute(CastContext ctx)
         {
-            if (ctx.Params is not DetectParams param)
+            if (ctx.Mech is not DetectMechanism mech)
                 return;
 
             // Detect는 "대상이 있을 때만" 의미를 가짐
@@ -21,18 +22,18 @@ namespace Moves.Mechanisms
                 return;
 
             // 1. TargetMode 검사
-            var detected = ctx.Mode == param.requiredMode;
+            var detected = ctx.Mode == mech.requiredMode;
             switch (detected)
             {
                 case false:
                     //Debug.Log($"Nah {ctx.Mode} is not {param.requiredMode}");
                     break;
                 // 2. Component 검사 (선택)
-                case true when param.requiredComponent is not null:
+                case true when mech.requiredComponent is not null:
                 {
                     //Debug.Log("Detecting");
                     if (!ctx.Target.TryGetComponent(
-                            param.requiredComponent.GetType(),
+                            mech.requiredComponent.GetType(),
                             out _))
                     {
                         //Debug.LogWarning("Nah");
@@ -45,23 +46,15 @@ namespace Moves.Mechanisms
 
             // 3. 실행할 FollowUps 선택
             var followUps = detected
-                ? param.onDetected
-                : param.onNotFound;
+                ? mech.onDetected
+                : mech.onNotFound;
 
-            if (followUps == null || followUps.Length == 0)
+            if (followUps.Length == 0)
                 return;
 
             // 4. Switch와 동일한 방식으로 FollowUp 실행
             SkillUtils.ActivateFollowUp(followUps, ctx);
         }
 
-    }
-    [Serializable]
-    public class DetectParams : NewParams
-    {
-        public TargetMode requiredMode;
-        [CanBeNull] public MonoBehaviour requiredComponent;
-        public MechanismRef[] onDetected;
-        public MechanismRef[] onNotFound;
     }
 }

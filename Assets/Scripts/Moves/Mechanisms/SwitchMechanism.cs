@@ -28,7 +28,7 @@ namespace Moves.Mechanisms
             if (ctx.Params is not SwitchParams param)
                 return;
 
-            MechanismRef selected = default;
+            SkillData selected = default;
             var chosen = false;
 
             // CastContext에 Variable이 없는 경우도 고려
@@ -90,7 +90,7 @@ namespace Moves.Mechanisms
         public SwitchCase[] cases;
 
         [Tooltip("어떤 Variable에도 해당하지 않을 때 실행될 기본 FollowUp")]
-        public MechanismRef defaultFollowUp;
+        public SkillData defaultFollowUp;
     }
 
     [Serializable]
@@ -100,6 +100,6 @@ namespace Moves.Mechanisms
         public VariableDefinition variable;
 
         [Tooltip("조건을 만족했을 때 실행할 FollowUp")]
-        public MechanismRef followUp;
+        public SkillData followUp;
     }
 }

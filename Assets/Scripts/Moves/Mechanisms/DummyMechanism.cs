@@ -6,29 +6,20 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    [CreateAssetMenu(fileName = "DummyMechanism", menuName = "Skills/Mechanisms/Dummy")]
-    public class DummyMechanism : ScriptableObject, INewMechanism
+    public class DummyMechanism : NewMechanism
     {
-        public void Execute(INewParams @params, Transform caster, Transform target)
-        {
-        }
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
 
-        public void Execute(CastContext ctx)
+        public new void Execute(CastContext ctx)
         {
-            if (ctx.Params is not DummyParams param) return;
-            Debug.Log($"Hello {ctx.Caster} {ctx.Target}");
+            if (ctx.Mech is not DummyMechanism param) return;
+            Debug.Log($"{ctx.Caster} casted a skill towards {ctx.Target}");
             SkillUtils.ActivateFollowUp(param.onHit, ctx);
             //Debug.Log("Dummy: OnHit FollowUps are cast");
         
             SkillUtils.ActivateFollowUp(param.onExpire, ctx);
             //Debug.Log("Dummy: OnExpire FollowUps are cast");
         }
-    }
-
-    [Serializable]
-    public class DummyParams : NewParams
-    {
-        public List<MechanismRef> onHit;
-        public List<MechanismRef> onExpire;
     }
 }

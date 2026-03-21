@@ -61,8 +61,8 @@ namespace Moves.Mechanisms
         [Header("Entity Settings")]
         public GameObject hitEffectPrefab;   // Placeholder — not used yet
         [Header("FollowUp")] 
-        public List<MechanismRef> onHit;
-        public List<MechanismRef> onExpire;
+        public List<SkillData> onHit;
+        public List<SkillData> onExpire;
         [Header("Debug")]
         public bool debugDraw = true;
     }

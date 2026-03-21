@@ -25,6 +25,6 @@ namespace Moves.Mechanisms
     {
         // Range limits for this mechanism (world units).
         public bool ignoreEnemy;
-        public List<MechanismRef> onArrival;
+        public List<SkillData> onArrival;
     }
 }

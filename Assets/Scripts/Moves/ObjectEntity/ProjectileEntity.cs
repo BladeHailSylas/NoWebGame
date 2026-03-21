@@ -16,8 +16,8 @@ namespace Moves.ObjectEntity
         private ushort _limitTick;
         private ushort _lifeTick;
         
-        private List<MechanismRef> _onHit;
-        private List<MechanismRef> _onExpire;
+        private List<SkillData> _onHit;
+        private List<SkillData> _onExpire;
 
         private FixedVector2 _location;
         private FixedVector2 _velocity;
