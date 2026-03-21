@@ -1,23 +1,35 @@
+using System;
 using System.Collections.Generic;
 using Moves.Effects.Definitions;
 using Moves.ObjectEntity;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Moves.Mechanisms
 {
-    public class AreaMechanism : NewMechanism
+    [Serializable]
+    public class AreaMechanism : NewMechanism, INewMechanism
     {
         [Header("Time")]
         public ushort lifeTick;
 
         [Header("Settings")] 
         public AreaEntity areaPrefab;
-        public List<SkillData> onEnter;
-        public List<SkillData> onExpire;
+        [SerializeReference] public List<MechanismData> onEnter;
+        [SerializeReference] public List<MechanismData> onExpire;
         public AreaEffectEntity effectPrefab;
         public new void Execute(CastContext ctx)
         {
-            areaPrefab.Init(ctx);
+            if (ctx.Mech is not AreaMechanism mech) return;
+            var prefab = mech.areaPrefab;
+
+            var instance = Object.Instantiate(
+                prefab,
+                ctx.Caster.position,
+                Quaternion.identity
+            );
+
+            instance.Init(ctx);
         }
     }
 }

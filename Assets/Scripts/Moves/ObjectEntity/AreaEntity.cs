@@ -17,14 +17,13 @@ namespace Moves.ObjectEntity
         private ushort _limitTick;
         private ushort _lifeTick;
         private ushort _tickElapsed;
-        private List<SkillData> _onInterval;
-        private List<SkillData> _onExpire;
+        private List<MechanismData> _onInterval;
+        private List<MechanismData> _onExpire;
         private FixedVector2 _location;
         private CastContext _ctx;
         public void Init(CastContext ctx)
         {
             if(ctx.Mech is not AreaMechanism area) return;
-            Instantiate(this, areaShape.CenterCoordinate.AsVector2, Quaternion.identity);
             _ctx = ctx;
             _onInterval = area.onEnter;
             _onExpire = area.onExpire;
@@ -103,7 +102,7 @@ namespace Moves.ObjectEntity
                             continue;
                         }
                         // OnHit FollowUp 실행
-                        SkillUtils.ActivateFollowUp(_onInterval, _ctx, entity.transform);
+                        SkillUtils.ActivateChain(_onInterval, _ctx, entity.transform);
                     }
                     break;
                 }
@@ -121,7 +120,7 @@ namespace Moves.ObjectEntity
                         {
                             continue;
                         }
-                        SkillUtils.ActivateFollowUp(_onInterval, _ctx, entity.transform);
+                        SkillUtils.ActivateChain(_onInterval, _ctx, entity.transform);
                     }
                     break;
                 }
@@ -139,7 +138,7 @@ namespace Moves.ObjectEntity
                 }
             }
             else {
-                SkillUtils.ActivateFollowUp(_onExpire, _ctx);
+                SkillUtils.ActivateChain(_onExpire, _ctx);
             }
             Destroy(gameObject);
         }

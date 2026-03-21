@@ -110,7 +110,7 @@ namespace PlayerScripts.Acts
         }
         private void CastExpire(CastContext ctx)
         {
-            if (ctx.Params is not DashParams param) return;
+            if (ctx.Mech is not DashMechanism param) return;
             if (param.onExpire.Count == 0)
             {
                 if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
@@ -118,7 +118,7 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
+            SkillUtils.ActivateChain(param.onExpire, ctx);
         }
     }
 
@@ -132,11 +132,11 @@ namespace PlayerScripts.Acts
         public readonly int Speed;
         public readonly bool PreventActivation;
         public readonly bool Penetrative;
-        public readonly List<SkillData> OnHit;
-        public readonly List<SkillData> OnExpire;
+        public readonly List<MechanismData> OnHit;
+        public readonly List<MechanismData> OnExpire;
         public readonly bool ExpireWhenUnexpected;
         public DashContract(CastContext context, ushort endTick, int speed, bool preventActivation,
-            bool penetrative, List<SkillData> onHit, List<SkillData> onExpire,
+            bool penetrative, List<MechanismData> onHit, List<MechanismData> onExpire,
             bool unexpected)
         {
             Context = context;
