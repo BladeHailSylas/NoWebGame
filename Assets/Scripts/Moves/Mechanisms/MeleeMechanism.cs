@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class MeleeMechanism : NewMechanism
+    public class MeleeMechanism : NewMechanism, INewMechanism
     {
         [Header("Area")]
         [Range(0, 360)] public float angleDeg = 120f;
@@ -15,11 +15,12 @@ namespace Moves.Mechanisms
         public MeleeEffectEntity effectPrefab;
 
         [Header("Callbacks")]
-        public List<MechanismData> onHit = new();
-        public List<MechanismData> onExpire = new();
+        [SerializeReference] public List<MechanismData> onHit = new();
+        [SerializeReference] public List<MechanismData> onExpire = new();
 
         public new void Execute(CastContext ctx)
         {
+            Debug.Log("MeleeMechanism.Execute");
             if (ctx.Mech is not MeleeMechanism mech)
                 return;
 
@@ -45,8 +46,8 @@ namespace Moves.Mechanisms
                     if (angle > halfAngle)
                         continue;
                 }
-
-                SkillUtils.ActivateFollowUp(mech.onHit, ctx, hit.transform);
+                Debug.Log(hit.transform.name);
+                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
             }
 
             if (mech.onExpire.Count == 0)

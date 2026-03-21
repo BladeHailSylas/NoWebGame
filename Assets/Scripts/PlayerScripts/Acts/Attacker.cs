@@ -112,7 +112,7 @@ namespace PlayerScripts.Acts
             }
 
             SkillCommand cmd;
-            if (binding.mechanismData.mechanism is SwitchMechanism switcher)
+            if (binding.skillData.mechanismData.mechanism is SwitchMechanism switcher)
             {
                 SwitchVariable sv = default;
                 foreach (var sw in switcher.cases)
@@ -125,10 +125,10 @@ namespace PlayerScripts.Acts
                     caster: _caster,
                     mode: binding.mode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
-                    mech: binding.mechanismData.mechanism,
+                    mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
                     va : sv,
-                    masker: binding.mechanismData.mechanism.Mask
+                    masker: binding.skillData.mechanismData.mechanism.Mask
                 );
             }
             else {
@@ -136,13 +136,13 @@ namespace PlayerScripts.Acts
                     caster: _caster,
                     mode: binding.mode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
-                    mech: binding.mechanismData.mechanism,
+                    mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
                     va: default,
-                    masker: binding.mechanismData.mechanism.Mask
+                    masker: binding.skillData.mechanismData.mechanism.Mask
                 );}
             _collector?.EnqueueCommand(cmd);
-            _context.Logger.Info($"Activating {binding.mechanismData.mechanism.GetType().Name} (cooldown {binding.mechanismData.mechanism.CooldownTicks}).");
+            _context.Logger.Info($"Activating {binding.skillData.mechanismData.mechanism.GetType().Name} (cooldown {binding.skillData.mechanismData.mechanism.CooldownTicks}).");
         }
 
         public void PrepareCast(SkillSlot slot, byte innoxiousCount)
@@ -160,7 +160,7 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            _context.Logger.Info($"Preparing {binding.mechanismData.mechanism.GetType().Name} (cooldown {binding.mechanismData.mechanism.CooldownTicks}).");
+            _context.Logger.Info($"Preparing {binding.skillData.mechanismData.mechanism.GetType().Name} (cooldown {binding.skillData.mechanismData.mechanism.CooldownTicks}).");
         }
     }
 }

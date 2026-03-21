@@ -60,6 +60,7 @@ namespace PlayerScripts.Skills
         /// </summary>
         public void EnqueueCommand(SkillCommand cmd)
         {
+            Debug.Log($"Got {cmd.Mech}");
             // TickHandler 실행 중에 호출되어도 안전:
             // TickHandler는 _resolving만 처리하며, Enqueue는 _collecting에만 쌓이기 때문.
             _collecting.Add(cmd);

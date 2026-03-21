@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class SummonMechanism : NewMechanism
+    public class SummonMechanism : NewMechanism, INewMechanism
     {
         [Header("Time")]
         public ushort lifeTick;
 
         [Header("Settings")]
-        public SummonEntity summonPrefab;
-        public List<MechanismData> onSummoned;
+        [SerializeReference] public SummonEntity summonPrefab;
+        [SerializeReference] public List<MechanismData> onSummoned;
 
         public new void Execute(CastContext ctx)
         {
@@ -20,8 +20,15 @@ namespace Moves.Mechanisms
             {
                 return;
             }
-            summonPrefab.Init(ctx);
-            SkillUtils.ActivateFollowUp(mech.onSummoned, ctx);
+            var prefab = mech.summonPrefab;
+
+            var instance = Object.Instantiate(
+                prefab,
+                ctx.Caster.position,
+                Quaternion.identity
+            );
+
+            instance.Init(ctx);
         }
     }
 }

@@ -48,16 +48,21 @@ namespace Moves
         {
             Debug.LogError("You have executed a mechanism without any actions;");
         }
-        private short cooldownTicks;
-        private byte delayTicks;
-        private int minRange;
-        private int maxRange;
-        private LayerMask mask;
+        [SerializeField] private short cooldownTicks;
+        [SerializeField] private byte delayTicks;
+        [SerializeField] private int minRange;
+        [SerializeField] private int maxRange;
+        [SerializeField] private LayerMask mask;
         public short CooldownTicks => cooldownTicks;
         public byte DelayTicks => delayTicks;
         public float MinRange => minRange / 1000f;
         public float MaxRange => maxRange / 1000f;
         public LayerMask Mask => mask;
+    }
+
+    public abstract class ObjectGeneratingMechanism
+    {
+        
     }
 
     public interface ISystemMechanism : INewMechanism
@@ -153,28 +158,29 @@ namespace Moves
 
     public static class SkillUtils
     {
-        public static void ActivateFollowUp(List<MechanismData> followups, CastContext ctx, Transform target = null)
+        public static void ActivateChain(List<MechanismData> chains, CastContext ctx, Transform target = null)
         {
-            if (followups.Count == 0) return;
-            foreach (var followup in followups)
+            if (chains.Count == 0) return;
+            foreach (var chain in chains)
             {
-                if (followup.mechanism is not INewMechanism mech) continue;
+                if (chain.mechanism is not { } mech) continue;
                 target ??= ctx.Target;
-                var ctxTarget = !followup.requireRetarget ? target : null;
-                SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
+                var ctxTarget = !chain.requireRetarget ? target : null;
+                SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
+                Debug.Log("Chain: " + cmd.Mech);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }
         }
 
-        public static void ActivateFollowUp(MechanismData[] followups, CastContext ctx)
+        public static void ActivateChain(MechanismData[] chains, CastContext ctx)
         {
-            if (followups.Length == 0) return;
-            foreach (var followup in followups)
+            if (chains.Length == 0) return;
+            foreach (var chain in chains)
             {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, followup.mode, new FixedVector2(ctx.Caster.position),
+                if (chain.mechanism is not { } mech) continue;
+                var ctxTarget = !chain.requireRetarget ? ctx.Target : null;
+                SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
                 CommandCollector.Instance.EnqueueCommand(cmd);
             }

@@ -118,7 +118,7 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            SkillUtils.ActivateFollowUp(param.onExpire, ctx);
+            SkillUtils.ActivateChain(param.onExpire, ctx);
         }
     }
 

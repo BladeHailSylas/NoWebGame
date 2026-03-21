@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class DetectMechanism : NewMechanism
+    public class DetectMechanism : NewMechanism, INewMechanism
     {
         public TargetMode requiredMode;
         public MonoBehaviour? requiredComponent;
-        public MechanismData[] onDetected;
-        public MechanismData[] onNotFound;
+        [SerializeReference] public MechanismData[] onDetected;
+        [SerializeReference] public MechanismData[] onNotFound;
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not DetectMechanism mech)
@@ -53,7 +53,7 @@ namespace Moves.Mechanisms
                 return;
 
             // 4. Switch와 동일한 방식으로 FollowUp 실행
-            SkillUtils.ActivateFollowUp(followUps, ctx);
+            SkillUtils.ActivateChain(followUps, ctx);
         }
 
     }

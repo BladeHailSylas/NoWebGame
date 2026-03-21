@@ -46,6 +46,7 @@ namespace PlayerScripts.Skills
                 target = result.Target;
                 mode = cmd.TargetMode;
             }
+            Debug.Log(cmd.Mech.GetType());
             cmd.Mech.Execute(new CastContext(cmd.Mech, cmd.Caster, target, cmd.Damage, cmd.Var, mode));
             _displayer?.Display(cmd);
         }

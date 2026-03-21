@@ -34,7 +34,6 @@ namespace Moves.ObjectEntity
 
         public void Init(CastContext ctx)
         {
-            Instantiate(this, _location.AsVector2, Quaternion.identity);
             if (ctx.Mech is not ProjectileMechanism proj) return;
             _ctx = ctx;
             _onHit = proj.onHit;
@@ -117,7 +116,7 @@ namespace Moves.ObjectEntity
         {
             if (!other.TryGetComponent<Entity>(out var entity)) return;
             if (_hitEntities.Contains(entity)) return;
-            SkillUtils.ActivateFollowUp(_onHit, _ctx, entity.transform);
+            SkillUtils.ActivateChain(_onHit, _ctx, entity.transform);
             _hitEntities.Add(entity);
         }
 
@@ -131,7 +130,7 @@ namespace Moves.ObjectEntity
                     AnchorRegistry.Instance.Return(anchor);
                 }
             }
-            SkillUtils.ActivateFollowUp(_onExpire, _ctx);
+            SkillUtils.ActivateChain(_onExpire, _ctx);
             Destroy(gameObject);
         }
     }

@@ -7,14 +7,14 @@ namespace Moves.Mechanisms
     /// <summary>
     /// Defines how hitscan-based skills behave — instant ray-based hit detection.
     /// </summary>
-    public class HitscanMechanism : NewMechanism
+    public class HitscanMechanism : NewMechanism, INewMechanism
     {
         [Header("Entity Settings")]
         public GameObject hitEffectPrefab;   // Placeholder — not used yet.
 
         [Header("FollowUp")]
-        public List<MechanismData> onHit;
-        public List<MechanismData> onExpire;
+        [SerializeReference] public List<MechanismData> onHit;
+        [SerializeReference] public List<MechanismData> onExpire;
 
         [Header("Debug")]
         public bool debugDraw = true;
@@ -39,10 +39,10 @@ namespace Moves.Mechanisms
 
             if (hit.collider is not null)
             {
-                SkillUtils.ActivateFollowUp(mech.onHit, ctx, hit.transform);
+                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
             }
 
-            SkillUtils.ActivateFollowUp(mech.onExpire, ctx);
+            SkillUtils.ActivateChain(mech.onExpire, ctx);
         }
     }
 }

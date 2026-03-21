@@ -16,7 +16,6 @@ namespace Moves.ObjectEntity
         public void Init(CastContext ctx)
         {
             if (ctx.Mech is not SummonMechanism param) return;
-            Instantiate(this, ctx.Target.position , Quaternion.identity);
             Owner = ctx.Caster;
             gameObject.layer = LayerMask.NameToLayer("You");
             Awaken(param);

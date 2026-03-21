@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using Moves.ObjectEntity;
 using PlayerScripts.Skills;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Moves.Mechanisms
 {
     [Serializable]
-    public class ProjectileMechanism : NewMechanism
+    public class ProjectileMechanism : NewMechanism, INewMechanism
     {
         [Header("Time")]
         public ushort lifeTick;
@@ -27,8 +28,15 @@ namespace Moves.Mechanisms
             {
                 return;
             }
+            var prefab = mech.projectilePrefab;
 
-            projectilePrefab.Init(ctx);
+            var instance = Object.Instantiate(
+                prefab,
+                ctx.Caster.position,
+                Quaternion.identity
+            );
+
+            instance.Init(ctx);
         }
     }
 }

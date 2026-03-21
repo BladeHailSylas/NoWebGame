@@ -6,11 +6,11 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class TeleportMechanism : NewMechanism
+    public class TeleportMechanism : NewMechanism, INewMechanism
     {
         [Header("Settings")]
         public bool ignoreEnemy;
-        public List<MechanismData> onArrival;
+        [SerializeReference] public List<MechanismData> onArrival;
 
         public new void Execute(CastContext ctx)
         {

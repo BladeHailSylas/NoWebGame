@@ -7,11 +7,11 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class RayMechanism : NewMechanism
+    public class RayMechanism : NewMechanism, INewMechanism
     {
         [Header("Ray")]
-        public float rangeMultiplier = 1f;
-        public List<MechanismData> onHit;
+        [SerializeReference] public float rangeMultiplier = 1f;
+        [SerializeReference] public List<MechanismData> onHit;
 
         public new void Execute(CastContext ctx)
         {
@@ -42,7 +42,7 @@ namespace Moves.Mechanisms
                     continue;
                 }
 
-                SkillUtils.ActivateFollowUp(mech.onHit, ctx);
+                SkillUtils.ActivateChain(mech.onHit, ctx);
             }
 
             /* Debug helper: keep the ray visible for a short duration when tuning hit logic. */

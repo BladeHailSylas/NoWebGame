@@ -7,15 +7,15 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
-    public class StackMechanism : NewMechanism
+    public class StackMechanism : NewMechanism, INewMechanism
     {
         [Header("Stack")]
         public StackDefinition stack;
         public int amount = 1;
 
         [Header("Callbacks")]
-        public List<MechanismData> onHit;
-        public List<MechanismData> onExpire;
+        [SerializeReference] public List<MechanismData> onHit;
+        [SerializeReference] public List<MechanismData> onExpire;
 
         public new void Execute(CastContext ctx)
         {
@@ -26,8 +26,8 @@ namespace Moves.Mechanisms
             }
 
             stacker.ApplyStack(new StackKey(mech.stack, ctx.Caster.name, ctx.Caster), 65535, mech.amount);
-            SkillUtils.ActivateFollowUp(mech.onHit, ctx);
-            SkillUtils.ActivateFollowUp(mech.onExpire, ctx);
+            SkillUtils.ActivateChain(mech.onHit, ctx);
+            SkillUtils.ActivateChain(mech.onExpire, ctx);
         }
     }
 }
