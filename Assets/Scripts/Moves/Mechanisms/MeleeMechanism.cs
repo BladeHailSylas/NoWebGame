@@ -63,7 +63,7 @@ namespace Moves.Mechanisms
                 var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
                 SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
                     mechFollowUp, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                CommandCollector.Instance.EnqueueCommand(cmd);
+                CommandBridge.Enqueue(cmd);
             }
         }
     }

@@ -21,7 +21,7 @@ namespace PlayerScripts.Skills
     /// - scheduled 순회가 끝난 뒤 executed를 통해 scheduled에서 제거한다. (foreach 안전)
     /// - 0틱 지연도 동일 파이프라인을 거쳐 "다음 Tick에서" 실행되도록 강제된다.
     /// </summary>
-    public class CommandCollector : MonoBehaviour
+    public class CommandCollector : MonoBehaviour, ICommandPort
     {
         private SkillRunner _runner;
         private DelayScheduler _scheduler;

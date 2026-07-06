@@ -169,7 +169,7 @@ namespace Moves
                 SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
                 Debug.Log("Chain: " + cmd.Mech);
-                CommandCollector.Instance.EnqueueCommand(cmd);
+                CommandBridge.Enqueue(cmd);
             }
         }
 
@@ -182,7 +182,7 @@ namespace Moves
                 var ctxTarget = !chain.requireRetarget ? ctx.Target : null;
                 SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                CommandCollector.Instance.EnqueueCommand(cmd);
+                CommandBridge.Enqueue(cmd);
             }
         }
     }

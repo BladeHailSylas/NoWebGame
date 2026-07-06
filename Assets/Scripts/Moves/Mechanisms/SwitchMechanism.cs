@@ -72,7 +72,7 @@ namespace Moves.Mechanisms
                 ctx.Mech.Mask
             );
 
-            CommandCollector.Instance.EnqueueCommand(cmd);
+            CommandBridge.Enqueue(cmd);
         }
     }
 

@@ -97,7 +97,7 @@ namespace Systems.SubSystems
                 var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
                 SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
                     mech, ctx.Damage, ctxTarget);
-                CommandCollector.Instance.EnqueueCommand(cmd);
+                CommandBridge.Enqueue(cmd);
             }
         }
     }
