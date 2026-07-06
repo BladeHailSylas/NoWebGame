@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Characters;
 using Moves;
 using Moves.Mechanisms;
@@ -34,21 +35,6 @@ namespace PlayerScripts.Acts
             _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
             _collector = collector;
             _storage = _context.VariableStorage;
-
-            foreach (var kvp in _skills)
-            {
-                var binding = kvp.Value;
-                if (binding.mechanism is not INewMechanism)
-                {
-                    _context.Logger.Error($"Invalid mechanism in slot {kvp.Key}.");
-                    continue;
-                }
-
-                if (binding.@params is null)
-                {
-                    _context.Logger.Error($"Invalid params in slot {kvp.Key}.");
-                }
-            }
             _context.Logger.Info($"Attack controller initialised with {_skills.Count} skills.");
         }
         /// <summary>
@@ -125,20 +111,8 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            if (binding.mechanism is not INewMechanism mech)
-            {
-                _context.Logger.Error($"Skill in slot {slot} has invalid mechanism.");
-                return;
-            }
-
-            if (binding.@params is not { } param)
-            {
-                _context.Logger.Error($"Skill in slot {slot} has invalid params.");
-                return;
-            }
-
             SkillCommand cmd;
-            if (binding.@params is SwitchParams switcher)
+            if (binding.skillData.mechanismData.mechanism is SwitchMechanism switcher)
             {
                 SwitchVariable sv = default;
                 foreach (var sw in switcher.cases)
@@ -151,11 +125,10 @@ namespace PlayerScripts.Acts
                     caster: _caster,
                     mode: binding.mode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
-                    mech: mech,
-                    @params: param,
+                    mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
                     va : sv,
-                    masker: binding.@params.Mask
+                    masker: binding.skillData.mechanismData.mechanism.Mask
                 );
             }
             else {
@@ -163,14 +136,13 @@ namespace PlayerScripts.Acts
                     caster: _caster,
                     mode: binding.mode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
-                    mech: mech,
-                    @params: param,
+                    mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
                     va: default,
-                    masker: binding.@params.Mask
+                    masker: binding.skillData.mechanismData.mechanism.Mask
                 );}
             _collector?.EnqueueCommand(cmd);
-            _context.Logger.Info($"Casted skill from slot {slot} ({mech.GetType().Name}).");
+            _context.Logger.Info($"Activating {binding.skillData.mechanismData.mechanism.GetType().Name} (cooldown {binding.skillData.mechanismData.mechanism.CooldownTicks}).");
         }
 
         public void PrepareCast(SkillSlot slot, byte innoxiousCount)
@@ -188,19 +160,7 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            if (binding.mechanism is not INewMechanism mech)
-            {
-                _context.Logger.Error($"Skill in slot {slot} has invalid mechanism.");
-                return;
-            }
-
-            if (binding.@params is not { } param)
-            {
-                _context.Logger.Error($"Skill in slot {slot} has invalid params.");
-                return;
-            }
-
-            _context.Logger.Info($"Preparing {mech.GetType().Name} (cooldown {param.CooldownTicks}).");
+            _context.Logger.Info($"Preparing {binding.skillData.mechanismData.mechanism.GetType().Name} (cooldown {binding.skillData.mechanismData.mechanism.CooldownTicks}).");
         }
     }
 }

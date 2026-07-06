@@ -3,6 +3,7 @@ using Moves;
 using Systems.Data;
 using Systems.Stacks.Definition;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Characters
 {
@@ -11,8 +12,7 @@ namespace Characters
 	{
 		public SkillSlot slot;
 		public TargetMode mode;
-		public ScriptableObject mechanism;
-		[SerializeReference] public INewParams @params;
+		public SkillData skillData;
 	}
 
 	[CreateAssetMenu(menuName = "Game/Characters/Spec")]

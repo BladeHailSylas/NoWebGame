@@ -16,8 +16,8 @@ namespace Moves.ObjectEntity
         private ushort _limitTick;
         private ushort _lifeTick;
         
-        private List<MechanismRef> _onHit;
-        private List<MechanismRef> _onExpire;
+        private List<MechanismData> _onHit;
+        private List<MechanismData> _onExpire;
 
         private FixedVector2 _location;
         private FixedVector2 _velocity;
@@ -34,16 +34,16 @@ namespace Moves.ObjectEntity
 
         public void Init(CastContext ctx)
         {
-            if (ctx.Params is not ProjectileParams param) return;
+            if (ctx.Mech is not ProjectileMechanism proj) return;
             _ctx = ctx;
-            _onHit = param.onHit;
-            _onExpire = param.onExpire;
-            _limitTick = param.lifeTick;
-            _penetrative = param.penetrative;
+            _onHit = proj.onHit;
+            _onExpire = proj.onExpire;
+            _limitTick = proj.lifeTick;
+            _penetrative = proj.penetrative;
             _hitEntities = new HashSet<Entity>();
 
             _location = new FixedVector2(transform.position);
-            _speed = param.speed;
+            _speed = proj.speed;
             // 🔹 ThinMotor 생성 (Entity 소유)
             _motor = new ThinMotor(rb, col)
             {
@@ -116,7 +116,7 @@ namespace Moves.ObjectEntity
         {
             if (!other.TryGetComponent<Entity>(out var entity)) return;
             if (_hitEntities.Contains(entity)) return;
-            SkillUtils.ActivateFollowUp(_onHit, _ctx, entity.transform);
+            SkillUtils.ActivateChain(_onHit, _ctx, entity.transform);
             _hitEntities.Add(entity);
         }
 
@@ -130,7 +130,7 @@ namespace Moves.ObjectEntity
                     AnchorRegistry.Instance.Return(anchor);
                 }
             }
-            SkillUtils.ActivateFollowUp(_onExpire, _ctx);
+            SkillUtils.ActivateChain(_onExpire, _ctx);
             Destroy(gameObject);
         }
     }
