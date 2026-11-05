@@ -18,7 +18,7 @@ namespace Moves.Mechanisms
             if (ctx.Mech is not RayMechanism mech) return;
 
             Vector2 origin = ctx.Caster.position;
-            Vector2 target = ctx.Target.position;
+            if (!ctx.Target.TryGetPosition(out var target)) return;
             var dist = target - origin;
             var direction = dist.normalized;
             var distance = dist.magnitude * mech.rangeMultiplier;

@@ -46,12 +46,16 @@ namespace PlayerScripts.Acts
 
         public void AddDashContract(DashContract contract)
         {
+            // 새로 생성된 Player는 아직 Tick을 받지 않았을 수 있습니다.
+            var now = Systems.Time.Time.Ticker?.TickCount ?? _tick;
             var dashContract = new DashContract(
-                contract.Context, (ushort)(contract.EndTick + _tick), contract.Speed, contract.PreventActivation, contract.Penetrative,
+                contract.Context, contract.EndTick + now, contract.Speed, contract.PreventActivation, contract.Penetrative,
                 contract.OnHit, contract.OnExpire, contract.ExpireWhenUnexpected
             );
             _mover.StartDash(dashContract);
         }
+
+        public void CancelDash(bool publish = true) => _mover.CancelDash(ExitCause.OwnerDisabled, publish);
 
         public void AddTeleportContract(TeleportContract tpc)
         {

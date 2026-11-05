@@ -22,6 +22,10 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
 
+        public ExitCallbackMode callbackMode;
+        public TimeoutPolicy timeoutPolicy;
+        [SerializeReference] public List<MechanismData> onCompleted = new();
+        [SerializeReference] public List<MechanismData> onInterrupted = new();
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not ProjectileMechanism mech)

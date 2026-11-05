@@ -53,26 +53,7 @@ namespace Moves.Mechanisms
                 selected = mech.defaultFollowUp;
             }
 
-            if (selected.mechanism is not INewMechanism selectedMechanism)
-            {
-                if (ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
-                    AnchorRegistry.Instance.Return(anchor);
-                return;
-            }
-
-            var target = selected.requireRetarget ? null : ctx.Target;
-            SkillCommand cmd = new(
-                ctx.Caster,
-                ctx.Mode,
-                new FixedVector2(ctx.Caster.position),
-                selectedMechanism,
-                ctx.Damage,
-                target,
-                ctx.Var,
-                ctx.Mech.Mask
-            );
-
-            CommandBridge.Enqueue(cmd);
+            SkillUtils.ActivateChain(new[] { selected }, ctx);
         }
     }
 

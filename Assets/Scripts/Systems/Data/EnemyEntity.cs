@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Characters;
 using JetBrains.Annotations;
 using Moves;
@@ -92,6 +93,7 @@ namespace Systems.Data
 
         private void OnEnable()
         {
+            Debug.Log("OnEnable");
             if (Ticker.Instance != null)
             {
                 Time.Time.Ticker.OnTick += TickHandler;
@@ -101,6 +103,7 @@ namespace Systems.Data
                 _logger.Warn("Ticker instance missing. Movement tick updates disabled.");
             }
             _characterVariables = spec.CharacterVariables;
+            Debug.Log($"{name}: Initializing stacks(list {string.Join(", ", _characterVariables.Select(v => v.name))})");
             InitStacks();
         }
 
@@ -177,6 +180,7 @@ namespace Systems.Data
         {
             foreach (var stack in _characterVariables)
             {
+                Debug.Log($"{name}: Applying stack {stack.name}");
                 ApplyStack(new StackKey(stack), 0);
             }
         }

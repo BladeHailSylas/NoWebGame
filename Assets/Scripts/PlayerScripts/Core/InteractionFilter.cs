@@ -25,12 +25,14 @@ namespace PlayerScripts.Core
 
         public void FilterDamage(in DamageData dmg)
         {
+            Debug.Log($"{_entity.name}: Filtering damage from {dmg.Attacker?.name ?? "null"} with type {dmg.Type} and value {dmg.Value}");
             // 1. 공격자 관계 계산
             var relation = FindRelation(dmg.Attacker);
             // 2. 허용 여부 판단
+            Debug.Log($"{_entity.name}: relation result: {relation}, allowed: {IsDamageAllowed(relation)}");
             if (!IsDamageAllowed(relation))
             {
-                Debug.Log("Haha negate the effect");
+                Debug.Log($"{_entity.name}: Haha negate the effect");
                 return;
             }
 
@@ -39,27 +41,29 @@ namespace PlayerScripts.Core
         }
         private bool IsDamageAllowed(RelationType relation)
         {
+            bool hasVariable;
             switch (relation)
             {
                 case RelationType.Enemy:
                 {
-                    StackStorage.Storage.TryGetValue("AllowEnemyDamage", out var variable);
-                    return variable is not null && _storage.Has(variable);
+                    hasVariable = _storage.HasNameOf("AllowEnemyDamage");
+                    break;
                 }
                 case RelationType.Owner:
                 {
-                    StackStorage.Storage.TryGetValue("AllowOwnerDamage", out var variable);
-                    return variable is not null && _storage.Has(variable);
+                    hasVariable = _storage.HasNameOf("AllowOwnerDamage");
+                    break;
                 }
                 case RelationType.Neutral:
                 {
-                    StackStorage.Storage.TryGetValue("AllowNeutralDamage", out var variable);
-                    return variable is not null && _storage.Has(variable);
+                    hasVariable = _storage.HasNameOf("AllowNeutralDamage");
+                    break;
                 }
                 case RelationType.Ally: return false;
                 case RelationType.Self: return true;
                 default: return false;
             }
+            return hasVariable;
         }
 
         private RelationType FindRelation(Transform source)

@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13cc4e30249147108873ff264a883568, type: 3}
+  m_Name: SkillData
+  m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
+  mechanismData:
+    rid: 1457004226608103424
+  references:
+    version: 2
+    RefIds:
+    - rid: 1457004226608103424
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 1457004252751986760
+        mode: 1
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 1457004252751986760
+      type: {class: MeleeMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 2000
+        mask:
+          serializedVersion: 2
+          m_Bits: 128
+        angleDeg: 120
+        enemyMask:
+          serializedVersion: 2
+          m_Bits: 128
+        effectPrefab: {fileID: 0}
+        onHit:
+        - rid: 1457004252751986761
+        onExpire: []
+    - rid: 1457004252751986761
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 1457004252751986762
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 1457004252751986762
+      type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 1000000
+        mask:
+          serializedVersion: 2
+          m_Bits: 128
+        damageValue: 100
+        defaultAPRatio: 0
+        defaultAmplitude: 0
+        type: 0
+        onHit: []
+        onExpire: []

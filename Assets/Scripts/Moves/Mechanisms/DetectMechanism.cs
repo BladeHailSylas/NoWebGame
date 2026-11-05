@@ -18,7 +18,7 @@ namespace Moves.Mechanisms
                 return;
 
             // Detect는 "대상이 있을 때만" 의미를 가짐
-            if (ctx.Target is null)
+            if (!ctx.Target.IsValid)
                 return;
 
             // 1. TargetMode 검사

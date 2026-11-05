@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using PlayerScripts.Skills;
 using Systems.Data;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
+    [Serializable]
     public class DamageMechanism : NewMechanism, INewMechanism
     {
         public ushort damageValue;
@@ -20,7 +20,7 @@ namespace Moves.Mechanisms
             Debug.Log("Activated");
             if (!ctx.Target.TryGetComponent(out IVulnerable vul))
             {
-                Debug.Log($"{ctx.Target.name} is not Vulnerable");
+                Debug.Log($"{ctx.Target} is not Vulnerable");
                 return;
             }
             var finalAP = 1 - (1 - ctx.Damage.APRatio) * (1 - defaultAPRatio / 100.0);

@@ -149,6 +149,7 @@ namespace PlayerScripts.Core
                 _controls.Disable();
             }
 
+            _actBridge?.CancelDash(!TravelPhysicsObserver.IsShuttingDown && gameObject.scene.isLoaded);
             _actBridge?.ClearMovementInput();
 
             if (Ticker.Instance != null)

@@ -1,12 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Moves.Effects.Definitions;
-using PlayerScripts.Skills;
-using Systems.Anchor;
-using Systems.Data;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
+    [Serializable]
     public class MeleeMechanism : NewMechanism, INewMechanism
     {
         [Header("Area")]
@@ -25,10 +24,10 @@ namespace Moves.Mechanisms
                 return;
 
             var caster = ctx.Caster;
-            var target = ctx.Target; // Anchor fallback remains unchanged.
+            if (!ctx.Target.TryGetPosition(out var target)) return;
 
             Vector2 origin = caster.position;
-            Vector2 dir = target.position - caster.position;
+            Vector2 dir = target - (Vector2)caster.position;
             var radius = mech.MaxRange;
             var halfAngle = mech.angleDeg * 0.5f;
             mech.effectPrefab?.Init(origin, radius, mech.angleDeg, dir);
@@ -50,21 +49,7 @@ namespace Moves.Mechanisms
                 SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
             }
 
-            if (mech.onExpire.Count == 0)
-            {
-                if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                AnchorRegistry.Instance.Return(anchor);
-                return;
-            }
-
-            foreach (var followup in mech.onExpire)
-            {
-                if (followup.mechanism is not INewMechanism mechFollowUp) continue;
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mechFollowUp, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                CommandBridge.Enqueue(cmd);
-            }
+            SkillUtils.ActivateChain(mech.onExpire, ctx);
         }
     }
 }

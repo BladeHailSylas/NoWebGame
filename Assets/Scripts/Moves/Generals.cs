@@ -42,6 +42,7 @@ namespace Moves
         void Execute(CastContext ctx);
     }
 
+    [Serializable]
     public abstract class NewMechanism : INewMechanism
     {
         public void Execute(CastContext ctx)
@@ -87,12 +88,13 @@ namespace Moves
     {
         public readonly INewMechanism Mech;
         public readonly Transform Caster;
-        public readonly Transform Target;
+        public readonly SkillTarget Target;
         public readonly TargetMode Mode;
         public DamageData Damage;
         public SwitchVariable Var;
+        public readonly TravelResult? Exit;
 
-        public CastContext(INewMechanism mech, Transform caster, Transform target, DamageData damage, SwitchVariable va = default, TargetMode mode = TargetMode.TowardsEntity)
+        public CastContext(INewMechanism mech, Transform caster, SkillTarget target, DamageData damage, SwitchVariable va = default, TargetMode mode = TargetMode.TowardsEntity, TravelResult? exit = null)
         {
             Mech = mech;
             Caster = caster;
@@ -100,23 +102,26 @@ namespace Moves
             Damage = damage;
             Var = va;
             Mode = mode;
+            Exit = exit;
         }
+        public CastContext WithExit(TravelResult result) => new(Mech, Caster, Target, Damage, Var, Mode, result);
     } 
 
     public readonly struct SkillCommand : IEquatable<SkillCommand>
     {
         public readonly Transform Caster;
-        public readonly Transform Target;
+        public readonly SkillTarget Target;
         public readonly TargetMode TargetMode;
         public readonly FixedVector2 CastPosition;
         public readonly INewMechanism Mech;
         public readonly DamageData Damage;
         public readonly LayerMask Mask;
         public readonly SwitchVariable Var;
+        public readonly TravelResult? Exit;
 
         public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
-            INewMechanism mech, DamageData damage, Transform target = null,
-            SwitchVariable va = default, int masker = 0)
+            INewMechanism mech, DamageData damage, SkillTarget target = default,
+            SwitchVariable va = default, int masker = 0, TravelResult? exit = null)
         {
             Caster = caster;
             Target = target;
@@ -125,12 +130,14 @@ namespace Moves
             Mech = mech;
             Damage = damage;
             Var = va;
-            Mask = 1 << masker;
+            // 호출자는 레이어 번호가 아니라 LayerMask 비트 집합을 전달합니다.
+            Mask = masker;
+            Exit = exit;
         }
 
         public bool Equals(SkillCommand other)
         {
-            return Caster.Equals(other.Caster) && Target.Equals(other.Target) && Mech.Equals(other.Mech);
+            return Caster == other.Caster && Target.Equals(other.Target) && Equals(Mech, other.Mech);
         }
 
         public override bool Equals(object obj)
@@ -140,7 +147,7 @@ namespace Moves
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Caster, Target, (int)TargetMode, CastPosition, Mech);
+            return HashCode.Combine(Caster, Target, Mech);
         }
     }
 
@@ -158,31 +165,21 @@ namespace Moves
 
     public static class SkillUtils
     {
-        public static void ActivateChain(List<MechanismData> chains, CastContext ctx, Transform target = null)
+        public static void ActivateChain(IEnumerable<MechanismData> chains, CastContext ctx, SkillTarget? target = null)
         {
-            if (chains.Count == 0) return;
+            if (chains == null || !ctx.Caster) return;
             foreach (var chain in chains)
             {
-                if (chain.mechanism is not { } mech) continue;
-                target ??= ctx.Target;
-                var ctxTarget = !chain.requireRetarget ? target : null;
-                SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
-                    mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                Debug.Log("Chain: " + cmd.Mech);
-                CommandBridge.Enqueue(cmd);
-            }
-        }
-
-        public static void ActivateChain(MechanismData[] chains, CastContext ctx)
-        {
-            if (chains.Length == 0) return;
-            foreach (var chain in chains)
-            {
-                if (chain.mechanism is not { } mech) continue;
-                var ctxTarget = !chain.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, chain.mode, new FixedVector2(ctx.Caster.position),
-                    mech, ctx.Damage, ctxTarget, ctx.Var, ctx.Mech.Mask);
-                CommandBridge.Enqueue(cmd);
+                if (chain?.mechanism is not { } mech) continue;
+                var next = target ?? ctx.Target;
+                if (chain.requireRetarget) next = default;
+                else if (chain.targetSource == ChainTargetSource.ExitPosition)
+                {
+                    if (!ctx.Exit.HasValue) continue;
+                    next = SkillTarget.At(ctx.Exit.Value.Position);
+                }
+                CommandBridge.Enqueue(new SkillCommand(ctx.Caster, chain.mode,
+                    new FixedVector2(ctx.Caster.position), mech, ctx.Damage, next, ctx.Var, ctx.Mech.Mask, ctx.Exit));
             }
         }
     }
@@ -194,12 +191,7 @@ namespace Moves
         public TargetMode mode;
         public bool requireRetarget;
         public bool respectBusy;
+        public ChainTargetSource targetSource;
     }
 
-    [Serializable]
-    [CreateAssetMenu(menuName = "Skills/SkillData", fileName = "SkillData")]
-    public class SkillData : ScriptableObject
-    {
-        [SerializeReference] public MechanismData mechanismData;
-    }
 }

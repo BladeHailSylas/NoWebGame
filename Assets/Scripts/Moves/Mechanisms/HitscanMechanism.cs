@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
-using PlayerScripts.Skills;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
+    [Serializable]
     /// <summary>
     /// Defines how hitscan-based skills behave — instant ray-based hit detection.
     /// </summary>
@@ -22,13 +23,13 @@ namespace Moves.Mechanisms
         public new void Execute(CastContext ctx)
         {
             if (ctx.Mech is not HitscanMechanism mech) return;
-            if (ctx.Target is null)
+            if (!ctx.Target.TryGetPosition(out var targetPosition))
             {
                 return;
             }
 
             var origin = ctx.Caster != null ? (Vector2)ctx.Caster.position : Vector2.zero;
-            var direction = ((Vector2)ctx.Target.position - origin).normalized;
+            var direction = (targetPosition - origin).normalized;
 
             var hit = Physics2D.Raycast(origin, direction, mech.MaxRange, mech.Mask);
             if (mech.debugDraw)

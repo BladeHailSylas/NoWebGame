@@ -23,10 +23,41 @@ namespace Moves.Mechanisms
             if (ctx.Mech is not AreaMechanism mech) return;
             var prefab = mech.areaPrefab;
 
+            // Target이 유효한 위치를 제공하면 해당 위치에 생성합니다.
+            // 그렇지 않으면 Caster 위치를 사용합니다.
+            var centerPos = ctx.Caster.position;
+            bool hasTargetPosition = ctx.Target.TryGetPosition(out var targetPos);
+
+            if (hasTargetPosition)
+            {
+                centerPos = targetPos;
+            }
+
+            // 기존 회전 정책을 복원합니다.
+            // Target 위치가 있으면 Caster → Target 방향,
+            // 없으면 Caster의 오른쪽 방향을 사용합니다.
+            Vector3 dir = hasTargetPosition
+                ? (Vector3)(targetPos - (Vector2)ctx.Caster.position)
+                : ctx.Caster.right;
+
+            // Target과 Caster가 같은 위치라면 방향 벡터가 0이 되므로
+            // Caster의 오른쪽 방향을 대신 사용합니다.
+            if (dir.sqrMagnitude < 0.000001f)
+            {
+                dir = ctx.Caster.right;
+            }
+
+            // 기존 구현과 동일한 회전 계산입니다.
+            var rotation = Quaternion.LookRotation(
+                Vector3.forward,
+                dir.normalized
+            );
+
+            // 생성 시점에 위치와 회전을 함께 적용합니다.
             var instance = Object.Instantiate(
                 prefab,
-                ctx.Caster.position,
-                Quaternion.identity
+                centerPos,
+                rotation
             );
 
             instance.Init(ctx);

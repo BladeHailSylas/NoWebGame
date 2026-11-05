@@ -21,18 +21,19 @@ namespace PlayerScripts.Skills
 
         public void Activate(in SkillCommand cmd)
         {
+            if (!cmd.Caster || cmd.Mech == null) return;
             //Enforce maximum chain depth
             //Determine target
             var target = cmd.Target;
-            var mode = TargetMode.TowardsEntity; // default
-            if (cmd.Mech is DetectMechanism detect && target is null)
+            var mode = cmd.TargetMode;
+            if (cmd.Mech is DetectMechanism detect && !target.IsResolved)
             {
                 var result = _targetResolver.Detect(cmd.Caster, detect);
                 target = result.Target;
                 mode = detect.requiredMode;
             }
             //TODO: Consider refactoring into: single target acquisition / post-acquisition interpretation
-            if (target is null)
+            if (!target.IsResolved)
             {
                 var req = new TargetRequest(cmd.Caster, cmd.Mech.MinRange, cmd.Mech.MaxRange, cmd.TargetMode, cmd.Mask);
                 //Temporarily Foe, should be added further target request
@@ -47,7 +48,7 @@ namespace PlayerScripts.Skills
                 mode = cmd.TargetMode;
             }
             Debug.Log(cmd.Mech.GetType());
-            cmd.Mech.Execute(new CastContext(cmd.Mech, cmd.Caster, target, cmd.Damage, cmd.Var, mode));
+            cmd.Mech.Execute(new CastContext(cmd.Mech, cmd.Caster, target, cmd.Damage, cmd.Var, mode, cmd.Exit));
             _displayer?.Display(cmd);
         }
     }

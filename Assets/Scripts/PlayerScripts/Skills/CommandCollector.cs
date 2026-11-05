@@ -36,6 +36,8 @@ namespace PlayerScripts.Skills
         private readonly List<ScheduledCommand> _scheduled = new();
 
         public static CommandCollector Instance { get; private set; }
+        // 등록과 실제 실행을 별도로 관측합니다. 콜백 수를 큐 스냅샷으로 추측하지 않습니다.
+        public event Action<SkillCommand> CommandEnqueued;
 
         private void OnEnable()
         {
@@ -64,6 +66,7 @@ namespace PlayerScripts.Skills
             // TickHandler 실행 중에 호출되어도 안전:
             // TickHandler는 _resolving만 처리하며, Enqueue는 _collecting에만 쌓이기 때문.
             _collecting.Add(cmd);
+            CommandEnqueued?.Invoke(cmd);
             //Debug.Log($"Command {cmd.Mech} came from {cmd.Caster} towards {cmd.Target} using {cmd.TargetMode}");
         }
 

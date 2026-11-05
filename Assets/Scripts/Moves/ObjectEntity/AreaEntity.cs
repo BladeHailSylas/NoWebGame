@@ -38,7 +38,7 @@ namespace Moves.ObjectEntity
                     var start = new FixedVector2(ctx.Caster.transform.position);
 
                     // 2. Target 방향 계산
-                    Vector2 targetPos = ctx.Target.transform.position;
+                    if (!ctx.Target.TryGetPosition(out var targetPos)) { Destroy(gameObject); return; }
                     var dir = (targetPos - start.AsVector2).normalized;
 
                     // 3. 거리 제한

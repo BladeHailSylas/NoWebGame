@@ -35,11 +35,11 @@ namespace PlayerScripts.Skills
     /// </summary>
     public readonly struct TargetResolveResult
     {
-        public readonly Transform Target;
+        public readonly SkillTarget Target;
         public readonly FixedVector2 Anchor;
         public readonly bool Found;
 
-        public TargetResolveResult(Transform target, FixedVector2 anchor, bool found)
+        public TargetResolveResult(SkillTarget target, FixedVector2 anchor, bool found)
         {
             Target = target;
             Anchor = anchor;
@@ -71,7 +71,7 @@ namespace PlayerScripts.Skills
                 case TargetMode.TowardsMovement:
                 case TargetMode.TowardsCoordinate:
                 {
-                    return new TargetResolveResult(null, request.CasterPos, false);
+                    return new TargetResolveResult(default, request.CasterPos, false);
                 }
                 case TargetMode.TowardsSelf:
                 {
@@ -80,7 +80,7 @@ namespace PlayerScripts.Skills
                 default:
                 {
                     Debug.LogError("No good");
-                    return new TargetResolveResult(null, request.CasterPos, false);
+                    return new TargetResolveResult(default, request.CasterPos, false);
                 }
             }
         }
@@ -91,30 +91,33 @@ namespace PlayerScripts.Skills
             var worldPos = Camera.main.ScreenToWorldPoint(screenPos);
             worldPos.z = 0f;
             var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
-            if (hit is null)
+            if (!hit)
             {
                 if (debugLog) Debug.Log("[TargetResolver] 커서 아래에 감지된 엔터티 없음");
-                return new TargetResolveResult(null, req.CasterPos, false);
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
 
+            var entity = EntityIdentity.FromCollider(hit);
+            if (!EntityIdentity.IsValid(entity)) return new TargetResolveResult(default, req.CasterPos, false);
+
             // 사거리 계산
-            var distance = Vector2.Distance(req.CasterPos.AsVector2, hit.transform.position);
+            var distance = Vector2.Distance(req.CasterPos.AsVector2, entity.transform.position);
             if (distance > req.MaxRange || distance < req.MinRange)
             {
                 if (debugLog) Debug.Log($"[TargetResolver] 사거리 조건 불충족 (거리 {distance:F2})");
-                return new TargetResolveResult(null, req.CasterPos, false);
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
 
-            if (hit.transform.TryGetComponent<Entity>(out var entity) && !entity.targetable)
+            if (!entity.targetable)
             {
                 if(debugLog) Debug.Log("[TargetResolver] 타깃 불가능한 엔터티");
-                return new TargetResolveResult(null, req.CasterPos, false);
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
             if (debugLog) Debug.Log($"[TargetResolver] 타깃 '{hit.transform.name}' 확정 (거리 {distance:F2})");
 
             return new TargetResolveResult(
-                hit.transform,
-                FixedVector2.FromVector2(hit.transform.position),
+                SkillTarget.ForEntity(entity),
+                FixedVector2.FromVector2(entity.transform.position),
                 true);
         }
         private TargetResolveResult ResolveTowardsCursor(TargetRequest req)
@@ -125,7 +128,7 @@ namespace PlayerScripts.Skills
                 if (debugLog)
                     Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
 
-                return new TargetResolveResult(null, req.CasterPos, false);
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
 
             var casterPos = req.CasterPos.AsVector2;
@@ -147,28 +150,10 @@ namespace PlayerScripts.Skills
                 distance > req.MaxRange
                     ? casterPos + direction * req.MaxRange
                     : cursorWorld;
-            // 5. Anchor 대여
-            var anchor = AnchorRegistry.Instance.Rent(
-                owner: req.Caster,
-                position: anchorPos
-            );
-
-            if (anchor is null)
-            {
-                Debug.LogWarning("[TargetResolver] Anchor 대여 실패");
-                return new TargetResolveResult(null, req.CasterPos, false);
-            }
-
-            if (debugLog)
-                Debug.Log($"[TargetResolver] TowardsCursor Anchor 배치 ({anchorPos})");
-
-            // 6. Anchor를 Target으로 반환
-            return new TargetResolveResult(
-                target: anchor.transform,
-                anchor: FixedVector2.FromVector2(anchorPos),
-                found: true
-            );
+            // 좌표는 GameObject를 빌리지 않고 고정 값으로 전달합니다.
+            return new TargetResolveResult(SkillTarget.At(anchorPos), new FixedVector2(anchorPos), true);
         }
+
         public TargetResolveResult Detect(Transform caster, DetectMechanism detect)
         {
             var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask);
@@ -190,17 +175,17 @@ namespace PlayerScripts.Skills
                 case TargetMode.TowardsMovement:
                 case TargetMode.TowardsCoordinate:
                 {
-                    return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                    return new TargetResolveResult(default, new FixedVector2(0, 0), false);
                 }
                 default:
                 {
                     Debug.LogError("No good");
-                    return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                    return new TargetResolveResult(default, new FixedVector2(0, 0), false);
                 }
             }
             if (detect.requiredComponent is not null && !result.Target.TryGetComponent(detect.requiredComponent?.GetType(), out _))
             {
-                return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                return new TargetResolveResult(default, new FixedVector2(0, 0), false);
             }
 
             return result;
