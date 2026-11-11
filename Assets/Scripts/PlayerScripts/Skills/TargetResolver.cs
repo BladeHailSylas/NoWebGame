@@ -183,11 +183,8 @@ namespace PlayerScripts.Skills
                     return new TargetResolveResult(default, new FixedVector2(0, 0), false);
                 }
             }
-            if (detect.requiredComponent is not null && !result.Target.TryGetComponent(detect.requiredComponent?.GetType(), out _))
-            {
-                return new TargetResolveResult(default, new FixedVector2(0, 0), false);
-            }
-
+            // 컴포넌트 조건은 DetectMechanism에서 검사합니다.
+            // 조건 불일치 때문에 탐색한 Target을 버리면 실패 Chain이 이를 상속할 수 없습니다.
             return result;
         }
     }

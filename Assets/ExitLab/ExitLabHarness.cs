@@ -138,7 +138,7 @@ namespace ExitLab
                 var mech = new ProjectileMechanism { projectilePrefab = projectilePrefab, lifeTick = 120,
                     speed = runSpeed, penetrative = runPenetrative, onHit = hits, onExpire = expires };
                 // 원본 Execute → Instantiate → Init 경로를 그대로 사용합니다.
-                mech.Execute(new CastContext(mech, caster.transform, target, default));
+                mech.Execute(new CastContext(mech, caster.transform, target, default, originCastPosition: caster.transform.position));
                 projectile = FindFirstObjectByType<ProjectileEntity>();
                 body = projectile.GetComponent<Rigidbody2D>();
                 projectile.gameObject.AddComponent<ExitLabLifecycle>().onDestroyed = () => Record("projectile-OnDestroy");
@@ -154,7 +154,7 @@ namespace ExitLab
                 mover = new Mover(null, null, body, col);
                 var mech = new DashMechanism { durationTicks = 120, speed = runSpeed,
                     penetrative = runPenetrative, onHit = hits, onExpire = expires };
-                var ctx = new CastContext(mech, caster.transform, target, default);
+                var ctx = new CastContext(mech, caster.transform, target, default, originCastPosition: caster.transform.position);
                 mover.StartDash(new DashContract(ctx, endTick, runSpeed, false, runPenetrative, hits, expires, false));
                 ticker.OnTick += DashTick;
             }

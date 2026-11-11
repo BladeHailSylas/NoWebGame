@@ -30,7 +30,12 @@ namespace Moves.Mechanisms
             Vector2 dir = target - (Vector2)caster.position;
             var radius = mech.MaxRange;
             var halfAngle = mech.angleDeg * 0.5f;
-            mech.effectPrefab?.Init(origin, radius, mech.angleDeg, dir);
+            if (mech.effectPrefab)
+            {
+                // Init은 Mesh 변경과 소멸을 수행하므로 생성한 인스턴스에만 호출합니다.
+                var effect = UnityEngine.Object.Instantiate(mech.effectPrefab, origin, Quaternion.identity);
+                effect.Init(origin, radius, mech.angleDeg, dir.normalized);
+            }
 
             var hits = Physics2D.OverlapCircleAll(origin, radius, mech.enemyMask);
             foreach (var hit in hits)

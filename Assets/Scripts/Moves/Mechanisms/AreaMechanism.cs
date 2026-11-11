@@ -33,11 +33,13 @@ namespace Moves.Mechanisms
                 centerPos = targetPos;
             }
 
-            // 기존 회전 정책을 복원합니다.
-            // Target 위치가 있으면 Caster → Target 방향,
-            // 없으면 Caster의 오른쪽 방향을 사용합니다.
+            // Box 회전에만 최초 시전 원점을 사용합니다. 구형 직접 호출의 null은 현재 위치로 보완합니다.
+            // 생성 위치와 Laser/Circle의 기존 기준은 변경하지 않습니다.
+            var rotationOrigin = prefab.areaShape is BoxArea
+                ? ctx.OriginCastPosition ?? (Vector2)ctx.Caster.position
+                : (Vector2)ctx.Caster.position;
             Vector3 dir = hasTargetPosition
-                ? (Vector3)(targetPos - (Vector2)ctx.Caster.position)
+                ? (Vector3)(targetPos - rotationOrigin)
                 : ctx.Caster.right;
 
             // Target과 Caster가 같은 위치라면 방향 벡터가 0이 되므로

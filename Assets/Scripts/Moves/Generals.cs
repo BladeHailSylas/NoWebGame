@@ -93,8 +93,29 @@ namespace Moves
         public DamageData Damage;
         public SwitchVariable Var;
         public readonly TravelResult? Exit;
+        public readonly Vector2? OriginCastPosition;
 
-        public CastContext(INewMechanism mech, Transform caster, SkillTarget target, DamageData damage, SwitchVariable va = default, TargetMode mode = TargetMode.TowardsEntity, TravelResult? exit = null)
+        /// <summary>
+        /// The base constructor that is used before.
+        /// It automatically sets the TargetMode to TowardsEntity, so would be replaced by the alternate constructor if you want to specify the TargetMode explicitly.
+        /// </summary>
+        /// <param name="mech"></param>
+        /// <param name="caster"></param>
+        /// <param name="target"></param>
+        /// <param name="damage"></param>
+        /// <param name="va"></param>
+        /// <param name="mode"></param>
+        /// <param name="exit"></param>
+        /// <param name="originCastPosition"></param>
+        public CastContext(
+            INewMechanism mech,
+            Transform caster,
+            SkillTarget target,
+            DamageData damage,
+            SwitchVariable va = default,
+            TargetMode mode = TargetMode.TowardsEntity,
+            TravelResult? exit = null,
+            Vector2? originCastPosition = null)
         {
             Mech = mech;
             Caster = caster;
@@ -103,8 +124,41 @@ namespace Moves
             Var = va;
             Mode = mode;
             Exit = exit;
+            OriginCastPosition = originCastPosition;
         }
-        public CastContext WithExit(TravelResult result) => new(Mech, Caster, Target, Damage, Var, Mode, result);
+
+        /// <summary>
+        /// Alternate constructor for CastContext that allows specifying the TargetMode explicitly.
+        /// Also includes optional parameters for SwitchVariable, TravelResult, and origin cast position.          lokkkkkkkkkkkkk
+        /// </summary>
+        /// <param name="mech"></param>
+        /// <param name="caster"></param>
+        /// <param name="target"></param>
+        /// <param name="damage"></param>
+        /// <param name="mode"></param>
+        /// <param name="va"></param>
+        /// <param name="exit"></param>
+        /// <param name="originCastPosition"></param>
+        public CastContext(
+            INewMechanism mech,
+            Transform caster,
+            SkillTarget target,
+            DamageData damage,
+            TargetMode mode,
+            SwitchVariable va = default,
+            TravelResult? exit = null,
+            Vector2? originCastPosition = null)
+        {
+            Mech = mech;
+            Caster = caster;
+            Target = target;
+            Damage = damage;
+            Var = va;
+            Mode = mode;
+            Exit = exit;
+            OriginCastPosition = originCastPosition;
+        }
+        public CastContext WithExit(TravelResult result) => new(Mech, Caster, Target, Damage, Var, Mode, result, OriginCastPosition);
     } 
 
     public readonly struct SkillCommand : IEquatable<SkillCommand>
@@ -113,6 +167,8 @@ namespace Moves
         public readonly SkillTarget Target;
         public readonly TargetMode TargetMode;
         public readonly FixedVector2 CastPosition;
+        // 최초 실제 실행에서 확정되며, 같은 Chain의 후속 Command는 이 값을 상속합니다.
+        public readonly Vector2? OriginCastPosition;
         public readonly INewMechanism Mech;
         public readonly DamageData Damage;
         public readonly LayerMask Mask;
@@ -121,12 +177,14 @@ namespace Moves
 
         public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
             INewMechanism mech, DamageData damage, SkillTarget target = default,
-            SwitchVariable va = default, int masker = 0, TravelResult? exit = null)
+            SwitchVariable va = default, int masker = 0, TravelResult? exit = null,
+            Vector2? originCastPosition = null)
         {
             Caster = caster;
             Target = target;
             TargetMode = mode;
             CastPosition = castPosition;
+            OriginCastPosition = originCastPosition;
             Mech = mech;
             Damage = damage;
             Var = va;
@@ -179,7 +237,8 @@ namespace Moves
                     next = SkillTarget.At(ctx.Exit.Value.Position);
                 }
                 CommandBridge.Enqueue(new SkillCommand(ctx.Caster, chain.mode,
-                    new FixedVector2(ctx.Caster.position), mech, ctx.Damage, next, ctx.Var, ctx.Mech.Mask, ctx.Exit));
+                    new FixedVector2(ctx.Caster.position), mech, ctx.Damage, next, ctx.Var, ctx.Mech.Mask, ctx.Exit,
+                    ctx.OriginCastPosition));
             }
         }
     }

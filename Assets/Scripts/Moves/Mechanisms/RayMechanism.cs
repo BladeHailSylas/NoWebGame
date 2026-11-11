@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using Systems.Anchor;
 using Systems.Data;
 using UnityEngine;
 
@@ -26,6 +23,8 @@ namespace Moves.Mechanisms
             // Detect both hostile targets and blockers in distance order.
             var hits = Physics2D.RaycastAll(origin, direction, distance, LayerMask.GetMask("Foe", "Walls&Obstacles"));
             System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            // 여러 자식 Collider에 맞아도 같은 Entity의 Chain은 한 번만 실행합니다.
+            var hitEntities = new HashSet<Entity>();
 
             foreach (var hit in hits)
             {
@@ -33,16 +32,11 @@ namespace Moves.Mechanisms
                 if (layer == LayerMask.NameToLayer("Walls&Obstacles"))
                     break;
 
-                if (!hit.collider.TryGetComponent<Entity>(out _)) continue;
+                var entity = EntityIdentity.FromCollider(hit.collider);
+                if (!EntityIdentity.IsValid(entity) || !hitEntities.Add(entity)) continue;
 
-                if (mech.onHit.Count == 0)
-                {
-                    if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                    AnchorRegistry.Instance.Return(anchor);
-                    continue;
-                }
-
-                SkillUtils.ActivateChain(mech.onHit, ctx);
+                // 재탐색 및 ExitPosition 우선순위는 공용 Chain 처리에 맡깁니다.
+                SkillUtils.ActivateChain(mech.onHit, ctx, SkillTarget.ForEntity(entity));
             }
 
             /* Debug helper: keep the ray visible for a short duration when tuning hit logic. */

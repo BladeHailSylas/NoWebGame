@@ -271,7 +271,8 @@ namespace ExitLab
             {
                 f.Start(SkillTarget.At(new Vector2(4, 0))); f.Tick();
                 var teleport = new TeleportMechanism();
-                f.Mover.Teleport(new TeleportContract(new CastContext(teleport, f.Body.transform, SkillTarget.At(Vector2.zero), default)));
+                f.Mover.Teleport(new TeleportContract(new CastContext(teleport, f.Body.transform, SkillTarget.At(Vector2.zero), default,
+                    originCastPosition: f.Body.transform.position)));
                 f.Physics(); f.Drain();
                 Check(f.Result?.Cause == ExitCause.Teleported && f.Body.position == Vector2.zero && f.ExitRegistrations == 1,
                     "Teleport cancellation removes pending Dash movement");
@@ -280,7 +281,8 @@ namespace ExitLab
             {
                 f.Start(SkillTarget.At(new Vector2(4, 0)));
                 var mech = (DashMechanism)f.Context.Mech;
-                var next = new CastContext(mech, f.Context.Caster, SkillTarget.At(new Vector2(.2f, 0)), default);
+                var next = new CastContext(mech, f.Context.Caster, SkillTarget.At(new Vector2(.2f, 0)), default,
+                    originCastPosition: f.Context.Caster.position);
                 f.Mover.StartDash(new DashContract(next, GameTime.Ticker.TickCount + 120, 60, true, true, mech.onHit, mech.onExpire, false));
                 f.Step(); f.Drain();
                 Check(f.Interrupted == 1 && f.LastInterrupted.Exit?.Cause == ExitCause.ReplacedByDash && f.Completed == 1,
@@ -332,11 +334,13 @@ namespace ExitLab
                 var player = go.AddComponent<PlayerEntity>(); player.InstallSpec(spec); go.SetActive(true);
                 var mover = (Mover)typeof(PlayerEntity).GetField("_mover", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
                 var mech = new DashMechanism { durationTicks = 120, speed = 60, callbackMode = ExitCallbackMode.Classified };
-                mech.Execute(new CastContext(mech, go.transform, SkillTarget.At(new Vector2(.4f, 0)), default));
+                mech.Execute(new CastContext(mech, go.transform, SkillTarget.At(new Vector2(.4f, 0)), default,
+                    originCastPosition: go.transform.position));
                 GameTime.Ticker.Step(); Physics2D.Simulate(1f / 60); TravelPhysicsObserver.NotifyManualSimulationCompleted();
                 Check(mover.LastDashResult?.Cause == ExitCause.PositionReached,
                     "DashMechanism -> PlayerEntity -> ActBridge -> Mover integration (" + mover.LastDashResult?.Cause + ")");
-                mech.Execute(new CastContext(mech, go.transform, SkillTarget.At(new Vector2(4, 0)), default));
+                mech.Execute(new CastContext(mech, go.transform, SkillTarget.At(new Vector2(4, 0)), default,
+                    originCastPosition: go.transform.position));
                 go.SetActive(false);
                 Check(mover.LastDashResult?.Cause == ExitCause.OwnerDisabled && !mover.IsDashing, "Player disable clears Dash");
             }
@@ -353,7 +357,8 @@ namespace ExitLab
                 var mech = new ProjectileMechanism { projectilePrefab = prefab.GetComponent<ProjectileEntity>(), speed = 60, lifeTick = 120,
                     callbackMode = ExitCallbackMode.Classified,
                     onCompleted = new List<MechanismData> { new() { mechanism = new Marker { action = _ => completions++ } } } };
-                mech.Execute(new CastContext(mech, f.Caster, SkillTarget.At(new Vector2(.4f, 0)), default));
+                mech.Execute(new CastContext(mech, f.Caster, SkillTarget.At(new Vector2(.4f, 0)), default,
+                    originCastPosition: f.Caster.position));
                 var projectile = Object.FindFirstObjectByType<ProjectileEntity>();
                 try
                 {
@@ -489,7 +494,7 @@ namespace ExitLab
                     var mech = new DashMechanism { speed = speed, penetrative = penetrative, durationTicks = lifetime,
                         callbackMode = legacy ? ExitCallbackMode.Legacy : ExitCallbackMode.Classified, timeoutPolicy = timeout,
                         onHit = onHit, onExpire = onExpire, onCompleted = onCompleted, onInterrupted = onInterrupted };
-                    var ctx = new CastContext(mech, caster.transform, target, default);
+                    var ctx = new CastContext(mech, caster.transform, target, default, originCastPosition: caster.transform.position);
                     Context = ctx;
                     Mover = new Mover(null, null, Body, collider);
                     Mover.StartDash(new DashContract(ctx, GameTime.Ticker.TickCount + lifetime, speed, true, penetrative, onHit, onExpire, false));
@@ -500,7 +505,7 @@ namespace ExitLab
                     var mech = new ProjectileMechanism { speed = speed, penetrative = penetrative, lifeTick = lifetime,
                         callbackMode = legacy ? ExitCallbackMode.Legacy : ExitCallbackMode.Classified, timeoutPolicy = timeout,
                         onHit = onHit, onExpire = onExpire, onCompleted = onCompleted, onInterrupted = onInterrupted };
-                    Context = new CastContext(mech, caster.transform, target, default);
+                    Context = new CastContext(mech, caster.transform, target, default, originCastPosition: caster.transform.position);
                     Projectile.Init(Context);
                 }
                 Physics2D.SyncTransforms();
