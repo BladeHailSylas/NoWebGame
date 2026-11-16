@@ -52,7 +52,7 @@ namespace Moves
                 (result.Cause == ExitCause.OwnerDisabled || result.Cause == ExitCause.ExternallyDestroyed)) return;
             var chains = mode == ExitCallbackMode.Legacy ? legacy :
                 result.Kind == ExitKind.Completed ? completed : interrupted;
-            SkillUtils.ActivateChain(chains, ctx.WithExit(result));
+            SkillUtils.ActivateChain(chains, ctx.WithExit(result), trigger: mode == ExitCallbackMode.Legacy ? "onExpire" : result.Kind == ExitKind.Completed ? "onCompleted" : "onInterrupted");
         }
     }
 }

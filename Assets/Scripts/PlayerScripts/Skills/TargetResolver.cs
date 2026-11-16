@@ -13,15 +13,19 @@ namespace PlayerScripts.Skills
     /// </summary>
     public readonly struct TargetRequest
     {
+        public readonly AttackTrace Trace;
         public readonly Transform Caster;
         public readonly float MinRange;
         public readonly float MaxRange;
         public readonly TargetMode Mode;
         public readonly LayerMask TargetMask;
+        public readonly TargetPolicy Targeting;
         public readonly FixedVector2 CasterPos;
 
-        public TargetRequest(Transform caster, float minRange, float maxRange, TargetMode mode, LayerMask targetMask)
+        public TargetRequest(Transform caster, float minRange, float maxRange, TargetMode mode, LayerMask targetMask, AttackTrace trace = default, TargetPolicy targeting = default)
         {
+            Trace = trace;
+            Targeting = targeting;
             Caster = caster;
             MinRange = minRange;
             MaxRange = maxRange;
@@ -48,7 +52,7 @@ namespace PlayerScripts.Skills
     }
 
     [DisallowMultipleComponent]
-    public class TargetResolver : MonoBehaviour
+    public partial class TargetResolver : MonoBehaviour
     {
         [Header("Dependencies")] [Tooltip("커서 위치를 감지할 CursorResolver 모듈")]
         public CursorResolver cursorResolver;
@@ -57,6 +61,8 @@ namespace PlayerScripts.Skills
 
         public TargetResolveResult ResolveTarget(TargetRequest request)
         {
+            if (request.Targeting.IsRelative) return ResolveRelative(request);
+            AttackLog.Write(request.Trace, "TargetQuery", $"mode={request.Mode} queryLayers={request.TargetMask.value} min={request.MinRange} max={request.MaxRange}");
             switch (request.Mode)
             {
                 case TargetMode.TowardsEntity:
@@ -79,7 +85,7 @@ namespace PlayerScripts.Skills
                 }
                 default:
                 {
-                    Debug.LogError("No good");
+                    AttackLog.Write(request.Trace, "TargetRejected", $"reason=UnsupportedMode mode={request.Mode}");
                     return new TargetResolveResult(default, request.CasterPos, false);
                 }
             }
@@ -93,18 +99,18 @@ namespace PlayerScripts.Skills
             var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
             if (!hit)
             {
-                if (debugLog) Debug.Log("[TargetResolver] 커서 아래에 감지된 엔터티 없음");
+                AttackLog.Write(req.Trace, "TargetRejected", $"reason=NoCollider queryLayers={req.TargetMask.value} point={worldPos}");
                 return new TargetResolveResult(default, req.CasterPos, false);
             }
 
             var entity = EntityIdentity.FromCollider(hit);
-            if (!EntityIdentity.IsValid(entity)) return new TargetResolveResult(default, req.CasterPos, false);
+            if (!EntityIdentity.IsValid(entity)) { AttackLog.Write(req.Trace, "TargetRejected", $"reason=InvalidEntity entity={AttackLog.Identity(entity)} collider={AttackLog.Identity(hit)}"); return new TargetResolveResult(default, req.CasterPos, false); }
 
             // 사거리 계산
             var distance = Vector2.Distance(req.CasterPos.AsVector2, entity.transform.position);
             if (distance > req.MaxRange || distance < req.MinRange)
             {
-                if (debugLog) Debug.Log($"[TargetResolver] 사거리 조건 불충족 (거리 {distance:F2})");
+                AttackLog.Write(req.Trace, "TargetRejected", $"reason=Range distance={distance} min={req.MinRange} max={req.MaxRange}");
                 return new TargetResolveResult(default, req.CasterPos, false);
             }
 
@@ -113,7 +119,7 @@ namespace PlayerScripts.Skills
                 if(debugLog) Debug.Log("[TargetResolver] 타깃 불가능한 엔터티");
                 return new TargetResolveResult(default, req.CasterPos, false);
             }
-            if (debugLog) Debug.Log($"[TargetResolver] 타깃 '{hit.transform.name}' 확정 (거리 {distance:F2})");
+            AttackLog.Write(req.Trace, "TargetResolved", $"entity={AttackLog.Identity(entity)} distance={distance}");
 
             return new TargetResolveResult(
                 SkillTarget.ForEntity(entity),
@@ -125,8 +131,7 @@ namespace PlayerScripts.Skills
             // 1. 커서 월드 좌표 획득
             if (!cursorResolver.TryGetCursorWorld(out var cursorWorld, out _))
             {
-                if (debugLog)
-                    Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
+                AttackLog.Write(req.Trace, "TargetRejected", "reason=CursorUnavailable");
 
                 return new TargetResolveResult(default, req.CasterPos, false);
             }
@@ -154,9 +159,10 @@ namespace PlayerScripts.Skills
             return new TargetResolveResult(SkillTarget.At(anchorPos), new FixedVector2(anchorPos), true);
         }
 
-        public TargetResolveResult Detect(Transform caster, DetectMechanism detect)
+        public TargetResolveResult Detect(Transform caster, DetectMechanism detect, AttackTrace trace = default)
         {
-            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask);
+            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask, trace, detect.Targeting);
+            if (request.Targeting.IsRelative) return ResolveRelative(request);
             TargetResolveResult result;
             switch (request.Mode)
             {
@@ -179,7 +185,7 @@ namespace PlayerScripts.Skills
                 }
                 default:
                 {
-                    Debug.LogError("No good");
+                    AttackLog.Write(request.Trace, "TargetRejected", $"reason=UnsupportedMode mode={request.Mode}");
                     return new TargetResolveResult(default, new FixedVector2(0, 0), false);
                 }
             }

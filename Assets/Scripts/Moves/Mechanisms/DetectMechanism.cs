@@ -18,7 +18,8 @@ namespace Moves.Mechanisms
                 return;
 
             // 무대상·무효 Target도 실패 분기로 전달하고 기존 Target은 보존합니다.
-            var detected = ctx.Target.IsValid && ctx.Mode == mech.requiredMode;
+            var detected = ctx.Target.IsValid && ctx.Mode == mech.requiredMode &&
+                (!mech.Targeting.IsRelative || ctx.Target.Kind != TargetKind.Entity || mech.Targeting.Allows(ctx.Caster, ctx.Target.Entity));
             switch (detected)
             {
                 case false:
@@ -49,7 +50,7 @@ namespace Moves.Mechanisms
                 return;
 
             // 4. Switch와 동일한 방식으로 FollowUp 실행
-            SkillUtils.ActivateChain(followUps, ctx);
+            SkillUtils.ActivateChain(followUps, ctx, trigger: "followUps");
         }
 
     }

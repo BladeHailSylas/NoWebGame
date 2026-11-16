@@ -32,10 +32,12 @@ MonoBehaviour:
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
-        maxRange: 10000000
+        maxRange: 12000
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         lifeTick: 120
         projectilePrefab: {fileID: 3949609632709628406, guid: 23054f6688bfb2e4589ac9588da576ce, type: 3}
         speed: 10
@@ -69,6 +71,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         damageValue: 90
         defaultAPRatio: 0
         defaultAmplitude: 0
@@ -94,6 +98,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         lifeTick: 60
         areaPrefab: {fileID: 1340892008785044096, guid: 771f579d669379c468ded53106f5a6ba, type: 3}
         onEnter:
@@ -119,6 +125,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         damageValue: 10
         defaultAPRatio: 0
         defaultAmplitude: 0
@@ -144,6 +152,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         lifeTick: 60
         areaPrefab: {fileID: 1340892008785044096, guid: 771f579d669379c468ded53106f5a6ba, type: 3}
         onEnter:
@@ -169,6 +179,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         damageValue: 10
         defaultAPRatio: 0
         defaultAmplitude: 0
@@ -194,6 +206,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 0
         lifeTick: 120
         areaPrefab: {fileID: 32189647861880344, guid: 6d6fd1d5f82df2f4da6d704b6a36b0e5, type: 3}
         onEnter: []

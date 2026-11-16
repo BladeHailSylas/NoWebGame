@@ -25,19 +25,42 @@ namespace PlayerScripts.Core
 
         public void FilterDamage(in DamageData dmg)
         {
-            Debug.Log($"{_entity.name}: Filtering damage from {dmg.Attacker?.name ?? "null"} with type {dmg.Type} and value {dmg.Value}");
+            if (dmg.UseRelationPolicy)
+            {
+                FilterRelativeDamage(dmg);
+                return;
+            }
             // 1. 공격자 관계 계산
             var relation = FindRelation(dmg.Attacker);
             // 2. 허용 여부 판단
-            Debug.Log($"{_entity.name}: relation result: {relation}, allowed: {IsDamageAllowed(relation)}");
-            if (!IsDamageAllowed(relation))
+            var allowed = IsDamageAllowed(relation);
+            var policy = relation == RelationType.Enemy ? "AllowEnemyDamage" : relation == RelationType.Owner ? "AllowOwnerDamage" : relation == RelationType.Neutral ? "AllowNeutralDamage" : "BuiltInRule";
+            AttackLog.Write(dmg.Trace, "DamagePolicy", $"target={AttackLog.Identity(_entity)} damagePolicyRelation={relation} policy={policy} allowed={allowed}");
+            if (!allowed)
             {
-                Debug.Log($"{_entity.name}: Haha negate the effect");
+                AttackLog.Write(dmg.Trace, "DamageRejected", "reason=DamagePolicyDenied");
                 return;
             }
 
             // 3. 허용된 경우에만 실제 피해 처리
             _stats.TakeDamage(dmg);
+        }
+
+        private void FilterRelativeDamage(in DamageData dmg)
+        {
+            var source = TargetPolicy.EntityOf(dmg.Attacker);
+            var relation = EntityRelationResolver.Resolve(source, _entity);
+            // Owner는 관계 enum이 아니라 수신 정책입니다. Self가 먼저입니다.
+            var owner = relation != EntityRelation.Self && source && _entity.Owner &&
+                source == TargetPolicy.EntityOf(_entity.Owner);
+            var environmental = !source;
+            var policy = relation == EntityRelation.Self ? "Self" : owner ? "AllowOwnerDamage" :
+                environmental || relation == EntityRelation.Neutral ? "AllowNeutralDamage" :
+                relation == EntityRelation.Enemy ? "AllowEnemyDamage" : "Denied";
+            var allowed = policy == "Self" || (policy != "Denied" && _storage.HasNameOf(policy));
+            AttackLog.Write(dmg.Trace, "DamagePolicy", $"target={AttackLog.Identity(_entity)} damagePolicyRelation={relation} owner={owner} environmentalCompatibility={environmental} policy={policy} allowed={allowed}");
+            if (allowed) _stats.TakeDamage(dmg);
+            else AttackLog.Write(dmg.Trace, "DamageRejected", "reason=DamagePolicyDenied");
         }
         private bool IsDamageAllowed(RelationType relation)
         {

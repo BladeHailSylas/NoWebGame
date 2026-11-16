@@ -16,6 +16,7 @@ namespace Systems.SubSystems
         private readonly Rigidbody2D _body;
         private readonly Collider2D _collider;
         private readonly CastContext _context;
+        private readonly TargetPolicy _targeting;
         private readonly int _speed;
         private readonly bool _penetrative;
         private readonly int _walls;
@@ -43,9 +44,12 @@ namespace Systems.SubSystems
         {
             _body = body; _collider = collider; _context = context; _speed = speed;
             _penetrative = penetrative; _walls = walls; _onHit = onHit;
-            _filter = new ContactFilter2D { useLayerMask = true, layerMask = walls | enemies,
+            _targeting = TargetPolicy.From(context.Mech);
+            var queryLayers = _targeting.IsRelative ? TargetPolicy.CandidateLayers : walls | enemies;
+            _filter = new ContactFilter2D { useLayerMask = true, layerMask = queryLayers,
                 useTriggers = Physics2D.queriesHitTriggers };
             RequestedPosition = body.position;
+            AttackLog.Write(context.Trace, "TravelStarted", $"body={AttackLog.Identity(body)} origin={body.position} target={context.Target} speed={speed} penetrative={penetrative} queryLayers={queryLayers} relations={_targeting.Relations} version={_targeting.Version} blockerLayers={walls}");
         }
 
         public TravelResult? Advance()
@@ -83,8 +87,8 @@ namespace Systems.SubSystems
                     _sweptExit = new TravelResult(ExitKind.Interrupted, ExitCause.WallBlocked, origin + delta);
                     break;
                 }
-                var entity = EntityIdentity.FromCollider(other);
-                if (!EntityIdentity.IsValid(entity) || IsSelf(entity)) continue;
+                var entity = _targeting.IsRelative ? TargetPolicy.EntityOf(other) : EntityIdentity.FromCollider(other);
+                if (!CanHit(entity)) continue;
                 RegisterHit(entity);
                 if (_context.Target.Matches(entity) || !_penetrative)
                 {
@@ -122,19 +126,28 @@ namespace Systems.SubSystems
             _collider.Overlap(_filter, _overlaps);
             foreach (var other in _overlaps)
             {
-                var entity = EntityIdentity.FromCollider(other);
-                if (EntityIdentity.IsValid(entity) && !IsSelf(entity) && _context.Target.Matches(entity))
+                var entity = _targeting.IsRelative ? TargetPolicy.EntityOf(other) : EntityIdentity.FromCollider(other);
+                if (CanHit(entity) && _context.Target.Matches(entity))
                 {
                     RegisterHit(entity);
                     return new TravelResult(ExitKind.Completed, ExitCause.TargetHit, _body.position, entity);
                 }
             }
+            // 거부된 Entity에 도착해도 명중/종료를 만들지 않습니다. 기존 수명/취소 계약이 끝냅니다.
+            if (_targeting.IsRelative && !_targeting.Allows(_context.Caster, _context.Target.Entity)) return null;
             return Interrupted(ExitCause.TargetNotHit);
         }
 
         private void RegisterHit(Entity entity)
         {
-            if (_hitEntities.Add(entity)) _onHit?.Invoke(entity);
+            if (_hitEntities.Add(entity)) { AttackLog.Write(_context.Trace, "TravelHit", $"entity={AttackLog.Identity(entity)} uniqueHits={_hitEntities.Count}"); _onHit?.Invoke(entity); }
+        }
+        private bool CanHit(Entity entity)
+        {
+            if (!_targeting.IsRelative) return EntityIdentity.IsValid(entity) && !IsSelf(entity);
+            // Dash 본체의 자기 접촉은 효과가 아닙니다. Projectile의 Caster는 Self Mask로 판단합니다.
+            if (entity && entity == _collider.GetComponentInParent<Entity>(true)) return false;
+            return _targeting.Allows(_context.Caster, entity);
         }
         private bool IsSelf(Entity entity) => entity == _collider.GetComponentInParent<Entity>() ||
             (_context.Caster && entity == _context.Caster.GetComponentInParent<Entity>());

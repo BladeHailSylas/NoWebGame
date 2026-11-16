@@ -10,7 +10,7 @@ namespace Moves.Mechanisms
     {
         [Header("Area")]
         [Range(0, 360)] public float angleDeg = 120f;
-        public LayerMask enemyMask;
+        [InspectorName("Legacy Melee Hit Layers"), Tooltip("Legacy 모드 전용입니다. Relative 모드는 Target Relations를 사용합니다.")] public LayerMask enemyMask;
         public MeleeEffectEntity effectPrefab;
 
         [Header("Callbacks")]
@@ -19,10 +19,11 @@ namespace Moves.Mechanisms
 
         public new void Execute(CastContext ctx)
         {
-            Debug.Log("MeleeMechanism.Execute");
+
             if (ctx.Mech is not MeleeMechanism mech)
                 return;
 
+            if (mech.Targeting.IsRelative) { RelativeHitQueries.Melee(ctx, mech); return; }
             var caster = ctx.Caster;
             if (!ctx.Target.TryGetPosition(out var target)) return;
 
@@ -38,23 +39,24 @@ namespace Moves.Mechanisms
             }
 
             var hits = Physics2D.OverlapCircleAll(origin, radius, mech.enemyMask);
+            AttackLog.Write(ctx.Trace, "MeleeQuery", $"origin={origin} direction={dir} radius={radius} angle={mech.angleDeg} queryLayers={mech.enemyMask.value} colliders={hits.Length}");
             foreach (var hit in hits)
             {
                 if (hit.transform == caster)
-                    continue;
+                { AttackLog.Hit(ctx, hit, "RejectedCasterTransform"); continue; }
 
                 var toTarget = ((Vector2)hit.transform.position - origin).normalized;
                 if (mech.angleDeg < 360f)
                 {
                     var angle = Vector2.Angle(dir, toTarget);
                     if (angle > halfAngle)
-                        continue;
+                    { AttackLog.Hit(ctx, hit, "RejectedAngle"); continue; }
                 }
-                Debug.Log(hit.transform.name);
-                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
+                AttackLog.Hit(ctx, hit, "Accepted");
+                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform, trigger: "onHit");
             }
 
-            SkillUtils.ActivateChain(mech.onExpire, ctx);
+            SkillUtils.ActivateChain(mech.onExpire, ctx, trigger: "onExpire");
         }
     }
 }

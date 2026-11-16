@@ -88,6 +88,7 @@ namespace PlayerScripts.Acts
                 _observer.Disabled = null;
             }, final =>
             {
+                AttackLog.Write(contract.Context.Trace, "TravelEnded", $"kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
                 if (publish && settings != null && !TravelPhysicsObserver.IsShuttingDown)
                     TravelCallbacks.Publish(contract.Context, final, settings.callbackMode,
                         contract.OnExpire, settings.onCompleted, settings.onInterrupted);

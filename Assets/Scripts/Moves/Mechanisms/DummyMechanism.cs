@@ -15,10 +15,10 @@ namespace Moves.Mechanisms
         {
             if (ctx.Mech is not DummyMechanism param) return;
             Debug.Log($"{ctx.Caster} casted a skill towards {ctx.Target}");
-            SkillUtils.ActivateChain(param.onHit, ctx);
+            SkillUtils.ActivateChain(param.onHit, ctx, trigger: "onHit");
             //Debug.Log("Dummy: OnHit FollowUps are cast");
         
-            SkillUtils.ActivateChain(param.onExpire, ctx);
+            SkillUtils.ActivateChain(param.onExpire, ctx, trigger: "onExpire");
             //Debug.Log("Dummy: OnExpire FollowUps are cast");
         }
     }

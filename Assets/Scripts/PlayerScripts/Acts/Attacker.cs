@@ -18,8 +18,16 @@ namespace PlayerScripts.Acts
     /// </summary>
     public sealed class Attacker
     {
-        private List<SkillSlot> _collectingCasts = new();
-        private List<SkillSlot> _resolvingCasts = new();
+        // 대상은 입력 요청별로 보관합니다. null은 기존 플레이어의 커서 입력입니다.
+        private readonly struct CastInput
+        {
+            public readonly AttackTrace Trace;
+            public readonly SkillSlot Slot;
+            public readonly ExplicitAttackTarget Target;
+            public CastInput(SkillSlot slot, ExplicitAttackTarget target, AttackTrace trace) { Slot = slot; Target = target; Trace = trace; }
+        }
+        private List<CastInput> _collectingCasts = new();
+        private List<CastInput> _resolvingCasts = new();
 
         // === 쿨타임 상태 ===
         private readonly Dictionary<SkillSlot, DelayId> _onCooldown = new();
@@ -73,9 +81,9 @@ namespace PlayerScripts.Acts
                 }
             }
             // 3) 이번 Tick에 요청된 Cast 처리
-            foreach (var slot in _resolvingCasts)
+            foreach (var input in _resolvingCasts)
             {
-                TryCast(slot, innoxiousCount, tick);
+                TryCast(input, innoxiousCount, tick);
             }
             // 4) resolving 버퍼 정리
             _resolvingCasts.Clear();
@@ -86,29 +94,53 @@ namespace PlayerScripts.Acts
         /// 버튼 Up 시 호출되는 Cast 요청 수집 API.
         /// 즉시 실행하지 않으며, 다음 Tick에서 처리된다.
         /// </summary>
-        public void EnqueueCast(SkillSlot slot)
+        public AttackTrace BeginInput(SkillSlot slot, AttackTrace trace = default)
         {
-            _collectingCasts.Add(slot);
+            if (trace.AttackId == 0) trace = AttackTrace.Root(_caster);
+            AttackLog.Write(trace, "Input", $"slot={slot}");
+            return trace;
+        }
+        public void EnqueueCast(SkillSlot slot) => EnqueueCast(slot, null, BeginInput(slot));
+        public void EnqueueCast(SkillSlot slot, ExplicitAttackTarget target, AttackTrace trace)
+        {
+            _collectingCasts.Add(new CastInput(slot, target, trace));
+            AttackLog.Write(trace, "InputQueued", $"slot={slot} target={AttackLog.Identity(target?.Target)}");
+        }
+
+        public void EnqueueCast(SkillSlot slot, ExplicitAttackTarget target)
+        {
+            if (target != null) EnqueueCast(slot, target, BeginInput(slot));
         }
 
 
-        private void TryCast(SkillSlot slot, byte innoxiousCount, ushort tick)
+        private void TryCast(CastInput input, byte innoxiousCount, ushort tick)
         {
+            var slot = input.Slot;
+            void Reject(string reason) => AttackLog.Write(input.Trace, "CastRejected", $"reason={reason} slot={slot} tick={tick}");
             if (innoxiousCount > 0)
             {
+                Reject("CrowdControl");
                 return;
             } 
             
             if (_onCooldown.TryGetValue(slot, out var delayId) && !delayId.Equals(default))
             {
-                _context.Logger.Warn($"Skill in slot {slot} is on cooldown.");
+                Reject("Cooldown");
                 // 쿨타임 중 → 발동 불가
                 return;
             }
             if (!_skills.TryGetValue(slot, out var binding))
             {
-                _context.Logger.Warn($"No skill bound to slot {slot}.");
+                AttackLog.Write(input.Trace, "CastRejected", "reason=MissingBinding");
                 return;
+            }
+
+            if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null) { Reject("MissingSkillDataOrMechanism"); return; }
+            if (input.Target != null)
+            {
+                var reason = binding.mode != TargetMode.TowardsEntity ? "UnsupportedExplicitTargetMode" : input.Target.Validate(_caster, binding.skillData.mechanismData.mechanism);
+                AttackLog.Write(input.Trace, "TargetValidation", $"result={reason} {input.Target.Describe(binding.skillData.mechanismData.mechanism)}");
+                if (reason != "Allowed") { Reject(reason); return; }
             }
 
             SkillCommand cmd;
@@ -128,7 +160,9 @@ namespace PlayerScripts.Acts
                     mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
                     va : sv,
-                    masker: binding.skillData.mechanismData.mechanism.Mask
+                    masker: binding.skillData.mechanismData.mechanism.Mask,
+                    target: input.Target == null ? default : SkillTarget.ForEntity(input.Target.Target),
+                    explicitTarget: input.Target, trace: input.Trace
                 );
             }
             else {
@@ -139,10 +173,12 @@ namespace PlayerScripts.Acts
                     mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
                     va: default,
-                    masker: binding.skillData.mechanismData.mechanism.Mask
+                    masker: binding.skillData.mechanismData.mechanism.Mask,
+                    target: input.Target == null ? default : SkillTarget.ForEntity(input.Target.Target),
+                    explicitTarget: input.Target, trace: input.Trace
                 );}
-            _collector?.EnqueueCommand(cmd);
-            _context.Logger.Info($"Activating {binding.skillData.mechanismData.mechanism.GetType().Name} (cooldown {binding.skillData.mechanismData.mechanism.CooldownTicks}).");
+            if (_collector == null) { Reject("MissingCollector"); return; }
+            _collector.EnqueueCommand(cmd);
         }
 
         public void PrepareCast(SkillSlot slot, byte innoxiousCount)

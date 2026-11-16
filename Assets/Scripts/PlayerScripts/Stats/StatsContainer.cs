@@ -82,7 +82,8 @@ namespace PlayerScripts.Stats
 
         private void ApplyDamage(DamageData data)
         {
-            if (IsDead || data.Value <= 0) return;
+            if (IsDead || data.Value <= 0) { AttackLog.Write(data.Trace, "DamageSkipped", $"reason={(IsDead ? "AlreadyDead" : "NonPositiveValue")}"); return; }
+            var hpBefore = Health; var shieldBefore = Shield; var specialBefore = SpecialShield;
 
             // -- Percent damage types --
             var damage = data.Type switch
@@ -93,6 +94,7 @@ namespace PlayerScripts.Stats
                 _ => data.Attack * data.Value / 100.0
             };
 
+            var rawDamage = damage;
             // -- Armor & reduction --
             if (data.Type != DamageType.Fixed)
                 damage = (int)(damage * DamageReductionCalc(Armor, data.APRatio, TotalDamageReduction() * data.Amplitude));
@@ -120,7 +122,8 @@ namespace PlayerScripts.Stats
                 if (Health <= 0)
                     IsDead = true;
             }
-            Debug.Log($"{damage} oof, {SpecialShield} {Shield} {Health}");
+            AttackLog.Write(data.Trace, "DamageApplied", $"raw={rawDamage} calculated={damage} health={hpBefore}->{Health} healthDelta={Health - hpBefore} shield={shieldBefore}->{Shield} specialShield={specialBefore}->{SpecialShield} dead={IsDead}");
+            AttackLog.Write(data.Trace, "DamageMath", $"armor={Armor} ap={data.APRatio} amplitude={data.Amplitude} reduction={TotalDamageReduction()} remaining={remaining}", true);
         }
 
         // ===== Math Helpers =====

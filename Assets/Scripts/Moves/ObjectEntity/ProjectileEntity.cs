@@ -35,7 +35,7 @@ namespace Moves.ObjectEntity
             _location = new FixedVector2(rb.position);
             _motor = new ThinMotor(rb, col) { wallMask = LayerMask.GetMask("Walls&Obstacles"), enemyMask = LayerMask.GetMask("Foe") };
             _travel = _motor.CreateTravel(ctx, _speed, settings.penetrative,
-                entity => SkillUtils.ActivateChain(settings.onHit, ctx, SkillTarget.ForEntity(entity)));
+                entity => SkillUtils.ActivateChain(settings.onHit, ctx, SkillTarget.ForEntity(entity), trigger: "onHit"));
             _observer = GetComponent<TravelPhysicsObserver>();
             if (!_observer) _observer = gameObject.AddComponent<TravelPhysicsObserver>();
             _observer.AfterPhysics = AfterPhysics;
@@ -85,6 +85,7 @@ namespace Moves.ObjectEntity
                 if (_observer) { _observer.AfterPhysics = null; _observer.Disabled = null; }
             }, final =>
             {
+                AttackLog.Write(_ctx.Trace, "TravelEnded", $"kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
                 try
                 {
                     if (publish && !TravelPhysicsObserver.IsShuttingDown)

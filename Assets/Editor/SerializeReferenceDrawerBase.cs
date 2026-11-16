@@ -59,7 +59,9 @@ namespace Editor
             if (newIndex != currentIndex && newIndex >= 0 && newIndex < _cachedTypes.Length)
             {
                 var type = _cachedTypes[newIndex];
-                property.managedReferenceValue = Activator.CreateInstance(type);
+                // Inspector에서 새로 만든 기술만 상대 관계/None으로 시작합니다. 기존 에셋 로드는 변경하지 않습니다.
+                var instance = TargetMaskEditorDefaults.Create(type);
+                property.managedReferenceValue = instance;
             }
 
             if (property.managedReferenceValue != null)

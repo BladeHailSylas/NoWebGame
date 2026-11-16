@@ -36,6 +36,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         angleDeg: 120
         enemyMask:
           serializedVersion: 2
@@ -63,6 +65,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
         damageValue: 100
         defaultAPRatio: 0
         defaultAmplitude: 0

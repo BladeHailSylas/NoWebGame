@@ -53,7 +53,7 @@ namespace Moves.Mechanisms
                 selected = mech.defaultFollowUp;
             }
 
-            SkillUtils.ActivateChain(new[] { selected }, ctx);
+            SkillUtils.ActivateChain(new[] { selected }, ctx, trigger: "new[] { selected }");
         }
     }
 

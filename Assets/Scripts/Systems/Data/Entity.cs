@@ -11,6 +11,15 @@ namespace Systems.Data
     {
         public bool targetable = true;
         [CanBeNull] public Transform Owner;
+        [SerializeField, Tooltip("관계 판정의 정보 출처입니다. 기존 Entity는 LegacyLayer를 사용합니다.")]
+        private EntityRelationProfile relationProfile = EntityRelationProfile.LegacyLayer;
+
+        /// <summary>소속 정보의 지정 방식. targetable 및 Owner와 독립적으로 사용합니다.</summary>
+        public EntityRelationProfile RelationProfile
+        {
+            get => relationProfile;
+            set => relationProfile = value;
+        }
         public void ApplyStack(StackKey key, ushort tick, int amount = 1, StackMetadata metadata = default)
         {
         }

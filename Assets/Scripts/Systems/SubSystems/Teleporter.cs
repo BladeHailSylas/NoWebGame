@@ -87,7 +87,7 @@ namespace Systems.SubSystems
         {
             var ctx = tpc.Context;
             if (ctx.Mech is not TeleportMechanism param) return;
-            SkillUtils.ActivateChain(param.onArrival, ctx);
+            SkillUtils.ActivateChain(param.onArrival, ctx, trigger: "onArrival");
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Moves.Mechanisms
 
             instance.Init(ctx);
             // 기존 계약대로 소환체가 아닌 원래 Target을 후속 Chain에 전달합니다.
-            SkillUtils.ActivateChain(mech.onSummoned, ctx);
+            SkillUtils.ActivateChain(mech.onSummoned, ctx, trigger: "onSummoned");
         }
     }
 }

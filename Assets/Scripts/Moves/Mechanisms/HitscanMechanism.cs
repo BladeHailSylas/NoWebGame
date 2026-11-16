@@ -28,10 +28,18 @@ namespace Moves.Mechanisms
                 return;
             }
 
+            if (mech.Targeting.IsRelative)
+            {
+                RelativeHitQueries.Ray(ctx, mech.MaxRange, true, mech.onHit);
+                SkillUtils.ActivateChain(mech.onExpire, ctx, trigger: "onExpire");
+                return;
+            }
             var origin = ctx.Caster != null ? (Vector2)ctx.Caster.position : Vector2.zero;
             var direction = (targetPosition - origin).normalized;
 
             var hit = Physics2D.Raycast(origin, direction, mech.MaxRange, mech.Mask);
+            AttackLog.Write(ctx.Trace, "HitscanQuery", $"origin={origin} direction={direction} distance={mech.MaxRange} queryLayers={mech.Mask.value}");
+            AttackLog.Hit(ctx, hit.collider, hit ? "Accepted" : "NoHit");
             if (mech.debugDraw)
             {
                 var c = hit ? Color.red : Color.yellow;
@@ -40,10 +48,10 @@ namespace Moves.Mechanisms
 
             if (hit.collider is not null)
             {
-                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
+                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform, trigger: "onHit");
             }
 
-            SkillUtils.ActivateChain(mech.onExpire, ctx);
+            SkillUtils.ActivateChain(mech.onExpire, ctx, trigger: "onExpire");
         }
     }
 }

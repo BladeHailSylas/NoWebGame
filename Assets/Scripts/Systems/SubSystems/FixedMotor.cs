@@ -87,7 +87,7 @@ namespace Systems.SubSystems
         {
             return new TravelMotion(_rb, _col, contract.Context, contract.Speed, contract.Penetrative,
                 Policy.wallsMask, Policy.enemyMask,
-                entity => SkillUtils.ActivateChain(contract.OnHit, contract.Context, SkillTarget.ForEntity(entity)));
+                entity => SkillUtils.ActivateChain(contract.OnHit, contract.Context, SkillTarget.ForEntity(entity), trigger: "OnHit"));
         }
         public TravelResult? MoveDash(TravelMotion travel)
         {

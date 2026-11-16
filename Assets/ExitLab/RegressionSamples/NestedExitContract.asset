@@ -36,6 +36,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 0
         durationTicks: 120
         speed: 0
         preventActivation: 0
@@ -67,6 +69,8 @@ MonoBehaviour:
         mask:
           serializedVersion: 2
           m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 0
         lifeTick: 240
         projectilePrefab: {fileID: 0}
         speed: 0
