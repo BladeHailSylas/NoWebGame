@@ -11,7 +11,7 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not DummyMechanism param) return;
             Debug.Log($"{ctx.Caster} casted a skill towards {ctx.Target}");

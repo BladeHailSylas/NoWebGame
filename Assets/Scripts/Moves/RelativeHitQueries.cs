@@ -21,7 +21,7 @@ namespace Moves
 
         public static void Melee(CastContext ctx, MeleeMechanism mech)
         {
-            if (!ctx.Target.TryGetPosition(out var target)) return;
+            if (!ctx.TryGetSpatialPosition(out var target)) return;
             Vector2 origin = ctx.Caster.position;
             var direction = target - origin;
             if (mech.effectPrefab)
@@ -43,7 +43,7 @@ namespace Moves
 
         public static void Ray(CastContext ctx, float distance, bool firstOnly, IEnumerable<MechanismData> onHit)
         {
-            if (!ctx.Target.TryGetPosition(out var target)) return;
+            if (!ctx.TryGetSpatialPosition(out var target)) return;
             Vector2 origin = ctx.Caster.position;
             var direction = (target - origin).normalized;
             var hits = Physics2D.RaycastAll(origin, direction, distance, TargetPolicy.CandidateLayers);

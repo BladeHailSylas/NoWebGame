@@ -69,7 +69,10 @@ namespace PlayerScripts.Skills
             AttackLog.Write(cmd.Trace, "Execute", $"mechanism={cmd.Mech.GetType().Name} mode={mode} target={target} targetVersion={cmd.Targeting.Version} relations={cmd.Targeting.Relations} legacyQueryLayers={cmd.Mask.value} origin={cmd.Caster.position}");
             // 요청 시점이 아니라 실제 실행 직전에 한 번만 확정합니다. (0, 0)도 유효합니다.
             var origin = cmd.OriginCastPosition ?? (Vector2)cmd.Caster.position;
-            cmd.Mech.Execute(new CastContext(cmd.Mech, cmd.Caster, target, cmd.Damage, cmd.Var, mode, cmd.Exit, origin, cmd.Trace.Effect()));
+            var context = new CastContext(cmd.Mech, cmd.Caster, target, cmd.Damage, cmd.Var, mode, cmd.Exit, origin, cmd.Trace.Effect(), cmd.Source);
+            if (cmd.Mech is NewMechanism mechanism)
+            { if (!mechanism.TryExecute(context)) return; }
+            else cmd.Mech.Execute(context);
             AttackLog.Write(cmd.Trace, "ExecuteReturned", "effectCompletion=NotImplied");
             _displayer?.Display(cmd);
         }

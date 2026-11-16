@@ -18,7 +18,7 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onEnter;
         [SerializeReference] public List<MechanismData> onExpire;
         public AreaEffectEntity effectPrefab;
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not AreaMechanism mech) return;
             var prefab = mech.areaPrefab;
@@ -26,7 +26,7 @@ namespace Moves.Mechanisms
             // Target이 유효한 위치를 제공하면 해당 위치에 생성합니다.
             // 그렇지 않으면 Caster 위치를 사용합니다.
             var centerPos = ctx.Caster.position;
-            bool hasTargetPosition = ctx.Target.TryGetPosition(out var targetPos);
+            bool hasTargetPosition = ctx.TryGetSpatialPosition(out var targetPos);
 
             if (hasTargetPosition)
             {

@@ -24,6 +24,7 @@ namespace Moves.ObjectEntity
         public void Init(CastContext ctx)
         {
             if(ctx.Mech is not AreaMechanism area) return;
+            if (!SpatialExecution.TryPrepare(ctx, out ctx, out _)) { Destroy(gameObject); return; }
             _ctx = ctx;
             AttackLog.Write(ctx.Trace, "AreaStarted", $"shape={areaShape?.GetType().Name} position={transform.position} queryLayers={(area.Targeting.IsRelative ? TargetPolicy.CandidateLayers : ctx.Mech.Mask.value)} relations={area.Targeting.Relations} lifeTicks={area.lifeTick}");
             _onInterval = area.onEnter;
@@ -39,7 +40,7 @@ namespace Moves.ObjectEntity
                     var start = new FixedVector2(ctx.Caster.transform.position);
 
                     // 2. Target 방향 계산
-                    if (!ctx.Target.TryGetPosition(out var targetPos)) { Destroy(gameObject); return; }
+                    if (!ctx.TryGetSpatialPosition(out var targetPos)) { Destroy(gameObject); return; }
                     var dir = (targetPos - start.AsVector2).normalized;
 
                     // 3. 거리 제한

@@ -12,7 +12,7 @@ namespace Moves.Mechanisms
         public MonoBehaviour? requiredComponent;
         [SerializeReference] public MechanismData[] onDetected;
         [SerializeReference] public MechanismData[] onNotFound;
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not DetectMechanism mech)
                 return;

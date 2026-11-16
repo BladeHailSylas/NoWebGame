@@ -20,10 +20,10 @@ namespace Moves.Mechanisms
         [Header("Debug")]
         public bool debugDraw = true;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not HitscanMechanism mech) return;
-            if (!ctx.Target.TryGetPosition(out var targetPosition))
+            if (!ctx.TryGetSpatialPosition(out var targetPosition))
             {
                 return;
             }

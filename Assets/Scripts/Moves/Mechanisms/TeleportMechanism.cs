@@ -12,7 +12,7 @@ namespace Moves.Mechanisms
         public bool ignoreEnemy;
         [SerializeReference] public List<MechanismData> onArrival;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not TeleportMechanism mech) return;
             if (!ctx.Caster.TryGetComponent<ITeleportative>(out var tp)) return;

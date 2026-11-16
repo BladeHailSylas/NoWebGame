@@ -51,8 +51,20 @@ namespace Moves
     {
         public void Execute(CastContext ctx)
         {
-            Debug.LogError("You have executed a mechanism without any actions;");
+            TryExecute(ctx);
         }
+        [SerializeField] private DestinationSettings destination;
+        public DestinationSettings Destination => destination;
+        public void ConfigureDestination(DestinationSettings value) => destination = value;
+        public bool TryExecute(CastContext ctx)
+        {
+            if (!ReferenceEquals(ctx.Mech, this))
+            { AttackLog.Write(ctx.Trace, "ExecutionAborted", "reason=MechanismMismatch"); return false; }
+            if (!SpatialExecution.TryPrepare(ctx, out var prepared, out _)) return false;
+            ExecuteCore(prepared);
+            return true;
+        }
+        protected virtual void ExecuteCore(CastContext ctx) => Debug.LogError("Mechanism has no implementation.");
         [SerializeField] private short cooldownTicks;
         [SerializeField] private byte delayTicks;
         [SerializeField] private int minRange;
@@ -101,6 +113,14 @@ namespace Moves
     public struct CastContext
     {
         public readonly AttackTrace Trace;
+        public readonly string Source;
+        public readonly Vector2? Destination;
+        internal readonly bool SpatialPrepared;
+        public bool TryGetSpatialPosition(out Vector2 position)
+        {
+            if (Destination.HasValue) { position = Destination.Value; return true; }
+            return Target.TryGetPosition(out position);
+        }
         public readonly INewMechanism Mech;
         public readonly Transform Caster;
         public readonly SkillTarget Target;
@@ -130,7 +150,7 @@ namespace Moves
             SwitchVariable va = default,
             TargetMode mode = TargetMode.TowardsEntity,
             TravelResult? exit = null,
-            Vector2? originCastPosition = null, AttackTrace trace = default)
+            Vector2? originCastPosition = null, AttackTrace trace = default, string source = null)
         {
             Trace = trace;
             Mech = mech;
@@ -141,6 +161,7 @@ namespace Moves
             Mode = mode;
             Exit = exit;
             OriginCastPosition = originCastPosition;
+            Source = source ?? "ExternalDirect"; Destination = null; SpatialPrepared = false;
         }
 
         /// <summary>
@@ -163,7 +184,7 @@ namespace Moves
             TargetMode mode,
             SwitchVariable va = default,
             TravelResult? exit = null,
-            Vector2? originCastPosition = null, AttackTrace trace = default)
+            Vector2? originCastPosition = null, AttackTrace trace = default, string source = null)
         {
             Trace = trace;
             Mech = mech;
@@ -174,13 +195,23 @@ namespace Moves
             Mode = mode;
             Exit = exit;
             OriginCastPosition = originCastPosition;
+            Source = source ?? "ExternalDirect"; Destination = null; SpatialPrepared = false;
         }
-        public CastContext WithExit(TravelResult result) => new(Mech, Caster, Target, Damage, Var, Mode, result, OriginCastPosition, Trace);
+        private CastContext(CastContext input, Vector2? origin, Vector2? destination)
+            : this(input.Mech, input.Caster, input.Target, input.Damage, input.Var, input.Mode, input.Exit, origin, input.Trace, input.Source)
+        { Destination = destination; SpatialPrepared = true; }
+        internal CastContext WithSpatial(Vector2? origin, Vector2? destination) => new(this, origin, destination);
+        public CastContext WithExit(TravelResult result)
+        {
+            var copy = new CastContext(Mech, Caster, Target, Damage, Var, Mode, result, OriginCastPosition, Trace, Source);
+            return SpatialPrepared ? copy.WithSpatial(OriginCastPosition, Destination) : copy;
+        }
     } 
 
     public readonly struct SkillCommand : IEquatable<SkillCommand>
     {
         public readonly AttackTrace Trace;
+        public readonly string Source;
         public readonly Transform Caster;
         public readonly SkillTarget Target;
         public readonly TargetMode TargetMode;
@@ -199,8 +230,9 @@ namespace Moves
         public SkillCommand(Transform caster, TargetMode mode, FixedVector2 castPosition,
             INewMechanism mech, DamageData damage, SkillTarget target = default,
             SwitchVariable va = default, int masker = 0, TravelResult? exit = null,
-            Vector2? originCastPosition = null, ExplicitAttackTarget explicitTarget = null, AttackTrace trace = default)
+            Vector2? originCastPosition = null, ExplicitAttackTarget explicitTarget = null, AttackTrace trace = default, string source = null)
         {
+            Source = source ?? "ExternalCommand";
             Caster = caster;
             Target = target;
             TargetMode = mode;
@@ -252,8 +284,10 @@ namespace Moves
         public static void ActivateChain(IEnumerable<MechanismData> chains, CastContext ctx, SkillTarget? target = null, string trigger = "Unspecified")
         {
             if (chains == null || !ctx.Caster) { AttackLog.Write(ctx.Trace, "ChainSkipped", $"trigger={trigger} reason={(chains == null ? "NoChildren" : "MissingCaster")}", true); return; }
+            var childIndex = -1;
             foreach (var chain in chains)
             {
+                childIndex++;
                 if (chain?.mechanism is not { } mech) { AttackLog.Write(ctx.Trace, "ChainSkipped", "reason=MissingMechanism"); continue; }
                 var next = target ?? ctx.Target;
                 if (chain.requireRetarget) next = default;
@@ -265,7 +299,7 @@ namespace Moves
                 AttackLog.Write(ctx.Trace, "Chain", $"trigger={trigger} child={mech.GetType().Name} retarget={chain.requireRetarget} source={chain.targetSource} target={next}");
                 CommandBridge.Enqueue(new SkillCommand(ctx.Caster, chain.mode,
                     new FixedVector2(ctx.Caster.position), mech, ctx.Damage, next, ctx.Var, TargetPolicy.From(mech).IsRelative ? mech.Mask : ctx.Mech.Mask, ctx.Exit,
-                    ctx.OriginCastPosition, trace: ctx.Trace.Command()));
+                    ctx.OriginCastPosition, trace: ctx.Trace.Command(), source: $"{ctx.Source}/{trigger}[{childIndex}]"));
             }
         }
     }

@@ -28,7 +28,7 @@ namespace ExitLab
         {
             public int Count;
             public CastContext Last;
-            public new void Execute(CastContext context) { Count++; Last = context; }
+            protected override void ExecuteCore(CastContext context) { Count++; Last = context; }
         }
         private void Check(bool value, string name)
         { if (!value) throw new Exception(name); _results.Add("PASS " + name); }

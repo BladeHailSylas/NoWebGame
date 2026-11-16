@@ -27,6 +27,7 @@ namespace Systems.SubSystems
         private readonly List<Collider2D> _overlaps = new();
         private readonly List<Contact> _contacts = new();
         private bool _pending;
+        private bool _targetLossLogged;
         private TravelResult? _sweptExit;
         public Vector2 RequestedPosition { get; private set; }
         public bool AwaitingPhysics => _pending;
@@ -42,6 +43,8 @@ namespace Systems.SubSystems
         public TravelMotion(Rigidbody2D body, Collider2D collider, CastContext context, int speed,
             bool penetrative, int walls, int enemies, Action<Entity> onHit)
         {
+            if (!SpatialExecution.TryPrepare(context, out context, out var failure))
+                throw new ArgumentException("Unprepared travel: " + failure, nameof(context));
             _body = body; _collider = collider; _context = context; _speed = speed;
             _penetrative = penetrative; _walls = walls; _onHit = onHit;
             _targeting = TargetPolicy.From(context.Mech);
@@ -49,14 +52,15 @@ namespace Systems.SubSystems
             _filter = new ContactFilter2D { useLayerMask = true, layerMask = queryLayers,
                 useTriggers = Physics2D.queriesHitTriggers };
             RequestedPosition = body.position;
-            AttackLog.Write(context.Trace, "TravelStarted", $"body={AttackLog.Identity(body)} origin={body.position} target={context.Target} speed={speed} penetrative={penetrative} queryLayers={queryLayers} relations={_targeting.Relations} version={_targeting.Version} blockerLayers={walls}");
+            AttackLog.Write(context.Trace, "TravelStarted", $"body={AttackLog.Identity(body)} origin={body.position} target={context.Target} destination={context.Destination} source={context.Source} speed={speed} penetrative={penetrative} queryLayers={queryLayers} relations={_targeting.Relations} version={_targeting.Version} blockerLayers={walls}");
         }
 
         public TravelResult? Advance()
         {
             // 이미 확인된 구간 명중은 다음 물리 반영까지 유지합니다.
             if (_pending) return null;
-            if (!_context.Target.TryGetPosition(out var target)) return Interrupted(ExitCause.TargetLost);
+            ObserveTargetLoss();
+            if (!_context.TryGetSpatialPosition(out var target)) return Interrupted(ExitCause.TargetLost);
             var origin = _body.position;
             var offset = target - origin;
             if (_speed <= 0 && offset.sqrMagnitude > ArrivalTolerance * ArrivalTolerance)
@@ -116,9 +120,10 @@ namespace Systems.SubSystems
                 _sweptExit = null;
                 return new TravelResult(hit.Kind, hit.Cause, _body.position, hit.HitEntity);
             }
-            if (!_context.Target.TryGetPosition(out var latestTarget)) return Interrupted(ExitCause.TargetLost);
+            ObserveTargetLoss();
+            if (!_context.TryGetSpatialPosition(out var latestTarget)) return Interrupted(ExitCause.TargetLost);
             if ((_body.position - latestTarget).sqrMagnitude > ArrivalTolerance * ArrivalTolerance) return null;
-            if (_context.Target.Kind == TargetKind.Position)
+            if (!_context.Destination.HasValue && _context.Target.Kind == TargetKind.Position)
                 return new TravelResult(ExitKind.Completed, ExitCause.PositionReached, _body.position);
 
             // 좌표 일치로 명중을 만들지 않습니다. 지정 Entity의 실제 Collider 접촉을 확인합니다.
@@ -133,11 +138,21 @@ namespace Systems.SubSystems
                     return new TravelResult(ExitKind.Completed, ExitCause.TargetHit, _body.position, entity);
                 }
             }
+            if (_context.Destination.HasValue)
+                return new TravelResult(ExitKind.Completed, ExitCause.DestinationReached, _body.position);
             // 거부된 Entity에 도착해도 명중/종료를 만들지 않습니다. 기존 수명/취소 계약이 끝냅니다.
             if (_targeting.IsRelative && !_targeting.Allows(_context.Caster, _context.Target.Entity)) return null;
             return Interrupted(ExitCause.TargetNotHit);
         }
 
+        private void ObserveTargetLoss()
+        {
+            if (!_targetLossLogged && _context.Destination.HasValue && _context.Target.Kind == TargetKind.Entity && !_context.Target.IsValid)
+            {
+                _targetLossLogged = true;
+                AttackLog.Write(_context.Trace, "FixedDestinationTargetLost", $"source={_context.Source} target={_context.Target} destination={_context.Destination}");
+            }
+        }
         private void RegisterHit(Entity entity)
         {
             if (_hitEntities.Add(entity)) { AttackLog.Write(_context.Trace, "TravelHit", $"entity={AttackLog.Identity(entity)} uniqueHits={_hitEntities.Count}"); _onHit?.Invoke(entity); }

@@ -162,7 +162,8 @@ namespace PlayerScripts.Acts
                     va : sv,
                     masker: binding.skillData.mechanismData.mechanism.Mask,
                     target: input.Target == null ? default : SkillTarget.ForEntity(input.Target.Target),
-                    explicitTarget: input.Target, trace: input.Trace
+                    explicitTarget: input.Target, trace: input.Trace,
+                    source: $"Skill:{binding.skillData.name}#{binding.skillData.GetInstanceID()}/slot:{slot}/root"
                 );
             }
             else {
@@ -175,7 +176,8 @@ namespace PlayerScripts.Acts
                     va: default,
                     masker: binding.skillData.mechanismData.mechanism.Mask,
                     target: input.Target == null ? default : SkillTarget.ForEntity(input.Target.Target),
-                    explicitTarget: input.Target, trace: input.Trace
+                    explicitTarget: input.Target, trace: input.Trace,
+                    source: $"Skill:{binding.skillData.name}#{binding.skillData.GetInstanceID()}/slot:{slot}/root"
                 );}
             if (_collector == null) { Reject("MissingCollector"); return; }
             _collector.EnqueueCommand(cmd);

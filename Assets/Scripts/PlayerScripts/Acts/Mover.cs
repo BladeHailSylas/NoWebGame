@@ -46,6 +46,8 @@ namespace PlayerScripts.Acts
 
         public void Teleport(TeleportContract tpc)
         {
+            if (!SpatialExecution.TryPrepare(tpc.Context, out var prepared, out _)) return;
+            tpc = new TeleportContract(prepared);
             CancelDash(ExitCause.Teleported);
             if (_teleporter.TryTeleport(tpc))
             {
@@ -55,6 +57,9 @@ namespace PlayerScripts.Acts
 
         public void StartDash(DashContract dashContract)
         {
+            if (!SpatialExecution.TryPrepare(dashContract.Context, out var prepared, out _)) return;
+            dashContract = new DashContract(prepared, dashContract.EndTick, dashContract.Speed, dashContract.PreventActivation,
+                dashContract.Penetrative, dashContract.OnHit, dashContract.OnExpire, dashContract.ExpireWhenUnexpected);
             CancelDash(ExitCause.ReplacedByDash);
             _dashContract = dashContract;
             LastDashResult = null;
@@ -63,7 +68,7 @@ namespace PlayerScripts.Acts
             PreventingActivation = dashContract.PreventActivation;
             _observer.AfterPhysics = AfterDashPhysics;
             _observer.Disabled = publish => CancelDash(ExitCause.OwnerDisabled, publish);
-            if (!dashContract.Context.Target.IsValid) CancelDash(ExitCause.TargetLost);
+            if (!dashContract.Context.Destination.HasValue && !dashContract.Context.Target.IsValid) CancelDash(ExitCause.TargetLost);
         }
 
         public void CancelDash(ExitCause cause = ExitCause.Cancelled, bool publish = true)
@@ -88,7 +93,7 @@ namespace PlayerScripts.Acts
                 _observer.Disabled = null;
             }, final =>
             {
-                AttackLog.Write(contract.Context.Trace, "TravelEnded", $"kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
+                AttackLog.Write(contract.Context.Trace, "TravelEnded", $"source={contract.Context.Source} destination={contract.Context.Destination} kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
                 if (publish && settings != null && !TravelPhysicsObserver.IsShuttingDown)
                     TravelCallbacks.Publish(contract.Context, final, settings.callbackMode,
                         contract.OnExpire, settings.onCompleted, settings.onInterrupted);
@@ -128,7 +133,7 @@ namespace PlayerScripts.Acts
             if (immovableCount > 0) { CancelDash(ExitCause.MovementBlocked); return; }
             if (_dashTravel.AwaitingPhysics) return;
             var contract = _dashContract.Value;
-            if (!contract.Context.Target.IsValid) { CancelDash(ExitCause.TargetLost); return; }
+            if (!contract.Context.Destination.HasValue && !contract.Context.Target.IsValid) { CancelDash(ExitCause.TargetLost); return; }
             if (tick >= contract.EndTick)
             {
                 var settings = contract.Context.Mech as DashMechanism;

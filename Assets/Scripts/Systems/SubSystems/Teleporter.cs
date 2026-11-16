@@ -22,6 +22,8 @@ namespace Systems.SubSystems
 
         public bool TryTeleport(TeleportContract tpc)
         {
+            if (!SpatialExecution.TryPrepare(tpc.Context, out var prepared, out _)) return false;
+            tpc = new TeleportContract(prepared);
             var destination = ResolveTeleportPoint(tpc);
 
             // 현재 위치와 거의 같으면 스킵
@@ -49,7 +51,7 @@ namespace Systems.SubSystems
             {
                 return start;
             }
-            if (!tpc.Context.Target.TryGetPosition(out var targetPosition)) return _rb.position;
+            if (!tpc.Context.TryGetSpatialPosition(out var targetPosition)) return _rb.position;
             var toTarget = targetPosition - start;
             if (toTarget.sqrMagnitude <= 0.0001f)
             {

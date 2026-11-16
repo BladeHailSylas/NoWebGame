@@ -10,12 +10,12 @@ namespace Moves.Mechanisms
         [SerializeReference] public float rangeMultiplier = 1f;
         [SerializeReference] public List<MechanismData> onHit;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not RayMechanism mech) return;
 
             Vector2 origin = ctx.Caster.position;
-            if (!ctx.Target.TryGetPosition(out var target)) return;
+            if (!ctx.TryGetSpatialPosition(out var target)) return;
             var dist = target - origin;
             var direction = dist.normalized;
             var distance = dist.magnitude * mech.rangeMultiplier;

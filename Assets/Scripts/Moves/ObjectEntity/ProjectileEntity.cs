@@ -28,6 +28,7 @@ namespace Moves.ObjectEntity
         public void Init(CastContext ctx)
         {
             if (_completion != null || ctx.Mech is not ProjectileMechanism settings) return;
+            if (!SpatialExecution.TryPrepare(ctx, out ctx, out _)) { Destroy(gameObject); return; }
             _ctx = ctx; _settings = settings; _completion = new TravelCompletion();
             rb = rb ? rb : GetComponent<Rigidbody2D>();
             col = col ? col : GetComponent<Collider2D>();
@@ -41,7 +42,7 @@ namespace Moves.ObjectEntity
             _observer.AfterPhysics = AfterPhysics;
             _observer.Disabled = publish => Cancel(ExitCause.ExternallyDestroyed, publish);
             _ticker = GameTime.Ticker;
-            if (!_ctx.Target.IsValid) { Cancel(ExitCause.TargetLost); return; }
+            if (!_ctx.Destination.HasValue && !_ctx.Target.IsValid) { Cancel(ExitCause.TargetLost); return; }
             // 기존 콘텐츠의 15 Tick 미만 즉시 만료는 Legacy 모드에만 유지합니다.
             if (settings.lifeTick == 0 || (settings.callbackMode == ExitCallbackMode.Legacy && settings.lifeTick < LegacyMinimumLife))
             { Finish(Timeout()); return; }
@@ -54,7 +55,7 @@ namespace Moves.ObjectEntity
             if (Result.HasValue) return;
             // 이동 구간에서 확인한 명중을 시간 만료나 도착 겹침 검사로 덮어쓰지 않습니다.
             if (_travel.AwaitingPhysics) { _lifeTick++; return; }
-            if (!_ctx.Target.IsValid) { Cancel(ExitCause.TargetLost); return; }
+            if (!_ctx.Destination.HasValue && !_ctx.Target.IsValid) { Cancel(ExitCause.TargetLost); return; }
             if (_lifeTick >= _settings.lifeTick) { Finish(Timeout()); return; }
             var result = _motor.Move(_travel);
             _lifeTick++;
@@ -85,7 +86,7 @@ namespace Moves.ObjectEntity
                 if (_observer) { _observer.AfterPhysics = null; _observer.Disabled = null; }
             }, final =>
             {
-                AttackLog.Write(_ctx.Trace, "TravelEnded", $"kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
+                AttackLog.Write(_ctx.Trace, "TravelEnded", $"source={_ctx.Source} destination={_ctx.Destination} kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
                 try
                 {
                     if (publish && !TravelPhysicsObserver.IsShuttingDown)

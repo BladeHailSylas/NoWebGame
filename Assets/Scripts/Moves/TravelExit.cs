@@ -14,7 +14,7 @@ namespace Moves
         PositionReached = 0, TargetHit = 1, EnemyHit = 2, TimeExpired = 3,
         WallBlocked = 4, MovementBlocked = 5, TargetLost = 6, TargetNotHit = 7,
         ReplacedByDash = 8, Teleported = 9, OwnerDisabled = 10,
-        ExternallyDestroyed = 11, Cancelled = 12
+        ExternallyDestroyed = 11, Cancelled = 12, DestinationReached = 13
     }
     public enum ChainTargetSource { Inherit = 0, ExitPosition = 1 }
 

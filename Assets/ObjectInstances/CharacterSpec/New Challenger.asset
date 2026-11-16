@@ -37,4 +37,4 @@ MonoBehaviour:
   ultimate:
     slot: 4
     mode: 0
-    skillData: {fileID: 11400000, guid: 03bd7699fd9e41d42998048cea74d4a1, type: 2}
+    skillData: {fileID: 11400000, guid: 965baca9b38b05f4fab13789b63abe0e, type: 2}

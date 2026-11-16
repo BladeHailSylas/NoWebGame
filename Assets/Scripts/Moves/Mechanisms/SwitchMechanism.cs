@@ -27,7 +27,7 @@ namespace Moves.Mechanisms
             // Hold / Preview / UI 표시가 필요해질 경우 이 지점에서 확장.
         }
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not SwitchMechanism mech)
                 return;

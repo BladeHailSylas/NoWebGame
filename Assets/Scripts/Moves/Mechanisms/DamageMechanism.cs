@@ -15,7 +15,7 @@ namespace Moves.Mechanisms
         // Range limits for this mechanism (world units).
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (!TargetPolicy.AllowEffect(ctx)) return;
             var damageTrace = ctx.Trace.Damage();

@@ -21,7 +21,7 @@ namespace Moves.Mechanisms
         public TimeoutPolicy timeoutPolicy;
         [SerializeReference] public List<MechanismData> onCompleted = new();
         [SerializeReference] public List<MechanismData> onInterrupted = new();
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not DashMechanism mech) return;
             if(!ctx.Caster.TryGetComponent<IDashable>(out var dash)) return;

@@ -17,7 +17,7 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onHit = new();
         [SerializeReference] public List<MechanismData> onExpire = new();
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
 
             if (ctx.Mech is not MeleeMechanism mech)
@@ -25,7 +25,7 @@ namespace Moves.Mechanisms
 
             if (mech.Targeting.IsRelative) { RelativeHitQueries.Melee(ctx, mech); return; }
             var caster = ctx.Caster;
-            if (!ctx.Target.TryGetPosition(out var target)) return;
+            if (!ctx.TryGetSpatialPosition(out var target)) return;
 
             Vector2 origin = caster.position;
             Vector2 dir = target - (Vector2)caster.position;

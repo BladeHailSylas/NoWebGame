@@ -17,7 +17,7 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (!TargetPolicy.AllowEffect(ctx)) return;
             if (ctx.Mech is not StackMechanism mech) return;

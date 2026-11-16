@@ -14,7 +14,7 @@ namespace Moves.Mechanisms
         [SerializeReference] public SummonEntity summonPrefab;
         [SerializeReference] public List<MechanismData> onSummoned;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not SummonMechanism mech)
             {
@@ -23,7 +23,7 @@ namespace Moves.Mechanisms
             var prefab = mech.summonPrefab;
 
             // Entity의 현재 위치와 고정 Position을 같은 계약으로 조회합니다.
-            var hasTargetPosition = ctx.Target.TryGetPosition(out var targetPosition);
+            var hasTargetPosition = ctx.TryGetSpatialPosition(out var targetPosition);
             Vector3 centerPosition = hasTargetPosition ? (Vector3)targetPosition : ctx.Caster.position;
             Vector3 direction = hasTargetPosition
                 ? (Vector3)(targetPosition - (Vector2)ctx.Caster.position)

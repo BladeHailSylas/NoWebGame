@@ -38,9 +38,9 @@ MonoBehaviour:
           m_Bits: 128
         targetMaskVersion: 1
         targetRelations: 4
-        lifeTick: 120
+        lifeTick: 900
         projectilePrefab: {fileID: 3949609632709628406, guid: 23054f6688bfb2e4589ac9588da576ce, type: 3}
-        speed: 10
+        speed: 5
         penetrative: 0
         onHit:
         - rid: 1457004252751986769
