@@ -511,7 +511,7 @@ namespace ExitLab
                 Physics2D.SyncTransforms();
             }
             private static List<MechanismData> Chain(Action<CastContext> action) => new() { new() { mechanism = new Marker { action = action } } };
-            private void DashTick(ushort tick) { Mover?.DashTick(tick, Immovable); }
+            private void DashTick(long tick) { Mover?.DashTick(tick, Immovable); }
             public void Cancel() { if (dash) Mover.CancelDash(); else Projectile.Cancel(); }
             public void Tick() => GameTime.Ticker.Step();
             public void Physics(Action afterSimulation = null)

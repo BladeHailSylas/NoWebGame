@@ -151,7 +151,7 @@ namespace PlayerScripts.Stats
         }
 
         // ===== Regeneration =====
-        public void TickRegen(ushort deltaMs)
+        public void TickRegen(long tick)
         {
             // regen every second-like rate
             Health = Math.Min(MaxHealth, Health + HealthRegen);

@@ -195,7 +195,7 @@ namespace ExitLab
                     Invoke(area, "ActivateInterval");
                     Check(f.Commands.Count == 2, kind + " next interval may hit same Entity again");
                     // 검사에서 직접 구독을 정리하여 다른 Fixture의 Tick으로 영역을 갱신하지 않습니다.
-                    var handler = (Action<ushort>)Delegate.CreateDelegate(typeof(Action<ushort>), area, "TickHandler");
+                    var handler = (Action<long>)Delegate.CreateDelegate(typeof(Action<long>), area, "TickHandler");
                     GameTime.Ticker.OnTick -= handler;
                 }
                 else if (kind != "Melee")

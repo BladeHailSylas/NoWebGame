@@ -19,7 +19,7 @@ namespace PlayerScripts.Acts
         private Vector2 _inputVector;
         private byte _innoxiousCount;
         private byte _immovableCount;
-        private ushort _tick;
+        private long _tick;
         public bool CanAttack => _innoxiousCount == 0;
         public bool CanMove => _immovableCount == 0;
     
@@ -66,7 +66,7 @@ namespace PlayerScripts.Acts
         /// <summary>
         /// Called every tick by <see cref="PlayerEntity"/> to process movement.
         /// </summary>
-        public void Tick(ushort tick)
+        public void Tick(long tick)
         {
             _tick = tick;
             _mover.MakeMove(new FixedVector2(_inputVector), _immovableCount);

@@ -155,10 +155,10 @@ namespace ExitLab
                 def.threshold = 1; def.effect = new MechanismData { mechanism = probe }; var key = new StackKey(def, "fixture", go.transform);
                 storage[key] = new StackStatus(1, default);
                 var method = typeof(StackManager).GetMethod("ResolveTrigger", BindingFlags.Instance | BindingFlags.NonPublic);
-                method.Invoke(manager, new object[] { key, (ushort)0, new StackMetadata(7), 1 });
+                method.Invoke(manager, new object[] { key, 0L, new StackMetadata(7), 1 });
                 Check(storage.ContainsKey(key) && metadata[key].Metadata == 7 && probe.Count == 0, "failed spatial trigger preserves stack and metadata");
                 probe.ConfigureDestination(Settings());
-                method.Invoke(manager, new object[] { key, (ushort)1, new StackMetadata(0), 1 });
+                method.Invoke(manager, new object[] { key, 1L, new StackMetadata(0), 1 });
                 Check(!storage.ContainsKey(key) && metadata[key].Metadata == 0 && probe.Count == 1, "successful spatial trigger consumes once");
                 Check(probe.Last.Source.StartsWith("Stack:") && probe.Last.OriginCastPosition == Vector2.zero, "direct stack source and origin recorded");
             }

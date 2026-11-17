@@ -21,9 +21,9 @@ namespace PlayerScripts.Stats
             Stats = new StatsContainer(baseStats);
         }
 
-        public void Tick(ushort deltaMs)
+        public void Tick(long tick)
         {
-            Stats.TickRegen(deltaMs);
+            Stats.TickRegen(tick);
         }
         public double AP => Stats.TotalArmorPenetration();
         public double DR => Stats.TotalDamageReduction();

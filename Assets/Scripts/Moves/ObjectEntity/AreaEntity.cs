@@ -21,6 +21,20 @@ namespace Moves.ObjectEntity
         private List<MechanismData> _onExpire;
         private FixedVector2 _location;
         private CastContext _ctx;
+        private Ticker _ticker;
+        private bool _expired;
+
+        private void OnEnable()
+        {
+            if (_ticker == null || _expired) return;
+            _ticker.OnTick -= TickHandler;
+            _ticker.OnTick += TickHandler;
+        }
+
+        private void OnDisable()
+        {
+            if (_ticker != null) _ticker.OnTick -= TickHandler;
+        }
         public void Init(CastContext ctx)
         {
             if(ctx.Mech is not AreaMechanism area) return;
@@ -67,11 +81,12 @@ namespace Moves.ObjectEntity
             }
             else
             {
-                Ticker.Instance.OnTick += TickHandler;
+                _ticker = Systems.Time.Time.Ticker;
+                if (_ticker != null && isActiveAndEnabled) _ticker.OnTick += TickHandler;
             }
         }
 
-        private void TickHandler(ushort tick)
+        private void TickHandler(long tick)
         {
             _lifeTick++; _tickElapsed++;
             if (_lifeTick >= _limitTick)
@@ -150,8 +165,10 @@ namespace Moves.ObjectEntity
 
         private void Expire()
         {
+            if (_expired) return;
+            _expired = true;
             AttackLog.Write(_ctx.Trace, "AreaEnded", $"lifeTicks={_lifeTick}");
-            Ticker.Instance.OnTick -= TickHandler;
+            if (_ticker != null) _ticker.OnTick -= TickHandler;
             if (_onExpire.Count == 0)
             {
                 if (_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))

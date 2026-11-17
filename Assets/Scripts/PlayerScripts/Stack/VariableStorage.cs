@@ -190,9 +190,9 @@ namespace PlayerScripts.Stack
     public readonly struct VariableState
     {
         public readonly int Amount;
-        public readonly ushort LastTick;
+        public readonly long LastTick;
 
-        public VariableState(int amount, ushort lastTick)
+        public VariableState(int amount, long lastTick)
         {
             Amount = amount;
             LastTick = lastTick;

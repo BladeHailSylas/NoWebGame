@@ -127,7 +127,7 @@ namespace PlayerScripts.Acts
             _motor.Depenetrate();
         }
 
-        public void DashTick(ushort tick, byte immovableCount)
+        public void DashTick(long tick, byte immovableCount)
         {
             if (!_dashContract.HasValue) return;
             if (immovableCount > 0) { CancelDash(ExitCause.MovementBlocked); return; }
@@ -159,14 +159,14 @@ namespace PlayerScripts.Acts
     public readonly struct DashContract
     {
         public readonly CastContext Context;
-        public readonly int EndTick;
+        public readonly long EndTick;
         public readonly int Speed;
         public readonly bool PreventActivation;
         public readonly bool Penetrative;
         public readonly List<MechanismData> OnHit;
         public readonly List<MechanismData> OnExpire;
         public readonly bool ExpireWhenUnexpected;
-        public DashContract(CastContext context, int endTick, int speed, bool preventActivation,
+        public DashContract(CastContext context, long endTick, int speed, bool preventActivation,
             bool penetrative, List<MechanismData> onHit, List<MechanismData> onExpire,
             bool unexpected)
         {

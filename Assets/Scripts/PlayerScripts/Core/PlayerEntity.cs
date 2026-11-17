@@ -41,6 +41,7 @@ namespace PlayerScripts.Core
         private StackManager _stackManager;
         private InteractionFilter _filter;
         private VariableStorage _storage;
+        private Ticker _subscribedTicker;
 
         private void Awake()
         {
@@ -123,9 +124,10 @@ namespace PlayerScripts.Core
             _controls.Player.Skill1.canceled += OnSkill1Released;
             _controls.Player.Skill2.canceled += OnSkill2Released;
             _controls.Player.Ultimate.canceled += OnUltimateReleased;
-            if (Ticker.Instance != null)
+            if (Time.Ticker != null)
             {
-                Time.Ticker.OnTick += TickHandler;
+                _subscribedTicker = Time.Ticker;
+                _subscribedTicker.OnTick += TickHandler;
             }
             else
             {
@@ -152,13 +154,12 @@ namespace PlayerScripts.Core
             _actBridge?.CancelDash(!TravelPhysicsObserver.IsShuttingDown && gameObject.scene.isLoaded);
             _actBridge?.ClearMovementInput();
 
-            if (Ticker.Instance != null)
-            {
-                Time.Ticker.OnTick -= TickHandler;
-            }
+            // 전역 시계가 교체되어도 실제 구독했던 시계에서 해제합니다.
+            if (_subscribedTicker != null) _subscribedTicker.OnTick -= TickHandler;
+            _subscribedTicker = null;
         }
 
-        private void TickHandler(ushort tick)
+        private void TickHandler(long tick)
         {
             _stackManager.Tick(tick);
             _actBridge.Tick(tick);
@@ -169,7 +170,7 @@ namespace PlayerScripts.Core
             }
         }
 
-        private void Dev(ushort tick)
+        private void Dev(long tick)
         {
             _storage.Tell();
             //if (!StackStorage.Storage.TryGetValue("열상", out var def)) return;
@@ -259,7 +260,7 @@ namespace PlayerScripts.Core
             gameObject.SetActive(false);
         }
 
-        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
+        public new void ApplyStack(StackKey stackKey, long tick, int amount = 1, StackMetadata metadata = default)
         {
             if (metadata.Metadata is 0)
             {
@@ -278,7 +279,7 @@ namespace PlayerScripts.Core
             _stackManager.TryConsume(sv);
         }
 
-        public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)
+        public new void RemoveStack(StackKey stackKey, long tick, int amount = 0)
         {
             //TODO: Get response from the CommandCollector and remove VariableStack
             if (stackKey.def is not VariableDefinition)

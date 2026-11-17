@@ -38,9 +38,11 @@ namespace ExitLab
             var success = false;
             try
             {
+                // 기존 0 Tick 시나리오와 동일한 물리/종료 계약을 두 시간 경계에서도 확인합니다.
+                foreach (var startTick in new[] { 0L, 65534L, (long)int.MaxValue - 1 })
                 foreach (var dash in new[] { false, true })
                 foreach (var scenario in new[] { "arrival", "lost", "target", "wall", "pierce", "nonpierce", "timeout", "blocked" })
-                    RunCase(dash, scenario);
+                    RunCase(dash, scenario, startTick);
                 Check(_errors.Count == 0, "no runtime errors: " + string.Join(" | ", _errors));
                 success = true;
             }
@@ -51,9 +53,9 @@ namespace ExitLab
             yield return null;
             EditorApplication.Exit(success ? 0 : 1);
         }
-        private void RunCase(bool dash, string scenario)
+        private void RunCase(bool dash, string scenario, long startTick)
         {
-            var label = $"{(dash ? "Dash" : "Projectile")} {scenario}";
+            var label = $"{(dash ? "Dash" : "Projectile")} {scenario} start={startTick}";
             var owned = new List<GameObject>();
             GameObject Go(string name, Vector2 position)
             { var go = new GameObject(name); go.transform.position = position; owned.Add(go); return go; }
@@ -66,6 +68,7 @@ namespace ExitLab
                 return actor;
             }
             GameTime.Ticker = new Ticker(); GameTime.DelayScheduler = new DelayScheduler();
+            typeof(Ticker).GetProperty("TickCount").SetValue(GameTime.Ticker, startTick);
             typeof(Ticker).GetProperty("Instance").SetValue(null, GameTime.Ticker); DelayScheduler.Instance = GameTime.DelayScheduler;
             var services = Go("services", new Vector2(30, 30)); services.AddComponent<TargetResolver>(); var collector = services.AddComponent<CommandCollector>();
             var caster = Actor("caster", Vector2.zero, "Foe");

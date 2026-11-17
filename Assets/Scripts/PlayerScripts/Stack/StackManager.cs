@@ -28,7 +28,7 @@ namespace PlayerScripts.Stack
         private List<StackDelta> _collecting = new();
 
         // 현재 Tick 캐시 (모듈이 "마지막으로 실행된 시점"만 기억)
-        private ushort _currentTick;
+        private long _currentTick;
 
         private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
         private readonly Dictionary<StackKey, StackMetadata> _metadata = new();
@@ -61,7 +61,7 @@ namespace PlayerScripts.Stack
         /// - Expirable(Buff/CC/Expirable Variable): 만료되면 제거
         /// - Periodic Variable: 주기 Delay 완료되면 +1 적용 후 필요하면 다음 주기 재시작
         /// </summary>
-        public void Tick(ushort tick)
+        public void Tick(long tick)
         {
             _currentTick = tick;
             SwapAndApply(tick);
@@ -116,7 +116,7 @@ namespace PlayerScripts.Stack
         /// - Variable(Periodic): Apply 트리거( after가 max 미만 )일 때 Periodic Delay(def.periodTick) 시작
         /// - Variable(NonPeriodic): 기본은 Expiration(def.duration)일 수도 있고 영구(duration==65535)일 수도 있음
         /// </summary>
-        public void ApplyStack(StackKey stackKey, int amount, ushort tick, ushort durationOverride = 0, StackMetadata metadata = default)
+        public void ApplyStack(StackKey stackKey, int amount, long tick, ushort durationOverride = 0, StackMetadata metadata = default)
         {
             var def = stackKey.def;
             //Debug.Log($"{def.displayName}을(를) 적용하려 합니다.");
@@ -282,7 +282,7 @@ namespace PlayerScripts.Stack
         ///   before == maxStacks && after가 maxStacks 미만이면 periodic 시작
         /// - Recharge/Accumulate 구분 없이 maxStacks 기반으로 동작
         /// </summary>
-        public void ConsumeVariable(StackKey key, int consumeAmount, ushort tick)
+        public void ConsumeVariable(StackKey key, int consumeAmount, long tick)
         {
             if (consumeAmount <= 0)
                 return;
@@ -364,7 +364,7 @@ namespace PlayerScripts.Stack
         /// - max에 도달하면 Delay 제거하고 정지
         /// - 아직 max 미만이면 다음 periodTick으로 Delay 재시작
         /// </summary>
-        private void HandlePeriodicCompleted(StackKey key, ushort tick)
+        private void HandlePeriodicCompleted(StackKey key, long tick)
         {
             if (key.def is not VariableDefinition va || !va.isPeriodic)
             {
@@ -423,7 +423,7 @@ namespace PlayerScripts.Stack
         private static bool IsValidDelay(DelayId id)
             => !id.Equals(default);
 
-        private void ResolveApply(StackKey stack, ushort tick, int amp = 1)
+        private void ResolveApply(StackKey stack, long tick, int amp = 1)
         {
             switch (stack.def)
             {
@@ -442,7 +442,7 @@ namespace PlayerScripts.Stack
             }
         }
 
-        private void ResolveTrigger(StackKey stack, ushort tick, StackMetadata metadata, int amount = 1)
+        private void ResolveTrigger(StackKey stack, long tick, StackMetadata metadata, int amount = 1)
         {
             if (stack.def is not TriggerableDefinition trigger) return;
             int storing;
@@ -500,7 +500,7 @@ namespace PlayerScripts.Stack
             return Math.Min(total, max);
         }
 
-        private void SwapAndApply(ushort tick)
+        private void SwapAndApply(long tick)
         {
             (_resolving, _collecting) = (_collecting, _resolving);
             if (_resolving.Count <= 0) return;

@@ -15,7 +15,7 @@ namespace ExitLab
         public DamageData LastDamage;
         public ActBridge Act;
         public new void TakeDamage(DamageData damage) { HitCount++; LastDamage = damage; }
-        public new void ApplyStack(StackKey key, ushort tick, int amount = 1, StackMetadata metadata = default) { StackCount += amount; }
+        public new void ApplyStack(StackKey key, long tick, int amount = 1, StackMetadata metadata = default) { StackCount += amount; }
         public void AddDashContract(DashContract contract) => Act.AddDashContract(contract);
         public void AddTeleportContract(TeleportContract contract) => Act.AddTeleportContract(contract);
     }

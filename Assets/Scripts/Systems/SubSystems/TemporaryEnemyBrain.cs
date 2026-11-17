@@ -38,7 +38,7 @@ namespace Systems.SubSystems
             _log = log;
         }
 
-        public void Tick(ushort tick)
+        public void Tick(long tick)
         {
             if (!_running) return;
             if (!_caster || !_caster.isActiveAndEnabled || (_isEnabled != null && !_isEnabled()))

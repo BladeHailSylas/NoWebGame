@@ -20,11 +20,11 @@ namespace Systems.Data
             get => relationProfile;
             set => relationProfile = value;
         }
-        public void ApplyStack(StackKey key, ushort tick, int amount = 1, StackMetadata metadata = default)
+        public void ApplyStack(StackKey key, long tick, int amount = 1, StackMetadata metadata = default)
         {
         }
 
-        public void RemoveStack(StackKey key, ushort tick, int amount = 0)
+        public void RemoveStack(StackKey key, long tick, int amount = 0)
         {
         }
 

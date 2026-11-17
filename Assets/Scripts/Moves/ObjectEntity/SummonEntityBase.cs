@@ -31,6 +31,7 @@ namespace Moves.ObjectEntity
         protected StackManager _stackManager;
         protected InteractionFilter _filter;
         protected VariableStorage _storage;
+        private Ticker _subscribedTicker;
         public int baseHp; public int baseHpGen; public int baseMana; public int baseManaGen; public int baseAttack; public int baseDefense; public int baseSpeed;
         protected void Awaken(SummonMechanism spec)
         {
@@ -80,9 +81,10 @@ namespace Moves.ObjectEntity
 
         protected void OnEnabled()
         {
-            if (Ticker.Instance != null)
+            if (Time.Time.Ticker != null && _subscribedTicker == null)
             {
-                Time.Time.Ticker.OnTick += TickHandler;
+                _subscribedTicker = Time.Time.Ticker;
+                _subscribedTicker.OnTick += TickHandler;
             }
             else
             {
@@ -94,13 +96,11 @@ namespace Moves.ObjectEntity
         {
             _actBridge?.ClearMovementInput();
 
-            if (Ticker.Instance != null)
-            {
-                Time.Time.Ticker.OnTick -= TickHandler;
-            }
+            if (_subscribedTicker != null) _subscribedTicker.OnTick -= TickHandler;
+            _subscribedTicker = null;
         }
 
-        private void TickHandler(ushort tick)
+        private void TickHandler(long tick)
         {
             if (_statsBridge.IsDead)
             {
@@ -115,11 +115,11 @@ namespace Moves.ObjectEntity
             }
         }
 
-        private void Dev(ushort tick)
+        private void Dev(long tick)
         {
             //Debug.Log($"Hello again at {tick}");
         }
-        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
+        public new void ApplyStack(StackKey stackKey, long tick, int amount = 1, StackMetadata metadata = default)
         {
             if (metadata.Metadata is 0)
             {
@@ -149,7 +149,7 @@ namespace Moves.ObjectEntity
             Destroy(gameObject);
         }
 
-        public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)
+        public new void RemoveStack(StackKey stackKey, long tick, int amount = 0)
         {
             //TODO: Get response from the CommandCollector and remove VariableStack
             if (stackKey.def is not VariableDefinition)

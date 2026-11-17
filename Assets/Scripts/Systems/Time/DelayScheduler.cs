@@ -3,150 +3,80 @@ using System.Collections.Generic;
 
 namespace Systems.Time
 {
-    /// <summary>
-    /// DelayScheduler는 Tick 기반 시간 제약을 관리하는 순수 판정 모듈이다.
-    /// - 행동을 실행하지 않는다
-    /// - Tick을 증가시키지 않는다
-    /// - 완료 여부만 계산한다
-    /// </summary>
+    /// <summary>같은 세션의 절대 Tick으로 예약·조회합니다. 실행을 담당하지 않는 시간 판정 모듈입니다.</summary>
     public sealed class DelayScheduler
     {
         public static DelayScheduler Instance;
         private readonly Dictionary<DelayId, DelayEntry> _entries = new();
-        private int _nextId = 1;
+        // 다른 Scheduler의 옛 핸들이 새 예약을 조작하지 않도록 프로세스 안에서 번호를 공유합니다.
+        private static long _nextId;
 
-        public DelayScheduler()
+        public DelayScheduler() { Instance ??= this; }
+
+        public DelayId Start(long currentTick, int baseDelayTick)
         {
-            Instance ??= this;
-        }
-
-        /// <summary>
-        /// 새로운 Delay를 등록하고 DelayId를 반환한다.
-        /// </summary>
-        public DelayId Start(int currentTick, int baseDelayTick)
-        {
-            int endTick;
-
-            // overflow 안전 처리
-            try
-            {
-                checked
-                {
-                    endTick = currentTick + baseDelayTick;
-                }
-            }
-            catch (OverflowException)
-            {
-                endTick = int.MaxValue;
-            }
-
-            var id = new DelayId(_nextId++);
-            _entries[id] = new DelayEntry(endTick);
-
+            if (currentTick < 0) throw new ArgumentOutOfRangeException(nameof(currentTick));
+            if (baseDelayTick < 0) throw new ArgumentOutOfRangeException(nameof(baseDelayTick));
+            var endTick = checked(currentTick + baseDelayTick);
+            var id = new DelayId(checked(++_nextId));
+            _entries.Add(id, new DelayEntry(endTick));
             return id;
         }
 
-        /// <summary>
-        /// 해당 Delay가 완료되었는지 판정한다.
-        /// 순수 질의 함수이며 내부 상태를 변경하지 않는다.
-        /// </summary>
-        public bool IsCompleted(DelayId id, int currentTick)
+        public bool IsCompleted(DelayId id, long currentTick)
         {
-            if (!_entries.TryGetValue(id, out var entry)) return false; // 이미 제거되었거나 존재하지 않음
-            int observedTick;
-            try
-            {
-                checked
-                {
-                    observedTick = currentTick + entry.DeltaTick;
-                }
-            }
-            catch (OverflowException)
-            {
-                observedTick = int.MaxValue;
-            }
-
-            return observedTick >= entry.EndTick;
+            if (!_entries.TryGetValue(id, out var entry)) return false;
+            return ObservedTick(currentTick, entry.DeltaTick) >= entry.EndTick;
         }
 
-        /// <summary>
-        /// Delay의 체감 시간을 조정한다.
-        /// endTick은 변경하지 않고 deltaTick만 누적한다.
-        /// </summary>
+        /// <summary>양수는 만료를 앞당기고 음수는 늦춥니다. 조회로 값이 바뀌지 않습니다.</summary>
         public void ModifyDelta(DelayId id, int deltaTick)
         {
-            if (!_entries.TryGetValue(id, out var entry))
-                return;
-
-            entry.DeltaTick += deltaTick;
+            if (!_entries.TryGetValue(id, out var entry)) return;
+            entry.DeltaTick = checked(entry.DeltaTick + deltaTick);
             _entries[id] = entry;
         }
 
-        /// <summary>
-        /// Delay를 제거한다.
-        /// 제거된 DelayId는 다시 사용할 수 없다.
-        /// </summary>
-        public void Remove(DelayId id)
+        public void Remove(DelayId id) => _entries.Remove(id);
+
+        public long GetRemaining(DelayId id, long currentTick)
         {
-            _entries.Remove(id);
+            if (!_entries.TryGetValue(id, out var entry)) return 0;
+            var observed = ObservedTick(currentTick, entry.DeltaTick);
+            if (observed >= entry.EndTick) return 0;
+            // 극단적인 음수 보정에서도 남은 시간 표시가 음수로 순환하지 않습니다.
+            return observed < 0 && entry.EndTick > long.MaxValue + observed
+                ? long.MaxValue : entry.EndTick - observed;
         }
 
-        /// <summary>
-        /// 디버그 / UI 용: 남은 Tick 반환
-        /// </summary>
-        public int GetRemaining(DelayId id, int currentTick)
+        private static long ObservedTick(long currentTick, long delta)
         {
-            if (!_entries.TryGetValue(id, out var entry))
-                return 0;
-
-            var observedTick = currentTick + entry.DeltaTick;
-            var remaining = entry.EndTick - observedTick;
-            return remaining < 0 ? 0 : remaining;
+            if (currentTick < 0) throw new ArgumentOutOfRangeException(nameof(currentTick));
+            return delta > 0 && currentTick > long.MaxValue - delta ? long.MaxValue : currentTick + delta;
         }
 
-        public Dictionary<DelayId, (int, int)> GetAllEntries()
+        public Dictionary<DelayId, (long, long)> GetAllEntries()
         {
-            var result = new Dictionary<DelayId, (int, int)>();
-            foreach(var (id, value) in _entries)
-            {
-                var end = value.EndTick;
-                var delta = value.DeltaTick;
-                result[id] = (end, delta);
-            }
+            var result = new Dictionary<DelayId, (long, long)>();
+            foreach (var (id, value) in _entries) result[id] = (value.EndTick, value.DeltaTick);
             return result;
         }
 
-        /// <summary>
-        /// 내부 저장용 Delay 정보
-        /// </summary>
         private struct DelayEntry
         {
-            public readonly int EndTick;
-            public int DeltaTick;
-
-            public DelayEntry(int endTick)
-            {
-                EndTick = endTick;
-                DeltaTick = 0;
-            }
+            public readonly long EndTick;
+            public long DeltaTick;
+            public DelayEntry(long endTick) { EndTick = endTick; DeltaTick = 0; }
         }
     }
 
-    /// <summary>
-    /// DelayScheduler가 발행하는 시간 제약 핸들
-    /// </summary>
     public readonly struct DelayId : IEquatable<DelayId>
     {
-        private readonly int _value;
-
-        public DelayId(int value)
-        {
-            _value = value;
-        }
-
+        private readonly long _value;
+        public DelayId(long value) { _value = value; }
         public bool Equals(DelayId other) => _value == other._value;
         public override bool Equals(object obj) => obj is DelayId other && Equals(other);
-        public override int GetHashCode() => _value;
+        public override int GetHashCode() => _value.GetHashCode();
         public override string ToString() => $"DelayId({_value})";
     }
 }

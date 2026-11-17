@@ -51,7 +51,7 @@ namespace PlayerScripts.Acts
         /// - 쿨타임 정리
         /// - TryCast 실행
         /// </summary>
-        public void Tick(ushort tick, byte innoxiousCount)
+        public void Tick(long tick, byte innoxiousCount)
         {
             // 1) Cast 요청 버퍼 swap
             (_collectingCasts, _resolvingCasts) = (_resolvingCasts, _collectingCasts);
@@ -113,7 +113,7 @@ namespace PlayerScripts.Acts
         }
 
 
-        private void TryCast(CastInput input, byte innoxiousCount, ushort tick)
+        private void TryCast(CastInput input, byte innoxiousCount, long tick)
         {
             var slot = input.Slot;
             void Reject(string reason) => AttackLog.Write(input.Trace, "CastRejected", $"reason={reason} slot={slot} tick={tick}");

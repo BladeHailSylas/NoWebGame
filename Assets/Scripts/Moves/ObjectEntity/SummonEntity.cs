@@ -27,7 +27,7 @@ namespace Moves.ObjectEntity
             _filter.FilterDamage(data);
         }
 
-        public void ApplyStack(StackKey key, ushort tick = 65535, int amount = 1)
+        public void ApplyStack(StackKey key, long tick = 65535, int amount = 1)
         {
             var delta = new StackDelta(key, amount);
             _stackManager.EnqueueStack(delta);

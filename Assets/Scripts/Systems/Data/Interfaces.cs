@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Moves;
 using PlayerScripts.Acts;
@@ -15,7 +15,7 @@ namespace Systems.Data
 
 	public interface IStackable
 	{
-		public void ApplyStack(StackKey key, ushort tick = 0, int amount = 1, StackMetadata metadata = default);
+		public void ApplyStack(StackKey key, long tick = 0, int amount = 1, StackMetadata metadata = default);
 		public void TryRemoveStack(SwitchVariable sv);
 	}
 

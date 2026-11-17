@@ -55,7 +55,7 @@ namespace ExitLab
         private SimulationMode2D previousSimulation;
         private float previousFixedDelta, previousTimeScale;
         private bool previousTriggers, previousStartInside, previousAutoSync;
-        private ushort endTick;
+        private long endTick;
 
         // 읽기 전용 private 필드 관측. 필드명이 바뀌면 조용히 추측하지 않고 실패합니다.
         internal static object Read(object instance, string field)
@@ -132,7 +132,7 @@ namespace ExitLab
             expireMarker = new Marker { owner = this, label = "onExpire" };
             var hits = Chain(hitMarker);
             var expires = Chain(expireMarker);
-            endTick = checked((ushort)(ticker.TickCount + 120));
+            endTick = checked(ticker.TickCount + 120);
             if (actor == ExitActor.Projectile)
             {
                 var mech = new ProjectileMechanism { projectilePrefab = projectilePrefab, lifeTick = 120,
@@ -199,9 +199,9 @@ namespace ExitLab
         {
             new MechanismData { mechanism = marker, mode = TargetMode.TowardsEntity, requireRetarget = false }
         };
-        private void DashTick(ushort tick) => mover.DashTick(tick, 0);
-        private void BeforeTick(ushort tick) { Record("before-tick"); ObserveQuery(); }
-        private void AfterTick(ushort tick) { Record("after-tick-before-physics"); }
+        private void DashTick(long tick) => mover.DashTick(tick, 0);
+        private void BeforeTick(long tick) { Record("before-tick"); ObserveQuery(); }
+        private void AfterTick(long tick) { Record("after-tick-before-physics"); }
 
         // 실제 등록 이벤트를 셉니다. 물리 이후에 등록된 Chain도 누락하거나 중복 집계하지 않습니다.
         private void ObserveEnqueued(SkillCommand command)
@@ -274,7 +274,8 @@ namespace ExitLab
         [Serializable] private sealed class Row
         {
             public string phase, test, actor, clock, detail, rb, transform, targetPosition, cache, latestRequested;
-            public int frame, tick, physicsStep, targetId, hitEnqueued, expireEnqueued, hitExecuted, expireExecuted, subscriptions;
+            public long tick;
+            public int frame, physicsStep, targetId, hitEnqueued, expireEnqueued, hitExecuted, expireExecuted, subscriptions;
             public bool projectileAlive, projectileSubscribed, dashContract, faulted;
         }
         private void Record(string phase, string detail = "")

@@ -70,7 +70,7 @@ namespace PlayerScripts.Skills
             //Debug.Log($"Command {cmd.Mech} came from {cmd.Caster} towards {cmd.Target} using {cmd.TargetMode}");
         }
 
-        private void TickHandler(ushort tick)
+        private void TickHandler(long tick)
         {
             // 0) 이번 Tick 처리 입력 확정
             (_collecting, _resolving) = (_resolving, _collecting);

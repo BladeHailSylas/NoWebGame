@@ -2,68 +2,37 @@ using System;
 
 namespace Systems.Time
 {
-	#region ===== Ticker =====
+    /// <summary>전투 세션의 단조 증가 시계. 지속시간과 달리 절대 Tick은 long으로 전달합니다.</summary>
+    public sealed class Ticker
+    {
+        public const byte TicksPerSecond = 60;
+        public const byte TickIntervalMs = 1000 / TicksPerSecond;
+        public static Ticker Instance { get; internal set; }
+        public event Action<long> OnTick;
+        public long TickCount { get; private set; }
 
-	/// <summary>
-	/// Fixed-rate ticker that publishes a tick event 60 times per second.
-	/// </summary>
-	public sealed class Ticker
-	{
-		public const byte TicksPerSecond = 60;
-		public const byte TickIntervalMs = 1000 / TicksPerSecond;
-		public static Ticker Instance { get; private set; }
-		public event Action<ushort> OnTick;
+        public Ticker() { Instance ??= this; }
 
-		public ushort TickCount { get; private set; }
+        public void Schedule(byte ticksFromNow, Action<long> action)
+        {
+            if (ticksFromNow == 0) throw new ArgumentOutOfRangeException(nameof(ticksFromNow));
+            if (action == null) throw new ArgumentNullException(nameof(action));
+            var targetTick = checked(TickCount + ticksFromNow);
+            OnTick += Handler;
+            void Handler(long currentTick)
+            {
+                if (currentTick < targetTick) return;
+                // 콜백이 예외를 던져도 같은 예약이 다음 Tick에 다시 실행되지 않습니다.
+                OnTick -= Handler;
+                action(currentTick);
+            }
+        }
 
-		public Ticker()
-		{
-			Reset();
-			//Debug.Log("Ticker here");
-			Instance ??= this;
-		}
-		public void Schedule(byte ticksFromNow, Action<int> action) //ticksFromNow is byte since max delay is 120 ticks(2 seconds), the smaller the better for memory and packet size
-		{
-			if (ticksFromNow <= 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(ticksFromNow), "Must be greater than zero.");
-			}
-			var targetTick = (TickCount + ticksFromNow < TickCount) ? (ushort)(TickCount + ticksFromNow) : (ushort)1;
-			OnTick += Handler;
-			return;
-
-			void Handler(ushort currentTick)
-			{
-			
-				if (currentTick < targetTick) return;
-				action(currentTick);
-				OnTick -= Handler;
-			}
-		}
-		public void Reset() => TickCount = 0;
-		
-		public void Step()
-		{
-			TickCount++;
-			if (TickCount == 0) // wrap around to avoid overflow, though unlikely to happen in practice(it needs a battle that lasts more than 18 minutes)
-				//The TickCount isn't supposed to be zero here as I added by 1 above. This means the TickCount had been 65535 and became 0; The overflow.
-			{
-				throw new TickCountOverflowException("It seems ushort was too short");
-			}
-			OnTick?.Invoke(TickCount);
-		}
-	}
-	public class TickCountOverflowException : Exception
-	{
-		public TickCountOverflowException()
-		{
-		
-		}
-
-		public TickCountOverflowException(string msg) : base(msg)
-		{
-		
-		}
-	}
-	#endregion
+        public void Step()
+        {
+            // long의 한계에서도 0으로 되돌아가지 않고 명시적으로 실패합니다.
+            TickCount = checked(TickCount + 1);
+            OnTick?.Invoke(TickCount);
+        }
+    }
 }

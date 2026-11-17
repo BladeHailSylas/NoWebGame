@@ -131,7 +131,7 @@ namespace Systems.Data
             _subscribedTicker = null;
         }
 
-        private void TickHandler(ushort tick)
+        private void TickHandler(long tick)
         {
             _stackManager.Tick(tick);
             if (temporaryAIEnabled)
@@ -178,7 +178,7 @@ namespace Systems.Data
             logAIDecisions = log;
             temporaryAIEnabled = true;
         }
-        public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
+        public new void ApplyStack(StackKey stackKey, long tick, int amount = 1, StackMetadata metadata = default)
         {
             if (metadata.Metadata is 0)
             {
@@ -229,7 +229,7 @@ namespace Systems.Data
             gameObject.SetActive(false);
         }
 
-        public new void RemoveStack(StackKey stackKey, ushort tick, int amount = 0)
+        public new void RemoveStack(StackKey stackKey, long tick, int amount = 0)
         {
             //TODO: Get response from the CommandCollector and remove VariableStack
             if (stackKey.def is not VariableDefinition)

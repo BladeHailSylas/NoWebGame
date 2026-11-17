@@ -50,7 +50,7 @@ namespace Moves.ObjectEntity
             _ticker.OnTick += TickHandler;
         }
 
-        private void TickHandler(ushort tick)
+        private void TickHandler(long tick)
         {
             if (Result.HasValue) return;
             // 이동 구간에서 확인한 명중을 시간 만료나 도착 겹침 검사로 덮어쓰지 않습니다.

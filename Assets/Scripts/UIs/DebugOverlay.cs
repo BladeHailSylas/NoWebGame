@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Systems.Time;
 using UnityEngine;
 using TMPro;
@@ -15,19 +15,26 @@ namespace UIs
 
         private void Awake()
         {
-            Instance ??= this;
+            if (!Instance) Instance = this;
         }
 
-        public void UpdateOverlay(int tick, DelayId id, int endTick, int delta)
+        private void OnDestroy()
         {
+            if (Instance == this) Instance = null;
+        }
+
+        public void UpdateOverlay(long tick, DelayId id, long endTick, long delta)
+        {
+            if (!debugText) return;
             debugText.text =
                 $"DelayID: {id}\n" +
                 $"Tick: {tick}\n" +
                 $"End: {endTick}\n" +
                 $"Delta: {delta}";
         }
-        public void UpdateOverlay(int tick, Dictionary<DelayId, (int, int)> entries)
+        public void UpdateOverlay(long tick, Dictionary<DelayId, (long, long)> entries)
         {
+            if (!debugText) return;
             var text = $"Tick: {tick}\n";
             foreach (var kvp in entries)
             {
