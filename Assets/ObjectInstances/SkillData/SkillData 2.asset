@@ -29,10 +29,18 @@ MonoBehaviour:
     - rid: 1457004252751986768
       type: {class: ProjectileMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 1
+            direction: 1
+            angleDegrees: 30
+            distance: 1
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
-        maxRange: 12000
+        maxRange: 18000
         mask:
           serializedVersion: 2
           m_Bits: 128
@@ -64,6 +72,14 @@ MonoBehaviour:
     - rid: 1457004252751986770
       type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
@@ -91,6 +107,14 @@ MonoBehaviour:
     - rid: 1457004252751986772
       type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
@@ -118,6 +142,14 @@ MonoBehaviour:
     - rid: 1457004252751986774
       type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
@@ -145,6 +177,14 @@ MonoBehaviour:
     - rid: 1457004252751986777
       type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
@@ -172,6 +212,14 @@ MonoBehaviour:
     - rid: 1457004252751986779
       type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
@@ -199,6 +247,14 @@ MonoBehaviour:
     - rid: 5885961816855543996
       type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0

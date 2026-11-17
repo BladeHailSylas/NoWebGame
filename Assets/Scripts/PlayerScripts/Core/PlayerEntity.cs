@@ -178,7 +178,7 @@ namespace PlayerScripts.Core
 
         private void OnMovePerformed(InputAction.CallbackContext ctx)
         {
-            _logger.Info("Move input: " + ctx.ReadValue<Vector2>());
+            //_logger.Info("Move input: " + ctx.ReadValue<Vector2>());
             _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
         }
 

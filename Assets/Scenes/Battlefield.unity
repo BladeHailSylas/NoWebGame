@@ -470,7 +470,7 @@ MonoBehaviour:
   spec: {fileID: 11400000, guid: e5a85a1abbae4cf4d82e9a3cd336a51a, type: 2}
   targetResolver: {fileID: 0}
   commandCollector: {fileID: 477561985}
-  temporaryAIEnabled: 1
+  temporaryAIEnabled: 0
   decisionInterval: 60
   randomSeed: 12345
   logAIDecisions: 0

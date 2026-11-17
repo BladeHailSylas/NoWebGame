@@ -29,6 +29,14 @@ MonoBehaviour:
     - rid: 1457004252751986764
       type: {class: DashMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 1
+            direction: 1
+            angleDegrees: 45
+            distance: 10
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
@@ -38,7 +46,7 @@ MonoBehaviour:
           m_Bits: 128
         targetMaskVersion: 1
         targetRelations: 4
-        durationTicks: 60
+        durationTicks: 120
         speed: 24
         preventActivation: 0
         penetrative: 1
@@ -62,6 +70,14 @@ MonoBehaviour:
     - rid: 1457004252751986766
       type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
       data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
         cooldownTicks: 0
         delayTicks: 0
         minRange: 0
