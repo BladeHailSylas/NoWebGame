@@ -15,6 +15,7 @@ namespace PlayerScripts.Skills
             var collector = CommandCollector.Instance;
             if (collector is null)
             {
+                AttackLog.Write(cmd.Trace, "CommandDropped", "reason=MissingGlobalCollector");
                 Debug.LogWarning($"CommandBridge dropped {cmd.Mech?.GetType().Name ?? "Unknown"} because CommandCollector.Instance is not available.");
                 return;
             }

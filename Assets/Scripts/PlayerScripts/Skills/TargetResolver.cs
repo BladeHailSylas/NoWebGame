@@ -13,15 +13,19 @@ namespace PlayerScripts.Skills
     /// </summary>
     public readonly struct TargetRequest
     {
+        public readonly AttackTrace Trace;
         public readonly Transform Caster;
         public readonly float MinRange;
         public readonly float MaxRange;
         public readonly TargetMode Mode;
         public readonly LayerMask TargetMask;
+        public readonly TargetPolicy Targeting;
         public readonly FixedVector2 CasterPos;
 
-        public TargetRequest(Transform caster, float minRange, float maxRange, TargetMode mode, LayerMask targetMask)
+        public TargetRequest(Transform caster, float minRange, float maxRange, TargetMode mode, LayerMask targetMask, AttackTrace trace = default, TargetPolicy targeting = default)
         {
+            Trace = trace;
+            Targeting = targeting;
             Caster = caster;
             MinRange = minRange;
             MaxRange = maxRange;
@@ -35,11 +39,11 @@ namespace PlayerScripts.Skills
     /// </summary>
     public readonly struct TargetResolveResult
     {
-        public readonly Transform Target;
+        public readonly SkillTarget Target;
         public readonly FixedVector2 Anchor;
         public readonly bool Found;
 
-        public TargetResolveResult(Transform target, FixedVector2 anchor, bool found)
+        public TargetResolveResult(SkillTarget target, FixedVector2 anchor, bool found)
         {
             Target = target;
             Anchor = anchor;
@@ -48,7 +52,7 @@ namespace PlayerScripts.Skills
     }
 
     [DisallowMultipleComponent]
-    public class TargetResolver : MonoBehaviour
+    public partial class TargetResolver : MonoBehaviour
     {
         [Header("Dependencies")] [Tooltip("커서 위치를 감지할 CursorResolver 모듈")]
         public CursorResolver cursorResolver;
@@ -57,6 +61,8 @@ namespace PlayerScripts.Skills
 
         public TargetResolveResult ResolveTarget(TargetRequest request)
         {
+            if (request.Targeting.IsRelative) return ResolveRelative(request);
+            AttackLog.Write(request.Trace, "TargetQuery", $"mode={request.Mode} queryLayers={request.TargetMask.value} min={request.MinRange} max={request.MaxRange}");
             switch (request.Mode)
             {
                 case TargetMode.TowardsEntity:
@@ -71,7 +77,7 @@ namespace PlayerScripts.Skills
                 case TargetMode.TowardsMovement:
                 case TargetMode.TowardsCoordinate:
                 {
-                    return new TargetResolveResult(null, request.CasterPos, false);
+                    return new TargetResolveResult(default, request.CasterPos, false);
                 }
                 case TargetMode.TowardsSelf:
                 {
@@ -79,8 +85,8 @@ namespace PlayerScripts.Skills
                 }
                 default:
                 {
-                    Debug.LogError("No good");
-                    return new TargetResolveResult(null, request.CasterPos, false);
+                    AttackLog.Write(request.Trace, "TargetRejected", $"reason=UnsupportedMode mode={request.Mode}");
+                    return new TargetResolveResult(default, request.CasterPos, false);
                 }
             }
         }
@@ -91,30 +97,33 @@ namespace PlayerScripts.Skills
             var worldPos = Camera.main.ScreenToWorldPoint(screenPos);
             worldPos.z = 0f;
             var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);
-            if (hit is null)
+            if (!hit)
             {
-                if (debugLog) Debug.Log("[TargetResolver] 커서 아래에 감지된 엔터티 없음");
-                return new TargetResolveResult(null, req.CasterPos, false);
+                AttackLog.Write(req.Trace, "TargetRejected", $"reason=NoCollider queryLayers={req.TargetMask.value} point={worldPos}");
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
+
+            var entity = EntityIdentity.FromCollider(hit);
+            if (!EntityIdentity.IsValid(entity)) { AttackLog.Write(req.Trace, "TargetRejected", $"reason=InvalidEntity entity={AttackLog.Identity(entity)} collider={AttackLog.Identity(hit)}"); return new TargetResolveResult(default, req.CasterPos, false); }
 
             // 사거리 계산
-            var distance = Vector2.Distance(req.CasterPos.AsVector2, hit.transform.position);
+            var distance = Vector2.Distance(req.CasterPos.AsVector2, entity.transform.position);
             if (distance > req.MaxRange || distance < req.MinRange)
             {
-                if (debugLog) Debug.Log($"[TargetResolver] 사거리 조건 불충족 (거리 {distance:F2})");
-                return new TargetResolveResult(null, req.CasterPos, false);
+                AttackLog.Write(req.Trace, "TargetRejected", $"reason=Range distance={distance} min={req.MinRange} max={req.MaxRange}");
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
 
-            if (hit.transform.TryGetComponent<Entity>(out var entity) && !entity.targetable)
+            if (!entity.targetable)
             {
                 if(debugLog) Debug.Log("[TargetResolver] 타깃 불가능한 엔터티");
-                return new TargetResolveResult(null, req.CasterPos, false);
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
-            if (debugLog) Debug.Log($"[TargetResolver] 타깃 '{hit.transform.name}' 확정 (거리 {distance:F2})");
+            AttackLog.Write(req.Trace, "TargetResolved", $"entity={AttackLog.Identity(entity)} distance={distance}");
 
             return new TargetResolveResult(
-                hit.transform,
-                FixedVector2.FromVector2(hit.transform.position),
+                SkillTarget.ForEntity(entity),
+                FixedVector2.FromVector2(entity.transform.position),
                 true);
         }
         private TargetResolveResult ResolveTowardsCursor(TargetRequest req)
@@ -122,10 +131,9 @@ namespace PlayerScripts.Skills
             // 1. 커서 월드 좌표 획득
             if (!cursorResolver.TryGetCursorWorld(out var cursorWorld, out _))
             {
-                if (debugLog)
-                    Debug.Log("[TargetResolver] 커서 좌표 감지 실패");
+                AttackLog.Write(req.Trace, "TargetRejected", "reason=CursorUnavailable");
 
-                return new TargetResolveResult(null, req.CasterPos, false);
+                return new TargetResolveResult(default, req.CasterPos, false);
             }
 
             var casterPos = req.CasterPos.AsVector2;
@@ -147,31 +155,14 @@ namespace PlayerScripts.Skills
                 distance > req.MaxRange
                     ? casterPos + direction * req.MaxRange
                     : cursorWorld;
-            // 5. Anchor 대여
-            var anchor = AnchorRegistry.Instance.Rent(
-                owner: req.Caster,
-                position: anchorPos
-            );
-
-            if (anchor is null)
-            {
-                Debug.LogWarning("[TargetResolver] Anchor 대여 실패");
-                return new TargetResolveResult(null, req.CasterPos, false);
-            }
-
-            if (debugLog)
-                Debug.Log($"[TargetResolver] TowardsCursor Anchor 배치 ({anchorPos})");
-
-            // 6. Anchor를 Target으로 반환
-            return new TargetResolveResult(
-                target: anchor.transform,
-                anchor: FixedVector2.FromVector2(anchorPos),
-                found: true
-            );
+            // 좌표는 GameObject를 빌리지 않고 고정 값으로 전달합니다.
+            return new TargetResolveResult(SkillTarget.At(anchorPos), new FixedVector2(anchorPos), true);
         }
-        public TargetResolveResult Detect(Transform caster, DetectMechanism detect)
+
+        public TargetResolveResult Detect(Transform caster, DetectMechanism detect, AttackTrace trace = default)
         {
-            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask);
+            var request = new TargetRequest(caster, detect.MinRange, detect.MaxRange, detect.requiredMode, detect.Mask, trace, detect.Targeting);
+            if (request.Targeting.IsRelative) return ResolveRelative(request);
             TargetResolveResult result;
             switch (request.Mode)
             {
@@ -190,19 +181,16 @@ namespace PlayerScripts.Skills
                 case TargetMode.TowardsMovement:
                 case TargetMode.TowardsCoordinate:
                 {
-                    return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                    return new TargetResolveResult(default, new FixedVector2(0, 0), false);
                 }
                 default:
                 {
-                    Debug.LogError("No good");
-                    return new TargetResolveResult(null, new FixedVector2(0, 0), false);
+                    AttackLog.Write(request.Trace, "TargetRejected", $"reason=UnsupportedMode mode={request.Mode}");
+                    return new TargetResolveResult(default, new FixedVector2(0, 0), false);
                 }
             }
-            if (detect.requiredComponent is not null && !result.Target.TryGetComponent(detect.requiredComponent?.GetType(), out _))
-            {
-                return new TargetResolveResult(null, new FixedVector2(0, 0), false);
-            }
-
+            // 컴포넌트 조건은 DetectMechanism에서 검사합니다.
+            // 조건 불일치 때문에 탐색한 Target을 버리면 실패 Chain이 이를 상속할 수 없습니다.
             return result;
         }
     }

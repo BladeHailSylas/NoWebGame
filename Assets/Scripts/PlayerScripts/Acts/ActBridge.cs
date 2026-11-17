@@ -1,5 +1,6 @@
 using Moves;
 using PlayerScripts.Core;
+using PlayerScripts.Skills;
 using Systems.Data;
 using UnityEngine;
 
@@ -46,12 +47,16 @@ namespace PlayerScripts.Acts
 
         public void AddDashContract(DashContract contract)
         {
+            // 새로 생성된 Player는 아직 Tick을 받지 않았을 수 있습니다.
+            var now = Systems.Time.Time.Ticker?.TickCount ?? _tick;
             var dashContract = new DashContract(
-                contract.Context, (ushort)(contract.EndTick + _tick), contract.Speed, contract.PreventActivation, contract.Penetrative,
+                contract.Context, contract.EndTick + now, contract.Speed, contract.PreventActivation, contract.Penetrative,
                 contract.OnHit, contract.OnExpire, contract.ExpireWhenUnexpected
             );
             _mover.StartDash(dashContract);
         }
+
+        public void CancelDash(bool publish = true) => _mover.CancelDash(ExitCause.OwnerDisabled, publish);
 
         public void AddTeleportContract(TeleportContract tpc)
         {
@@ -84,8 +89,18 @@ namespace PlayerScripts.Acts
         /// </summary>
         public void ExecuteAttack(SkillSlot slot)
         {
-            if (_mover.PreventingActivation) return;
-            _attacker.EnqueueCast(slot);
+            var trace = _attacker.BeginInput(slot);
+            if (_mover.PreventingActivation) { AttackLog.Write(trace, "InputRejected", "reason=DashPreventsActivation"); return; }
+            _attacker.EnqueueCast(slot, null, trace);
+        }
+
+        /// <summary>AI의 논리적 Attack 입력. 기존 Dash/행동 불가/지연 처리 경로를 그대로 통과합니다.</summary>
+        public void ExecuteAttack(SkillSlot slot, ExplicitAttackTarget target)
+        {
+            var trace = _attacker.BeginInput(slot, target?.Trace ?? default);
+            if (_mover.PreventingActivation || !CanAttack || target == null)
+            { AttackLog.Write(trace, "InputRejected", $"reason={(_mover.PreventingActivation ? "DashPreventsActivation" : !CanAttack ? "CrowdControl" : "MissingExplicitTarget")}"); return; }
+            _attacker.EnqueueCast(slot, target, trace);
         }
 
         public void ApplyCC(CCData cc)

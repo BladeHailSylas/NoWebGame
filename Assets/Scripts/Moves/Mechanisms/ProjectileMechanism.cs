@@ -22,7 +22,11 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
 
-        public new void Execute(CastContext ctx)
+        public ExitCallbackMode callbackMode;
+        public TimeoutPolicy timeoutPolicy;
+        [SerializeReference] public List<MechanismData> onCompleted = new();
+        [SerializeReference] public List<MechanismData> onInterrupted = new();
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not ProjectileMechanism mech)
             {

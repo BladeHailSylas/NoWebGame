@@ -24,7 +24,9 @@ namespace Moves.ObjectEntity
         public void Init(CastContext ctx)
         {
             if(ctx.Mech is not AreaMechanism area) return;
+            if (!SpatialExecution.TryPrepare(ctx, out ctx, out _)) { Destroy(gameObject); return; }
             _ctx = ctx;
+            AttackLog.Write(ctx.Trace, "AreaStarted", $"shape={areaShape?.GetType().Name} position={transform.position} queryLayers={(area.Targeting.IsRelative ? TargetPolicy.CandidateLayers : ctx.Mech.Mask.value)} relations={area.Targeting.Relations} lifeTicks={area.lifeTick}");
             _onInterval = area.onEnter;
             _onExpire = area.onExpire;
             _limitTick = area.lifeTick;
@@ -38,7 +40,7 @@ namespace Moves.ObjectEntity
                     var start = new FixedVector2(ctx.Caster.transform.position);
 
                     // 2. Target 방향 계산
-                    Vector2 targetPos = ctx.Target.transform.position;
+                    if (!ctx.TryGetSpatialPosition(out var targetPos)) { Destroy(gameObject); return; }
                     var dir = (targetPos - start.AsVector2).normalized;
 
                     // 3. 거리 제한
@@ -86,6 +88,9 @@ namespace Moves.ObjectEntity
         private void ActivateInterval()
         {
             Effect();
+            var policy = TargetPolicy.From(_ctx.Mech);
+            var layers = policy.IsRelative ? TargetPolicy.CandidateLayers : _ctx.Mech.Mask.value;
+            var seen = policy.IsRelative ? new HashSet<Entity>() : null;
             switch (areaShape)
             {
                 case CircleArea circle:
@@ -93,16 +98,24 @@ namespace Moves.ObjectEntity
                     var worldCenter = _location.AsVector2;
                     var radius = circle.Radius / 1000f;
                     // 물리 감지 (Player/Enemy 등 대상 레이어 필터 적용 가능)
-                    var results = Physics2D.OverlapCircleAll(worldCenter, radius, _ctx.Mech.Mask);
+                    var results = Physics2D.OverlapCircleAll(worldCenter, radius, layers);
+                    AttackLog.Write(_ctx.Trace, "AreaQuery", $"shape={areaShape.GetType().Name} queryLayers={layers} relations={policy.Relations} colliders={results.Length}");
                     foreach (var col in results)
                     {
-                        col.TryGetComponent<Entity>(out var entity);
+                        Entity entity;
+                        if (policy.IsRelative)
+                        {
+                            if (!RelativeHitQueries.TryAccept(_ctx, col, seen, out entity)) continue;
+                        }
+                        else col.TryGetComponent(out entity);
                         if (entity is null)
                         {
+                            AttackLog.Hit(_ctx, col, "RejectedNoEntityOnCollider");
                             continue;
                         }
                         // OnHit FollowUp 실행
-                        SkillUtils.ActivateChain(_onInterval, _ctx, entity.transform);
+                        if (!policy.IsRelative) AttackLog.Hit(_ctx, col, "Accepted");
+                        SkillUtils.ActivateChain(_onInterval, _ctx, entity.transform, trigger: "_onInterval");
                     }
                     break;
                 }
@@ -112,15 +125,23 @@ namespace Moves.ObjectEntity
                     var size = boxLike.GetBoxSize();
                     var angle = boxLike.GetRotation();
 
-                    var results = Physics2D.OverlapBoxAll(center, size, angle, _ctx.Mech.Mask);
+                    var results = Physics2D.OverlapBoxAll(center, size, angle, layers);
+                    AttackLog.Write(_ctx.Trace, "AreaQuery", $"shape={areaShape.GetType().Name} queryLayers={layers} relations={policy.Relations} colliders={results.Length}");
                     foreach (var col in results)
                     {
-                        col.TryGetComponent<Entity>(out var entity);
+                        Entity entity;
+                        if (policy.IsRelative)
+                        {
+                            if (!RelativeHitQueries.TryAccept(_ctx, col, seen, out entity)) continue;
+                        }
+                        else col.TryGetComponent(out entity);
                         if (entity is null)
                         {
+                            AttackLog.Hit(_ctx, col, "RejectedNoEntityOnCollider");
                             continue;
                         }
-                        SkillUtils.ActivateChain(_onInterval, _ctx, entity.transform);
+                        if (!policy.IsRelative) AttackLog.Hit(_ctx, col, "Accepted");
+                        SkillUtils.ActivateChain(_onInterval, _ctx, entity.transform, trigger: "_onInterval");
                     }
                     break;
                 }
@@ -129,6 +150,7 @@ namespace Moves.ObjectEntity
 
         private void Expire()
         {
+            AttackLog.Write(_ctx.Trace, "AreaEnded", $"lifeTicks={_lifeTick}");
             Ticker.Instance.OnTick -= TickHandler;
             if (_onExpire.Count == 0)
             {
@@ -138,7 +160,7 @@ namespace Moves.ObjectEntity
                 }
             }
             else {
-                SkillUtils.ActivateChain(_onExpire, _ctx);
+                SkillUtils.ActivateChain(_onExpire, _ctx, trigger: "_onExpire");
             }
             Destroy(gameObject);
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Characters;
 using JetBrains.Annotations;
 using Moves;
@@ -12,10 +13,10 @@ using Systems.Stacks;
 using Systems.Stacks.Definition;
 using Systems.Stacks.Instances;
 using Systems.Time;
+using Systems.SubSystems;
 using UIs;
 using UnityEngine;
 using Logger = PlayerScripts.Core.Logger;
-using Random = System.Random;
 
 namespace Systems.Data
 {
@@ -31,6 +32,13 @@ namespace Systems.Data
         [SerializeField] private CharacterSpec spec;
         [SerializeField] [CanBeNull] private TargetResolver targetResolver;
         [SerializeField] [CanBeNull] private CommandCollector commandCollector;
+        [Header("Temporary AI (검증용, 기존 Enemy는 기본 비활성)")]
+        [SerializeField] private bool temporaryAIEnabled;
+        [SerializeField, Min(1)] private int decisionInterval = 60;
+        [SerializeField] private int randomSeed = 12345;
+        [SerializeField] private bool logAIDecisions;
+        [Tooltip("임시 AI의 선택 조건입니다. 기존 Mechanism의 물리 Mask/명중 필터를 변환하지 않습니다.")]
+        [SerializeField] private TargetRelationMask aiTargetRelations = TargetRelationMask.Enemy;
         private List<VariableDefinition> _characterVariables;
         private Logger _logger;
         private Context _context;
@@ -40,22 +48,31 @@ namespace Systems.Data
         private ActBridge _actBridge;
         private StackManager _stackManager;
         private InteractionFilter _filter;
-        private Random _rand;
-        private Vector2 _vec;
+        private TemporaryEnemyBrain _brain;
+        private Ticker _subscribedTicker;
+        private bool _initialized;
+        public int AIDecisionCount => _brain?.DecisionCount ?? 0;
+        public Entity AITarget => _brain?.LastTarget;
+        public Vector2 AIMovement => _brain?.Movement ?? Vector2.zero;
+        public bool TemporaryAIEnabled
+        {
+            get => temporaryAIEnabled;
+            set { temporaryAIEnabled = value; if (!value) StopAI(); }
+        }
 
-        private void Awake()
+        // 서비스들의 OnEnable 이후 구성합니다. 비활성 오브젝트에 InstallSpec을 먼저 호출할 수 있습니다.
+        private void Start()
         {
             _logger = new Logger(gameObject.name);
             targetResolver ??= GetComponent<TargetResolver>();
             commandCollector ??= GetComponent<CommandCollector>();
+            if (!commandCollector) commandCollector = CommandCollector.Instance;
 
             if (!ValidateDependencies())
             {
                 enabled = false;
                 return;
             }
-
-            _rand = new Random();
 
             _context = new Context(this, gameObject, transform, targetResolver, commandCollector, spec, _logger);
             var baseStats = new BaseStatsContainer(
@@ -68,87 +85,98 @@ namespace Systems.Data
                 spec.baseSpeed
             );
             _statsBridge = new StatsBridge(_context, baseStats);
+            _context.RegisterScheduler(Time.Time.DelayScheduler);
+            _context.RegisterStats(_statsBridge);
+            _stackManager = new StackManager(_context, new VariableStorage());
+            _context.RegisterStackManager(_stackManager);
+            _context.RegisterVariableStorage(_stackManager.Storage);
             _mover = new Mover(_context, _statsBridge, GetComponent<Rigidbody2D>(), GetComponent<Collider2D>());
             _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
             _actBridge = new ActBridge(_mover, _attacker);
-            _context.RegisterScheduler(Time.Time.DelayScheduler);
-            _context.RegisterStats(_statsBridge);
             _context.RegisterAct(_actBridge);
-            _stackManager = new StackManager(_context, new VariableStorage());
-            _context.RegisterStackManager(_stackManager);
             
             _filter = new InteractionFilter(this, _statsBridge, _stackManager);
             gameObject.TryGetComponent<SpriteManager>(out var spriteManager);
             _context.RegisterSpriteManager(spriteManager);
+            _initialized = true;
+            _characterVariables = spec.CharacterVariables ?? new List<VariableDefinition>();
+            InitStacks();
+            OnEnable();
         }
 
         private bool ValidateDependencies()
         {
-            if (spec is not null) return true;
-            _logger.Error("CharacterSpec reference missing.");
-            return false;
+            if (!spec || !GetComponent<Rigidbody2D>() || !GetComponent<Collider2D>() ||
+                Time.Time.Ticker == null || Time.Time.DelayScheduler == null)
+            {
+                _logger.Error("Enemy에는 CharacterSpec, Rigidbody2D, Collider2D와 먼저 활성화된 TickerRunner가 필요합니다.");
+                return false;
+            }
+            return true;
 
         }
 
         private void OnEnable()
         {
-            if (Ticker.Instance != null)
-            {
-                Time.Time.Ticker.OnTick += TickHandler;
-            }
-            else
-            {
-                _logger.Warn("Ticker instance missing. Movement tick updates disabled.");
-            }
-            _characterVariables = spec.CharacterVariables;
-            InitStacks();
+            if (!_initialized || _subscribedTicker != null) return;
+            _subscribedTicker = Time.Time.Ticker;
+            if (_subscribedTicker != null) _subscribedTicker.OnTick += TickHandler;
         }
 
         private void OnDisable()
         {
             _actBridge?.ClearMovementInput();
-
-            if (Ticker.Instance != null)
-            {
-                Time.Time.Ticker.OnTick -= TickHandler;
-            }
+            StopAI();
+            if (_subscribedTicker != null) _subscribedTicker.OnTick -= TickHandler;
+            _subscribedTicker = null;
         }
 
         private void TickHandler(ushort tick)
         {
             _stackManager.Tick(tick);
+            if (temporaryAIEnabled)
+            {
+                if (_brain == null) StartAI();
+                _brain?.Tick(tick);
+            }
+            else if (_brain != null) StopAI();
             _actBridge.Tick(tick);
             _statsBridge.Tick(tick);
-            switch (tick % 30)
-            {
-                case >= 15:
-                    return;
-                case 0:
-                {
-                    var movement = _rand.Next(8);
-                    _vec = movement switch
-                    {
-                        0 => new Vector2(-1, 1).normalized,
-                        1 => new Vector2(1, 0),
-                        2 => new Vector2(1, 1).normalized,
-                        3 => new Vector2(0, 1),
-                        4 => new Vector2(-1, 0),
-                        5 => new Vector2(-1, -1).normalized,
-                        6 => new Vector2(0, -1),
-                        7 => new Vector2(1, -1).normalized,
-                        _ => Vector2.zero
-                    };
-                    break;
-                }
-                default:
-                    //Dev(tick, _vec);
-                    break;
-            }
         }
 
-        private void Dev(ushort tick, Vector2 vec)
+        private void StartAI()
         {
-            _actBridge.SetMovementInput(vec);
+            string error = null;
+            if (!commandCollector || !commandCollector.isActiveAndEnabled || decisionInterval < 1 ||
+                !TargetRelationMasks.IsValid(aiTargetRelations) || !TemporaryAttackSupport.Validate(spec.attack, out error))
+            {
+                _logger.Warn("Temporary AI disabled: " + (error ?? "활성 CommandCollector/판단 간격/관계 Mask를 확인하세요."));
+                temporaryAIEnabled = false;
+                return;
+            }
+            _brain = new TemporaryEnemyBrain(this, _actBridge, spec.attack.skillData.mechanismData.mechanism,
+                aiTargetRelations, randomSeed, decisionInterval, () => temporaryAIEnabled && isActiveAndEnabled, logAIDecisions);
+        }
+
+        private void StopAI()
+        {
+            _brain?.Stop();
+            _brain = null;
+        }
+
+        /// <summary>검증 fixture에서 기존 에셋을 저장하지 않고 AI를 구성할 수 있습니다.</summary>
+        public void ConfigureTemporaryAI(CommandCollector collector, int seed = 12345, int interval = 60,
+            TargetRelationMask relations = TargetRelationMask.Enemy, bool log = false)
+        {
+            if (_initialized && commandCollector != collector)
+                throw new InvalidOperationException("Collector는 Enemy 초기화 전에 주입해야 합니다.");
+            StopAI();
+            commandCollector = collector;
+            randomSeed = seed;
+            decisionInterval = interval;
+            aiTargetRelations = relations;
+            logAIDecisions = log;
+            temporaryAIEnabled = true;
         }
         public new void ApplyStack(StackKey stackKey, ushort tick, int amount = 1, StackMetadata metadata = default)
         {
@@ -177,6 +205,8 @@ namespace Systems.Data
         {
             foreach (var stack in _characterVariables)
             {
+                if (!stack) continue;
+                Debug.Log($"{name}: Applying stack {stack.name}");
                 ApplyStack(new StackKey(stack), 0);
             }
         }

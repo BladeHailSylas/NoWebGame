@@ -17,8 +17,9 @@ namespace Moves.Mechanisms
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
+            if (!TargetPolicy.AllowEffect(ctx)) return;
             if (ctx.Mech is not StackMechanism mech) return;
             if (!ctx.Target.TryGetComponent(out IStackable stacker))
             {
@@ -26,8 +27,8 @@ namespace Moves.Mechanisms
             }
 
             stacker.ApplyStack(new StackKey(mech.stack, ctx.Caster.name, ctx.Caster), 65535, mech.amount);
-            SkillUtils.ActivateChain(mech.onHit, ctx);
-            SkillUtils.ActivateChain(mech.onExpire, ctx);
+            SkillUtils.ActivateChain(mech.onHit, ctx, trigger: "onHit");
+            SkillUtils.ActivateChain(mech.onExpire, ctx, trigger: "onExpire");
         }
     }
 }

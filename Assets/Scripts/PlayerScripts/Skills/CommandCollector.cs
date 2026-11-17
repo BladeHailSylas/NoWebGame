@@ -36,6 +36,8 @@ namespace PlayerScripts.Skills
         private readonly List<ScheduledCommand> _scheduled = new();
 
         public static CommandCollector Instance { get; private set; }
+        // 등록과 실제 실행을 별도로 관측합니다. 콜백 수를 큐 스냅샷으로 추측하지 않습니다.
+        public event Action<SkillCommand> CommandEnqueued;
 
         private void OnEnable()
         {
@@ -60,10 +62,11 @@ namespace PlayerScripts.Skills
         /// </summary>
         public void EnqueueCommand(SkillCommand cmd)
         {
-            Debug.Log($"Got {cmd.Mech}");
+            AttackLog.Write(cmd.Trace, "Enqueued", $"mechanism={cmd.Mech?.GetType().Name} target={cmd.Target} collector={GetInstanceID()}");
             // TickHandler 실행 중에 호출되어도 안전:
             // TickHandler는 _resolving만 처리하며, Enqueue는 _collecting에만 쌓이기 때문.
             _collecting.Add(cmd);
+            CommandEnqueued?.Invoke(cmd);
             //Debug.Log($"Command {cmd.Mech} came from {cmd.Caster} towards {cmd.Target} using {cmd.TargetMode}");
         }
 
@@ -82,6 +85,7 @@ namespace PlayerScripts.Skills
 
                     // Start는 TickHandler에서만 호출한다 (시간 통보 모델)
                     var delayId = _scheduler.Start(tick, delayTick);
+                    AttackLog.Write(cmd.Trace, "Scheduled", $"delayTicks={delayTick} scheduledTick={tick}");
 
                     _scheduled.Add(new ScheduledCommand
                     {
@@ -113,6 +117,7 @@ namespace PlayerScripts.Skills
                     _scheduler.Remove(entry.DelayId);
 
                 // 즉시 실행
+                AttackLog.Write(entry.Command.Trace, "Dispatch", $"tick={tick}");
                 _runner.Activate(entry.Command);
                 executedIndices.Add(i);
                 // 아래는 SwitchVariable 처리 로직
@@ -143,9 +148,13 @@ namespace PlayerScripts.Skills
         /// (CC / 행동 불능 대응)
         /// - 진행 중이던 Delay 전부 제거
         /// - collecting/resolving/scheduled 전부 초기화
+        /// !!! 모든 개체의 SkillCommand가 무효화됨, 특정 개체의 SkillCommand만 취소할 수 있도록 확장 필요 !!!
+        /// nullable parameter를 사용하여 특정 Caster/Target/Mechanism만 취소하도록 확장하거나, 새 오버로드가 필요할 것
         /// </summary>
         public void CeaseCommand()
         {
+            foreach (var cmd in _collecting.Concat(_resolving).Concat(_scheduled.Select(e => e.Command)))
+                AttackLog.Write(cmd.Trace, "Cancelled", "reason=CeaseAllCommands scope=AllCasters");
             // scheduled에 등록된 Delay 제거
             foreach (var entry in _scheduled)
             {

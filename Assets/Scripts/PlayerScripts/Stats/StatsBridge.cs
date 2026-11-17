@@ -36,6 +36,7 @@ namespace PlayerScripts.Stats
         }
         public void TakeDamage(DamageData data)
         {
+            AttackLog.Write(data.Trace, "StatsReceived", $"health={Stats.Health} shield={Stats.Shield} specialShield={Stats.SpecialShield}");
             _context.SpriteManager?.Flash();
             Stats.ReduceStat(ReduceType.Health, data);
         }

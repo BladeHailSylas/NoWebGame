@@ -149,6 +149,7 @@ namespace PlayerScripts.Core
                 _controls.Disable();
             }
 
+            _actBridge?.CancelDash(!TravelPhysicsObserver.IsShuttingDown && gameObject.scene.isLoaded);
             _actBridge?.ClearMovementInput();
 
             if (Ticker.Instance != null)
@@ -177,7 +178,7 @@ namespace PlayerScripts.Core
 
         private void OnMovePerformed(InputAction.CallbackContext ctx)
         {
-            _logger.Info("Move input: " + ctx.ReadValue<Vector2>());
+            //_logger.Info("Move input: " + ctx.ReadValue<Vector2>());
             _actBridge.SetMovementInput(ctx.ReadValue<Vector2>());
         }
 

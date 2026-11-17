@@ -27,7 +27,7 @@ namespace Moves.Mechanisms
             // Hold / Preview / UI 표시가 필요해질 경우 이 지점에서 확장.
         }
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not SwitchMechanism mech)
                 return;
@@ -53,26 +53,7 @@ namespace Moves.Mechanisms
                 selected = mech.defaultFollowUp;
             }
 
-            if (selected.mechanism is not INewMechanism selectedMechanism)
-            {
-                if (ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
-                    AnchorRegistry.Instance.Return(anchor);
-                return;
-            }
-
-            var target = selected.requireRetarget ? null : ctx.Target;
-            SkillCommand cmd = new(
-                ctx.Caster,
-                ctx.Mode,
-                new FixedVector2(ctx.Caster.position),
-                selectedMechanism,
-                ctx.Damage,
-                target,
-                ctx.Var,
-                ctx.Mech.Mask
-            );
-
-            CommandBridge.Enqueue(cmd);
+            SkillUtils.ActivateChain(new[] { selected }, ctx, trigger: "new[] { selected }");
         }
     }
 

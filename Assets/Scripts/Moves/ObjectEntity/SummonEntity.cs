@@ -17,7 +17,8 @@ namespace Moves.ObjectEntity
         {
             if (ctx.Mech is not SummonMechanism param) return;
             Owner = ctx.Caster;
-            gameObject.layer = LayerMask.NameToLayer("You");
+            if (param.Targeting.IsRelative) TargetPolicy.CopyAffiliation(ctx.Caster, this);
+            else gameObject.layer = LayerMask.NameToLayer("You");
             Awaken(param);
             OnEnabled();
         }

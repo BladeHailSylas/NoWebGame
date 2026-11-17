@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Moves.Mechanisms
 {
+    [Serializable]
     public class DashMechanism : NewMechanism, INewMechanism
     {
         public ushort durationTicks;
@@ -16,7 +17,11 @@ namespace Moves.Mechanisms
         public bool expireWhenUnexpected;
         [SerializeReference] public List<MechanismData> onHit;
         [SerializeReference] public List<MechanismData> onExpire;
-        public new void Execute(CastContext ctx)
+        public ExitCallbackMode callbackMode;
+        public TimeoutPolicy timeoutPolicy;
+        [SerializeReference] public List<MechanismData> onCompleted = new();
+        [SerializeReference] public List<MechanismData> onInterrupted = new();
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not DashMechanism mech) return;
             if(!ctx.Caster.TryGetComponent<IDashable>(out var dash)) return;

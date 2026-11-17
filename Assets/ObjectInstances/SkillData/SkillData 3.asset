@@ -1,0 +1,206 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13cc4e30249147108873ff264a883568, type: 3}
+  m_Name: SkillData 3
+  m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
+  mechanismData:
+    rid: 5885962084281483336
+  references:
+    version: 2
+    RefIds:
+    - rid: 5885962084281483336
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483353
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483353
+      type: {class: MeleeMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 240000
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 7
+        angleDeg: 360
+        enemyMask:
+          serializedVersion: 2
+          m_Bits: 0
+        effectPrefab: {fileID: 0}
+        onHit:
+        - rid: 5885962084281483354
+        - rid: 5885962084281483358
+        - rid: 5885962084281483362
+        onExpire: []
+    - rid: 5885962084281483354
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483355
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483355
+      type: {class: DetectMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 2
+        requiredMode: 0
+        requiredComponent: {fileID: 0}
+        onDetected:
+        - rid: 5885962084281483356
+        onNotFound: []
+    - rid: 5885962084281483356
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483357
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483357
+      type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 0
+        lifeTick: 120
+        areaPrefab: {fileID: 1340892008785044096, guid: 771f579d669379c468ded53106f5a6ba, type: 3}
+        onEnter: []
+        onExpire: []
+        effectPrefab: {fileID: 0}
+    - rid: 5885962084281483358
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483359
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483359
+      type: {class: DetectMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 4
+        requiredMode: 0
+        requiredComponent: {fileID: 0}
+        onDetected:
+        - rid: 5885962084281483360
+        onNotFound: []
+    - rid: 5885962084281483360
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483361
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483361
+      type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 0
+        lifeTick: 120
+        areaPrefab: {fileID: 32189647861880344, guid: 6d6fd1d5f82df2f4da6d704b6a36b0e5, type: 3}
+        onEnter: []
+        onExpire: []
+        effectPrefab: {fileID: 0}
+    - rid: 5885962084281483362
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483363
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483363
+      type: {class: DetectMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 1
+        requiredMode: 0
+        requiredComponent: {fileID: 0}
+        onDetected:
+        - rid: 5885962084281483364
+        onNotFound: []
+    - rid: 5885962084281483364
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962084281483365
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962084281483365
+      type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 0
+        lifeTick: 0
+        areaPrefab: {fileID: 1340892008785044096, guid: f9457e17f9c1f7c4fa445d45b8ddfc65, type: 3}
+        onEnter: []
+        onExpire: []
+        effectPrefab: {fileID: 0}

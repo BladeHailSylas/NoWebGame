@@ -459,7 +459,15 @@ namespace PlayerScripts.Stack
             if (!_stackStorage.TryGetValue(stack, out var status) || status.Amount < trigger.threshold) return;
             if (trigger.effect.mechanism is not INewMechanism mech) return;
             DamageData dmg = new(DamageType.Normal, storing);
-            CastContext ctx = new(trigger.effect.mechanism, stack.applier, null, dmg, default, trigger.effect.mode);
+
+            // Runner를 거치지 않는 독립 실행이므로 실행 직전 적용자의 위치를 저장합니다.
+            Vector2? origin = stack.applier ? (Vector2)stack.applier.position : (Vector2?)null;
+            CastContext ctx = new(trigger.effect.mechanism, stack.applier, null, dmg, default, trigger.effect.mode,
+                originCastPosition: origin, trace: AttackTrace.Root(stack.applier).Command().Effect(),
+                source: $"Stack:{stack.def.name}#{stack.def.GetInstanceID()}/effect");
+            // 신규 Destination이 실패하면 소비하지 않습니다. 큐의 이번 트리거 시도는 여기서 끝납니다.
+            if (mech is NewMechanism spatial && spatial.Destination.mode != DestinationMode.Disabled &&
+                !SpatialExecution.TryPrepare(ctx, out ctx, out _)) return;
             RemoveStackCompletely(stack);
             _metadata[stack] = new StackMetadata(0);
             mech.Execute(ctx);

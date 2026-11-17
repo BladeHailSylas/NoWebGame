@@ -83,61 +83,20 @@ namespace Systems.SubSystems
             _pos = new FixedVector2(target);
             _needsSync = true;
         }
-        /// <summary>
-        /// An extended version of Move().
-        /// </summary>
-        public bool TryDash(DashContract contract, HashSet<Entity> dashHits)
+        public TravelMotion CreateTravel(DashContract contract)
         {
-            var delta = ((Vector2)contract.Context.Target.position - _rb.position).normalized * contract.Speed / 60f;
-            if (delta.sqrMagnitude <= 0f)
-                return false;
-            var origin = _rb.position;
-            var direction = delta.normalized;
-            var distance = delta.magnitude;
-            var radius = (Policy.unitRadius + Policy.unitSkin) / (float)FixedVector2.UnitsPerFloat;
-
-            // 벽 + 적 탐색
-            var hits = Physics2D.CircleCastAll(
-                origin,
-                radius,
-                direction,
-                distance,
-                Policy.wallsMask | Policy.enemyMask
-            );
-
-            foreach (var hit in hits)
-            {
-                if (!hit.collider)
-                    continue;
-
-                var layer = hit.collider.gameObject.layer;
-
-                // 벽 충돌 → 즉시 종료
-                if (((1 << layer) & Policy.wallsMask) != 0)
-                {
-                    return false;
-                }
-
-                // 적 충돌 → 피해 적용
-                if (((1 << layer) & Policy.enemyMask) == 0) continue; //Negate when not enemyMask
-                if (!hit.collider.TryGetComponent<Entity>(out var entity) || dashHits.Contains(entity)) continue; //Negate when touched already
-                // 자기 자신 방지 (안전장치)
-                if (entity.transform == _col.transform)
-                    continue;
-                var _ctx = contract.Context;
-                SkillUtils.ActivateChain(contract.OnHit, _ctx, entity.transform);
-                return contract.Penetrative && contract.Context.Target != entity.transform;
-                //False when not penetrative since it needs to stop when touches an enemy
-                //True only when penetrative and not target; It needs to stop if it hits the target
-            }
-            // Moving
-            var target = origin + delta;
-            _rb.MovePosition(target);
-            _pos = new FixedVector2(target);
-            _needsSync = true;
-            return true;
+            return new TravelMotion(_rb, _col, contract.Context, contract.Speed, contract.Penetrative,
+                Policy.wallsMask, Policy.enemyMask,
+                entity => SkillUtils.ActivateChain(contract.OnHit, contract.Context, SkillTarget.ForEntity(entity), trigger: "OnHit"));
         }
-
+        public TravelResult? MoveDash(TravelMotion travel)
+        {
+            var result = travel.Advance();
+            _pos = new FixedVector2(travel.RequestedPosition);
+            // Dash는 물리 반영 전 Transform 강제 동기화를 하지 않습니다.
+            _needsSync = false;
+            return result;
+        }
 
         private Vector2 RemoveNormalComponent(
             Vector2 vector,

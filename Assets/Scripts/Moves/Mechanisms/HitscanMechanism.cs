@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
-using PlayerScripts.Skills;
 using UnityEngine;
 
 namespace Moves.Mechanisms
 {
+    [Serializable]
     /// <summary>
     /// Defines how hitscan-based skills behave — instant ray-based hit detection.
     /// </summary>
@@ -19,18 +20,26 @@ namespace Moves.Mechanisms
         [Header("Debug")]
         public bool debugDraw = true;
 
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not HitscanMechanism mech) return;
-            if (ctx.Target is null)
+            if (!ctx.TryGetSpatialPosition(out var targetPosition))
             {
                 return;
             }
 
+            if (mech.Targeting.IsRelative)
+            {
+                RelativeHitQueries.Ray(ctx, mech.MaxRange, true, mech.onHit);
+                SkillUtils.ActivateChain(mech.onExpire, ctx, trigger: "onExpire");
+                return;
+            }
             var origin = ctx.Caster != null ? (Vector2)ctx.Caster.position : Vector2.zero;
-            var direction = ((Vector2)ctx.Target.position - origin).normalized;
+            var direction = (targetPosition - origin).normalized;
 
             var hit = Physics2D.Raycast(origin, direction, mech.MaxRange, mech.Mask);
+            AttackLog.Write(ctx.Trace, "HitscanQuery", $"origin={origin} direction={direction} distance={mech.MaxRange} queryLayers={mech.Mask.value}");
+            AttackLog.Hit(ctx, hit.collider, hit ? "Accepted" : "NoHit");
             if (mech.debugDraw)
             {
                 var c = hit ? Color.red : Color.yellow;
@@ -39,10 +48,10 @@ namespace Moves.Mechanisms
 
             if (hit.collider is not null)
             {
-                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform);
+                SkillUtils.ActivateChain(mech.onHit, ctx, hit.transform, trigger: "onHit");
             }
 
-            SkillUtils.ActivateChain(mech.onExpire, ctx);
+            SkillUtils.ActivateChain(mech.onExpire, ctx, trigger: "onExpire");
         }
     }
 }

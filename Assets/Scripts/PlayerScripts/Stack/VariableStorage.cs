@@ -70,6 +70,17 @@ namespace PlayerScripts.Stack
             return found;
         }
 
+        public bool HasNameOf(string name)
+        {
+            var found = false;
+            foreach (var key in _public.Keys)
+            {
+                found = key.def.name == name;
+                if (found) break;
+            }
+            return found;
+        }
+
         public bool Has(StackKey stack) //It checks applier
         {
             var found = false;

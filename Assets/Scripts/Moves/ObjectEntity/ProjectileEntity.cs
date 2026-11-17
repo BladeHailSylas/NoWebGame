@@ -1,137 +1,104 @@
-using System;
-using System.Collections.Generic;
-using Moves.Mechanisms;
-using Systems.Anchor;
 using Systems.Data;
 using Systems.SubSystems;
+using Systems.Time;
+using Moves.Mechanisms;
 using UnityEngine;
-using Time = Systems.Time.Time;
+using GameTime = Systems.Time.Time;
 
 namespace Moves.ObjectEntity
 {
     public class ProjectileEntity : ObjectPrefab
     {
-        private const byte LifeTick = 15;
-
-        private ushort _limitTick;
-        private ushort _lifeTick;
-        
-        private List<MechanismData> _onHit;
-        private List<MechanismData> _onExpire;
-
-        private FixedVector2 _location;
-        private FixedVector2 _velocity;
+        private const byte LegacyMinimumLife = 15;
+        private int _lifeTick;
         private int _speed;
-
-        private HashSet<Entity> _hitEntities;
+        private FixedVector2 _location;
         private ThinMotor _motor;
-        private bool _penetrative;
+        private TravelMotion _travel;
+        private TravelCompletion _completion;
+        private TravelPhysicsObserver _observer;
+        private Ticker _ticker;
         private CastContext _ctx;
-        
+        private ProjectileMechanism _settings;
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private Collider2D col;
-        
+        public TravelResult? Result => _completion?.Result;
+        public int UniqueHitCount => _travel?.UniqueHitCount ?? 0;
 
         public void Init(CastContext ctx)
         {
-            if (ctx.Mech is not ProjectileMechanism proj) return;
-            _ctx = ctx;
-            _onHit = proj.onHit;
-            _onExpire = proj.onExpire;
-            _limitTick = proj.lifeTick;
-            _penetrative = proj.penetrative;
-            _hitEntities = new HashSet<Entity>();
-
-            _location = new FixedVector2(transform.position);
-            _speed = proj.speed;
-            // 🔹 ThinMotor 생성 (Entity 소유)
-            _motor = new ThinMotor(rb, col)
-            {
-                wallMask = LayerMask.GetMask("Walls&Obstacles"),
-                enemyMask = LayerMask.GetMask("Foe")
-            };
-
-            if (_limitTick < LifeTick)
-            {
-                Expire();
-                return;
-            }
-
-            Time.Ticker.OnTick += TickHandler;
+            if (_completion != null || ctx.Mech is not ProjectileMechanism settings) return;
+            if (!SpatialExecution.TryPrepare(ctx, out ctx, out _)) { Destroy(gameObject); return; }
+            _ctx = ctx; _settings = settings; _completion = new TravelCompletion();
+            rb = rb ? rb : GetComponent<Rigidbody2D>();
+            col = col ? col : GetComponent<Collider2D>();
+            _speed = settings.speed;
+            _location = new FixedVector2(rb.position);
+            _motor = new ThinMotor(rb, col) { wallMask = LayerMask.GetMask("Walls&Obstacles"), enemyMask = LayerMask.GetMask("Foe") };
+            _travel = _motor.CreateTravel(ctx, _speed, settings.penetrative,
+                entity => SkillUtils.ActivateChain(settings.onHit, ctx, SkillTarget.ForEntity(entity), trigger: "onHit"));
+            _observer = GetComponent<TravelPhysicsObserver>();
+            if (!_observer) _observer = gameObject.AddComponent<TravelPhysicsObserver>();
+            _observer.AfterPhysics = AfterPhysics;
+            _observer.Disabled = publish => Cancel(ExitCause.ExternallyDestroyed, publish);
+            _ticker = GameTime.Ticker;
+            if (!_ctx.Destination.HasValue && !_ctx.Target.IsValid) { Cancel(ExitCause.TargetLost); return; }
+            // 기존 콘텐츠의 15 Tick 미만 즉시 만료는 Legacy 모드에만 유지합니다.
+            if (settings.lifeTick == 0 || (settings.callbackMode == ExitCallbackMode.Legacy && settings.lifeTick < LegacyMinimumLife))
+            { Finish(Timeout()); return; }
+            if (_ticker == null) { Cancel(ExitCause.Cancelled); return; }
+            _ticker.OnTick += TickHandler;
         }
+
         private void TickHandler(ushort tick)
         {
-            if (_lifeTick >= _limitTick)
-            {
-                Expire();
-                return;
-            }
-            Move();
+            if (Result.HasValue) return;
+            // 이동 구간에서 확인한 명중을 시간 만료나 도착 겹침 검사로 덮어쓰지 않습니다.
+            if (_travel.AwaitingPhysics) { _lifeTick++; return; }
+            if (!_ctx.Destination.HasValue && !_ctx.Target.IsValid) { Cancel(ExitCause.TargetLost); return; }
+            if (_lifeTick >= _settings.lifeTick) { Finish(Timeout()); return; }
+            var result = _motor.Move(_travel);
             _lifeTick++;
+            if (result.HasValue) Finish(result.Value);
         }
 
-        /// <summary>
-        /// Tick 기반 이동 처리
-        /// </summary>
-        private void Move()
+        public void AfterPhysics()
         {
-            if (_ctx.Target is null)
+            if (_travel == null || Result.HasValue) return;
+            _location = new FixedVector2(rb.position);
+            var result = _travel.AfterPhysics();
+            if (result.HasValue) Finish(result.Value);
+        }
+        private TravelResult Timeout() => new(
+            _settings.timeoutPolicy == TimeoutPolicy.Completed
+                ? ExitKind.Completed : ExitKind.Interrupted, ExitCause.TimeExpired, rb.position);
+
+        public void Cancel(ExitCause cause = ExitCause.Cancelled, bool publish = true)
+        {
+            if (_completion == null) return;
+            Finish(new TravelResult(ExitKind.Interrupted, cause, rb ? rb.position : (Vector2)transform.position), publish);
+        }
+        private void Finish(TravelResult result, bool publish = true)
+        {
+            _completion.TryFinish(result, () =>
             {
-                //Instant kill
-                Expire();
-                return;
-            }
-            _velocity = new FixedVector2(((Vector2)_ctx.Target.transform.position - _location.AsVector2).normalized * _speed);
-            _motor.TryMove(_velocity, _penetrative, out var hit);
+                if (_ticker != null) _ticker.OnTick -= TickHandler;
+                if (_observer) { _observer.AfterPhysics = null; _observer.Disabled = null; }
+            }, final =>
             {
-                switch (hit.type)
+                AttackLog.Write(_ctx.Trace, "TravelEnded", $"source={_ctx.Source} destination={_ctx.Destination} kind={final.Kind} cause={final.Cause} position={final.Position} hit={AttackLog.Identity(final.HitEntity)} publish={publish}");
+                try
                 {
-                    case HitType.Wall:
-                        // 벽에 닿으면 즉시 제거
-                        Expire();
-                        break;
-                    case HitType.Enemy:
-                    {
-                        ApplyHit(hit.collider);
-                        if (!_penetrative || hit.collider.transform == _ctx.Target)
-                            Expire();
-                        break;
-                    }
-                    case HitType.None:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    if (publish && !TravelPhysicsObserver.IsShuttingDown)
+                        TravelCallbacks.Publish(_ctx, final, _settings.callbackMode,
+                            _settings.onExpire, _settings.onCompleted, _settings.onInterrupted);
                 }
-            }
-
-            // 위치 동기화
-            _location = new FixedVector2(transform.position);
-            if ((transform.position  - _ctx.Target.position).magnitude < 0.1f)
-            {
-                Expire();
-            }
+                finally { if (gameObject) Destroy(gameObject); }
+            });
         }
-
-        private void ApplyHit(Collider2D other)
-        {
-            if (!other.TryGetComponent<Entity>(out var entity)) return;
-            if (_hitEntities.Contains(entity)) return;
-            SkillUtils.ActivateChain(_onHit, _ctx, entity.transform);
-            _hitEntities.Add(entity);
-        }
-
-        private void Expire()
-        {
-            Time.Ticker.OnTick -= TickHandler;
-            if (_onExpire.Count == 0)
-            {
-                if (_ctx.Target.TryGetComponent<SkillAnchor>(out var anchor))
-                {
-                    AnchorRegistry.Instance.Return(anchor);
-                }
-            }
-            SkillUtils.ActivateChain(_onExpire, _ctx);
-            Destroy(gameObject);
-        }
+        private void OnDisable() => Cancel(ExitCause.ExternallyDestroyed,
+            !TravelPhysicsObserver.IsShuttingDown && gameObject.scene.isLoaded);
+        private void OnDestroy() => Cancel(ExitCause.ExternallyDestroyed,
+            !TravelPhysicsObserver.IsShuttingDown && gameObject.scene.isLoaded);
     }
 }

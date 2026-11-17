@@ -22,6 +22,8 @@ namespace Systems.SubSystems
 
         public bool TryTeleport(TeleportContract tpc)
         {
+            if (!SpatialExecution.TryPrepare(tpc.Context, out var prepared, out _)) return false;
+            tpc = new TeleportContract(prepared);
             var destination = ResolveTeleportPoint(tpc);
 
             // 현재 위치와 거의 같으면 스킵
@@ -49,7 +51,8 @@ namespace Systems.SubSystems
             {
                 return start;
             }
-            var toTarget = (Vector2)tpc.Context.Target.position - start;
+            if (!tpc.Context.TryGetSpatialPosition(out var targetPosition)) return _rb.position;
+            var toTarget = targetPosition - start;
             if (toTarget.sqrMagnitude <= 0.0001f)
             {
                 return start;
@@ -86,19 +89,7 @@ namespace Systems.SubSystems
         {
             var ctx = tpc.Context;
             if (ctx.Mech is not TeleportMechanism param) return;
-            if (param.onArrival.Count == 0)
-            {
-                if (!ctx.Target.TryGetComponent<SkillAnchor>(out var anchor)) return;
-                AnchorRegistry.Instance.Return(anchor);
-            }
-            foreach (var followup in param.onArrival)
-            {
-                if (followup.mechanism is not INewMechanism mech) continue;
-                var ctxTarget = !followup.requireRetarget ? ctx.Target : null;
-                SkillCommand cmd = new(ctx.Caster, ctx.Mode, new FixedVector2(ctx.Caster.position),
-                    mech, ctx.Damage, ctxTarget);
-                CommandBridge.Enqueue(cmd);
-            }
+            SkillUtils.ActivateChain(param.onArrival, ctx, trigger: "onArrival");
         }
     }
 }

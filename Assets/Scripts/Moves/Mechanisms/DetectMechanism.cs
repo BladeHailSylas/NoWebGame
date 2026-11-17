@@ -12,17 +12,14 @@ namespace Moves.Mechanisms
         public MonoBehaviour? requiredComponent;
         [SerializeReference] public MechanismData[] onDetected;
         [SerializeReference] public MechanismData[] onNotFound;
-        public new void Execute(CastContext ctx)
+        protected override void ExecuteCore(CastContext ctx)
         {
             if (ctx.Mech is not DetectMechanism mech)
                 return;
 
-            // Detect는 "대상이 있을 때만" 의미를 가짐
-            if (ctx.Target is null)
-                return;
-
-            // 1. TargetMode 검사
-            var detected = ctx.Mode == mech.requiredMode;
+            // 무대상·무효 Target도 실패 분기로 전달하고 기존 Target은 보존합니다.
+            var detected = ctx.Target.IsValid && ctx.Mode == mech.requiredMode &&
+                (!mech.Targeting.IsRelative || ctx.Target.Kind != TargetKind.Entity || mech.Targeting.Allows(ctx.Caster, ctx.Target.Entity));
             switch (detected)
             {
                 case false:
@@ -49,11 +46,11 @@ namespace Moves.Mechanisms
                 ? mech.onDetected
                 : mech.onNotFound;
 
-            if (followUps.Length == 0)
+            if (followUps == null || followUps.Length == 0)
                 return;
 
             // 4. Switch와 동일한 방식으로 FollowUp 실행
-            SkillUtils.ActivateChain(followUps, ctx);
+            SkillUtils.ActivateChain(followUps, ctx, trigger: "followUps");
         }
 
     }
