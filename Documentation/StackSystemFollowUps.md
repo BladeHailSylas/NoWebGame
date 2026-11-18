@@ -2,6 +2,14 @@
 
 ## STACK-CC-01 — 중복 CC 적용 후 행동 제한 카운터 잔류
 
+### S1 진행 상태 (2026-11-18)
+
+동일 StackKey의 반복 적용마다 카운터를 올리고 만료 시 한 번만 내리던 원인을 수정했습니다. Key의 활성 주기당 CCContribution을 한 개 소유하며, 갱신은 수량/예약만 변경하고 종료는 그 증표를 한 번 해제합니다. 실제 Projectile Collider → onHit Chain → Collector → StackMechanism → Enemy의 StackManager 경로에서 2회 적용 후 만료 시 공격 제한 0과 CanAttack=true를 자동 확인했습니다.
+
+`StackTransitionChecks`는 종류별 256회 갱신, 서로 다른 Key·혼합 CC, 0/음수/상한, 예약 실패 보상, Pending 취소 알림 예외, 재진입 및 무환급을 검사합니다. `StackBaselineChecks`의 CC 항목도 결함 fingerprint에서 정상 해제 검사로 전환했습니다. 기존 Cast 수명 회귀도 함께 실행합니다.
+
+이 상태는 확인된 원인의 코드 수정과 자동 재현 회귀 완료를 뜻합니다. 실제 게임 씬의 사용자 재검증과 S4 전체 통합은 아직 남아 있습니다. Buff 총량과 Trigger payload 수명은 각각 S2/S3 대상이며 해결된 것으로 표시하지 않습니다. 아래 내용은 Cast Refactoring 종료 당시의 발견 기록입니다.
+
 - 상태: 미해결, 사용자 확인 결함. 향후 Stack 시스템 재정비에서 조사·수정합니다.
 - 발견 경로: Phase 4 수동 전투 테스트. Enemy AI가 발사한 Projectile의 Chain StackMechanism으로 CC를 반복 적용했습니다.
 - 관찰: CC가 중복 부여되면 ImmovableCount 또는 InnoxiousCount가 정상적으로 해제되지 않을 수 있습니다. 정확한 발생 조건과 원인은 아직 확정하지 않았습니다.

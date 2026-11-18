@@ -1,3 +1,4 @@
+using System;
 using Moves;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
@@ -19,6 +20,8 @@ namespace PlayerScripts.Acts
         private Vector2 _inputVector;
         private int _innoxiousCount;
         private int _immovableCount;
+        private int _ownedInnoxiousCount;
+        private int _ownedImmovableCount;
         private long _tick;
         public bool CanAttack => _innoxiousCount == 0 && !(_mover?.PreventingActivation ?? false);
         public bool CanMove => _immovableCount == 0;
@@ -121,20 +124,60 @@ namespace PlayerScripts.Acts
                     break;
             }
         }
+
+        /// <summary>한 Stack 주기가 소유한 제한입니다. 종료된 증표는 새 주기에 재사용하지 않습니다.</summary>
+        internal sealed class CCContribution
+        {
+            internal readonly ActBridge Owner;
+            internal readonly bool Movement, Attack;
+            internal bool Active = true;
+            internal CCContribution(ActBridge owner, bool movement, bool attack)
+            { Owner = owner; Movement = movement; Attack = attack; }
+        }
+
+        // 상태 반영 중에는 Pending 취소 등 외부 코드를 호출하지 않습니다.
+        internal CCContribution AcquireCC(CCData cc)
+        {
+            var movement = cc.Type is EffectType.Rooted or EffectType.Stunned or EffectType.Tumbled;
+            var attack = cc.Type is EffectType.Suppressed or EffectType.Stunned or EffectType.Tumbled;
+            if (!movement && !attack) throw new ArgumentException("Unsupported CC type", nameof(cc));
+            var nextMovement = checked(_immovableCount + (movement ? 1 : 0));
+            var nextAttack = checked(_innoxiousCount + (attack ? 1 : 0));
+            var contribution = new CCContribution(this, movement, attack);
+            _immovableCount = nextMovement; _innoxiousCount = nextAttack;
+            if (movement) _ownedImmovableCount++;
+            if (attack) _ownedInnoxiousCount++;
+            return contribution;
+        }
+
+        internal void ReleaseCC(CCContribution contribution)
+        {
+            if (contribution == null || !ReferenceEquals(contribution.Owner, this) || !contribution.Active) return;
+            contribution.Active = false;
+            if (contribution.Movement) { _ownedImmovableCount--; _immovableCount--; }
+            if (contribution.Attack) { _ownedInnoxiousCount--; _innoxiousCount--; }
+        }
+
+        // StackManager가 수량/예약/증표를 확정한 이후에만 호출합니다.
+        internal void NotifyCCCommitted(CCContribution contribution)
+        {
+            if (contribution != null && ReferenceEquals(contribution.Owner, this) && contribution.Active && contribution.Attack)
+                _attacker?.CancelPending("AttackDisabledByCC");
+        }
         public void RemoveCC(CCData cc)
         {
             switch (cc.Type)
             {
                 case EffectType.Rooted:
-                    _immovableCount = Mathf.Max(0, _immovableCount - 1);
+                    _immovableCount = Mathf.Max(_ownedImmovableCount, _immovableCount - 1);
                     break;
                 case EffectType.Suppressed:
-                    _innoxiousCount = Mathf.Max(0, _innoxiousCount - 1);
+                    _innoxiousCount = Mathf.Max(_ownedInnoxiousCount, _innoxiousCount - 1);
                     break;
                 case EffectType.Stunned:
                 case EffectType.Tumbled:
-                    _innoxiousCount = Mathf.Max(0, _innoxiousCount - 1);
-                    _immovableCount = Mathf.Max(0, _immovableCount - 1);
+                    _innoxiousCount = Mathf.Max(_ownedInnoxiousCount, _innoxiousCount - 1);
+                    _immovableCount = Mathf.Max(_ownedImmovableCount, _immovableCount - 1);
                     break;
             }
         }

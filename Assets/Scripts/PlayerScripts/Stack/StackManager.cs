@@ -26,12 +26,14 @@ namespace PlayerScripts.Stack
         private readonly DelayScheduler _scheduler;
         private List<StackDelta> _resolving = new();
         private List<StackDelta> _collecting = new();
+        private bool _processing;
 
         // 현재 Tick 캐시 (모듈이 "마지막으로 실행된 시점"만 기억)
         private long _currentTick;
 
         private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
         private readonly Dictionary<StackKey, StackMetadata> _metadata = new();
+        private readonly Dictionary<StackKey, ActBridge.CCContribution> _ccContributions = new();
 
         public StackManager(Context ctx, VariableStorage storage)
         {
@@ -63,49 +65,68 @@ namespace PlayerScripts.Stack
         /// </summary>
         public void Tick(long tick)
         {
+            // 외부 콜백이 Tick을 다시 호출해도 처리 중인 버퍼를 교환하지 않습니다.
+            if (_processing) return;
+            if (tick < 0) throw new ArgumentOutOfRangeException(nameof(tick));
+            _processing = true;
+            try { TickCore(tick); }
+            finally { _processing = false; }
+        }
+
+        private void TickCore(long tick)
+        {
             _currentTick = tick;
             SwapAndApply(tick);
             // 순회 중 컬렉션 변경을 피하기 위해 처리 대상 수집
-            List<StackKey> expireKeys = null;
-            List<StackKey> periodicKeys = null;
+            List<KeyValuePair<StackKey, StackStatus>> expireKeys = null;
+            List<KeyValuePair<StackKey, StackStatus>> periodicKeys = null;
 
-            foreach (var key in 
+            foreach (var entry in
                      from kv in _stackStorage 
                      let key = kv.Key 
                      let status = kv.Value 
                      where IsValidDelay(status.DelayId) 
                      where _scheduler.IsCompleted(status.DelayId, _currentTick) 
-                     select key)
+                     select kv)
             {
+                var key = entry.Key;
                 // DelayId가 완료되었을 때 "무슨 의미인지"는 Definition이 결정
                 if (key.def is VariableDefinition { isPeriodic: true })
                 {
-                    periodicKeys ??= new List<StackKey>();
-                    periodicKeys.Add(key);
+                    periodicKeys ??= new();
+                    periodicKeys.Add(entry);
                 }
                 else
                 {
                     // Buff/CC/Expirable Variable은 완료 시 제거로 해석
-                    expireKeys ??= new List<StackKey>();
-                    expireKeys.Add(key);
+                    expireKeys ??= new();
+                    expireKeys.Add(entry);
                 }
             }
 
             // 1) Expiration 제거 처리
             if (expireKeys != null)
             {
-                foreach (var key in expireKeys)
+                foreach (var entry in expireKeys)
                 {
-                    RemoveStackCompletely(key);
+                    try
+                    {
+                        if (IsCurrentReservation(entry)) RemoveStackCompletely(entry.Key);
+                    }
+                    catch (Exception error) { Debug.LogException(error); }
                 }
             }
 
             // 2) Periodic 완료 처리 (+1 후 필요 시 재시작)
             if (periodicKeys != null)
             {
-                foreach (var key in periodicKeys)
+                foreach (var entry in periodicKeys)
                 {
-                    HandlePeriodicCompleted(key, _currentTick);
+                    try
+                    {
+                        if (IsCurrentReservation(entry)) HandlePeriodicCompleted(entry.Key, _currentTick);
+                    }
+                    catch (Exception error) { Debug.LogException(error); }
                 }
             }
         }
@@ -118,16 +139,27 @@ namespace PlayerScripts.Stack
         /// </summary>
         public void ApplyStack(StackKey stackKey, int amount, long tick, ushort durationOverride = 0, StackMetadata metadata = default)
         {
+            if (_processing)
+            {
+                // 재진입 요청은 다음 정상 Tick에서 처리합니다. 기간 override도 보존합니다.
+                EnqueueStack(new StackDelta(stackKey, amount, metadata, durationOverride));
+                return;
+            }
+            _processing = true;
+            try { ApplyStackCore(stackKey, amount, tick, durationOverride, metadata); }
+            finally { _processing = false; }
+        }
+
+        private void ApplyStackCore(StackKey stackKey, int amount, long tick, ushort durationOverride, StackMetadata metadata)
+        {
             var def = stackKey.def;
+            if (!def || stackKey.applierName == null) throw new ArgumentException("Stack definition and applier name are required", nameof(stackKey));
+            if (tick < 0) throw new ArgumentOutOfRangeException(nameof(tick));
             //Debug.Log($"{def.displayName}을(를) 적용하려 합니다.");
             _stackStorage.TryGetValue(stackKey, out var oldStatus);
             var before = oldStatus.Amount;
 
             var after = TotalStack(def.maxStacks, before, amount);
-
-            // 0 이하로 떨어지는 Apply(음수 적용)는 ConsumeVariable 쪽으로 보내는 것을 권장하지만,
-            // 방어적으로 clamp.
-            if (after < 0) after = 0;
 
             // DelayId는 케이스별로 의미가 달라짐(Periodic 또는 Expiration)
             var nextDelayId = oldStatus.DelayId;
@@ -136,82 +168,15 @@ namespace PlayerScripts.Stack
             {
                 case VariableDefinition va:
                 {
-                    // Variable Storage 갱신(표시/상태용)
-                    // (프로젝트의 VariableStorage 설계에 맞춰 "존재 여부"를 유지하려면 Remove 대신 Update가 필요할 수 있음)
-                    if (after <= 0)
-                    {
-                        // Variable이 0이 되면 Storage에서 제거하는 정책을 기본으로 둠.
-                        // (만약 0이어도 표시가 필요하면 Remove 대신 0으로 업데이트하는 메서드가 필요)
-                        Storage.RemoveStorage(stackKey);
-                    }
-                    else
-                    {
-                        Storage.AddStorage(stackKey, new VariableState(after, tick));
-                    }
-
-                    if (va.isPeriodic)
-                    {
-                        //   after < maxStacks 이면 재적용(= periodic delay 시작/유지)
-                        var shouldStartPeriodic = ShouldStartPeriodicOnApply(after, va.maxStacks);
-
-                        if (shouldStartPeriodic)
-                        {
-                            // 기존 Delay가 있었다면 교체
-                            if (IsValidDelay(nextDelayId))
-                                _scheduler.Remove(nextDelayId);
-
-                            nextDelayId = _scheduler.Start(tick, va.periodTick);
-                        }
-                        else
-                        {
-                            // maxStacks에 도달했다면 periodic은 멈춤(Delay 제거)
-                            if (IsValidDelay(nextDelayId))
-                            {
-                                _scheduler.Remove(nextDelayId);
-                                nextDelayId = default;
-                            }
-                        }
-
-                        _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
-
-                        // Variable 자체 효과(Apply/Detach 시 추가 로직이 있다면 ResolveApply에서 처리)
-                        ResolveApply(stackKey, tick, amount);
-                        return;
-                    }
-
-                    // Non-periodic Variable: duration에 따라 Expirable(만료)일 수도, 영구일 수도 있음
-                    int durationTick = durationOverride != 0 ? durationOverride : va.duration;
-                    if (durationTick != 65535 && after > 0)
-                    {
-                        // Expiration Delay 설정(변수에도 만료가 있는 경우)
-                        if (IsValidDelay(nextDelayId))
-                            _scheduler.Remove(nextDelayId);
-
-                        nextDelayId = _scheduler.Start(tick, durationTick);
-                    }
-                    else
-                    {
-                        // 영구면 Delay 없음
-                        if (IsValidDelay(nextDelayId))
-                        {
-                            _scheduler.Remove(nextDelayId);
-                            nextDelayId = default;
-                        }
-                    }
-
-                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
-                    ResolveApply(stackKey, tick, amount);
+                    ApplyVariable(stackKey, va, after, tick, durationOverride, oldStatus);
                     return;
                 }
-
                 case BuffDefinition buff:
                 {
                     // Buff/CC는 Expirable 모델
                     int durationTick = durationOverride != 0 ? durationOverride : buff.duration;
 
-                    if (IsValidDelay(nextDelayId))
-                        _scheduler.Remove(nextDelayId);
-                    nextDelayId = _scheduler.Start(tick, durationTick);
+                    nextDelayId = ReplaceReservation(oldStatus.DelayId, tick, durationTick);
 
                     _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
 
@@ -221,25 +186,14 @@ namespace PlayerScripts.Stack
 
                 case CCDefinition cc:
                 {
-                    int durationTick = durationOverride != 0 ? durationOverride : cc.duration;
-
-                    if (IsValidDelay(nextDelayId))
-                        _scheduler.Remove(nextDelayId);
-
-                    nextDelayId = _scheduler.Start(tick, durationTick);
-
-                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
-
-                    ResolveApply(stackKey, tick, amount);
+                    ApplyCrowdControl(stackKey, cc, after, tick, durationOverride, oldStatus);
                     return;
                 }
 
                 case TriggerableDefinition trigger:
                 {
                     int durationTick = durationOverride != 0 ? durationOverride : trigger.duration;
-                    if(IsValidDelay(nextDelayId))
-                        _scheduler.Remove(nextDelayId);
-                    nextDelayId = _scheduler.Start(tick, durationTick);
+                    nextDelayId = ReplaceReservation(oldStatus.DelayId, tick, durationTick);
                     _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
                     ResolveTrigger(stackKey, tick, metadata, amount);
                     return;
@@ -252,16 +206,93 @@ namespace PlayerScripts.Stack
 
                     if (durationTick != 65535)
                     {
-                        if (IsValidDelay(nextDelayId))
-                            _scheduler.Remove(nextDelayId);
-
-                        nextDelayId = _scheduler.Start(tick, durationTick);
+                        nextDelayId = ReplaceReservation(oldStatus.DelayId, tick, durationTick);
                     }
 
                     _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
                     ResolveApply(stackKey, tick, amount);
                     return;
                 }
+            }
+        }
+
+        private bool IsCurrentReservation(KeyValuePair<StackKey, StackStatus> entry) =>
+            _stackStorage.TryGetValue(entry.Key, out var current) && current.DelayId.Equals(entry.Value.DelayId);
+
+        // Buff 효과 자체의 원자적 교체는 S2에서 처리합니다. S1에서는 예약 실패 시 옛 예약을 보존합니다.
+        private DelayId ReplaceReservation(DelayId previous, long tick, int duration)
+        {
+            var next = _scheduler.Start(tick, duration);
+            _scheduler.Remove(previous);
+            return next;
+        }
+
+        private void ApplyVariable(StackKey key, VariableDefinition definition, int after, long tick,
+            ushort durationOverride, StackStatus previous)
+        {
+            var duration = durationOverride != 0 ? durationOverride : definition.duration;
+            var needsDelay = definition.isPeriodic ? ShouldStartPeriodicOnApply(after, definition.maxStacks) : duration != 65535 && after > 0;
+            var next = needsDelay ? _scheduler.Start(tick, definition.isPeriodic ? definition.periodTick : duration) : default;
+            var hadState = _stackStorage.ContainsKey(key);
+            var hadVisible = Storage.TryGetRaw(key, out var visible);
+            try
+            {
+                if (after <= 0) Storage.RemoveStorage(key);
+                else Storage.AddStorage(key, new VariableState(after, tick));
+                _stackStorage[key] = new StackStatus(after, next);
+            }
+            catch
+            {
+                _scheduler.Remove(next);
+                if (hadState) _stackStorage[key] = previous;
+                else _stackStorage.Remove(key);
+                if (hadVisible) Storage.AddStorage(key, visible);
+                else Storage.RemoveStorage(key);
+                throw;
+            }
+            _scheduler.Remove(previous.DelayId);
+        }
+
+        /// <summary>
+        /// CC는 Key당 제한 하나를 소유합니다. 예약 실패 시 옛 예약/효과를 보존하고,
+        /// 수량과 소유 증표를 확정한 뒤에만 되돌릴 수 없는 Pending 취소를 알립니다.
+        /// </summary>
+        private void ApplyCrowdControl(StackKey key, CCDefinition cc, int after, long tick,
+            ushort durationOverride, StackStatus previous)
+        {
+            if (after == 0) { RemoveStackCompletely(key); return; }
+            var hadState = _stackStorage.ContainsKey(key);
+            _ccContributions.TryGetValue(key, out var contribution);
+            var fresh = contribution == null;
+            // 새 예약 확보가 실패해도 현재 상태에는 아직 아무 변경이 없습니다.
+            var replacement = _scheduler.Start(tick, durationOverride != 0 ? durationOverride : cc.duration);
+            try
+            {
+                if (fresh)
+                {
+                    contribution = _context.Act.AcquireCC(new CCData(cc.Type, cc.Value));
+                    _ccContributions.Add(key, contribution);
+                }
+                _stackStorage[key] = new StackStatus(after, replacement);
+            }
+            catch
+            {
+                if (fresh)
+                {
+                    _ccContributions.Remove(key);
+                    _context.Act.ReleaseCC(contribution);
+                }
+                if (hadState) _stackStorage[key] = previous;
+                else _stackStorage.Remove(key);
+                _scheduler.Remove(replacement);
+                throw;
+            }
+            _scheduler.Remove(previous.DelayId);
+            // 이 이후 실패는 확정된 CC를 되돌리지 않습니다. 재적용도 하지 않습니다.
+            if (fresh)
+            {
+                try { _context.Act.NotifyCCCommitted(contribution); }
+                catch (Exception error) { Debug.LogException(error); }
             }
         }
 
@@ -357,43 +388,16 @@ namespace PlayerScripts.Stack
 
             var after = Math.Max(0, before - consumeAmount);
 
-            // Storage 갱신
-            if (after <= 0)
-                Storage.RemoveStorage(key);
-            else
-                Storage.AddStorage(key, new VariableState(after, tick));
-
-            // Non-periodic variable이라면 여기서 끝 (소비 후 만료 스케줄링 같은 건 정의 필요)
-            if (!va.isPeriodic)
+            // 최대치에서 내려갈 때만 충전을 새로 시작합니다. 예약 확보 실패는 소비 전입니다.
+            if (va.isPeriodic && ShouldStartPeriodicOnRemove(before, after, va.maxStacks))
             {
-                _stackStorage[key] = new StackStatus(after, status.DelayId);
+                ApplyVariable(key, va, after, tick, 0, status);
                 return;
             }
-
-            // -----------------------------
-            // 합의된 "제거 트리거" 공식:
-            //   before == maxStacks && after < maxStacks -> periodic 시작
-            // -----------------------------
-            var shouldStartPeriodic = ShouldStartPeriodicOnRemove(before, after, va.maxStacks);
-
-            var nextDelayId = status.DelayId;
-
-            if (shouldStartPeriodic)
-            {
-                if (IsValidDelay(nextDelayId))
-                    _scheduler.Remove(nextDelayId);
-
-                nextDelayId = _scheduler.Start(tick, va.periodTick);
-            }
-            else
-            {
-                // 제거가 있었지만 시작 조건이 아니라면 아무것도 하지 않음
-                // (누적 중이던 상태라면 이미 Delay가 돌고 있어야 함)
-            }
-
-            _stackStorage[key] = new StackStatus(after, nextDelayId);
+            if (after <= 0) Storage.RemoveStorage(key);
+            else Storage.AddStorage(key, new VariableState(after, tick));
+            _stackStorage[key] = new StackStatus(after, status.DelayId);
         }
-
         /// <summary>
         /// Expiration 등에 의해 스택을 완전히 제거한다.
         /// - Delay 제거
@@ -404,6 +408,16 @@ namespace PlayerScripts.Stack
         {
             if (!_stackStorage.TryGetValue(key, out var status))
                 return;
+
+            if (key.def is CCDefinition)
+            {
+                // 저장된 증표의 종류를 사용하므로 정의 변경이나 중복 종료로 다른 CC를 풀지 않습니다.
+                _ccContributions.Remove(key, out var contribution);
+                _stackStorage.Remove(key);
+                _scheduler.Remove(status.DelayId);
+                _context.Act.ReleaseCC(contribution);
+                return;
+            }
 
             if (IsValidDelay(status.DelayId))
                 _scheduler.Remove(status.DelayId);
@@ -434,36 +448,16 @@ namespace PlayerScripts.Stack
             if (!_stackStorage.TryGetValue(key, out var status))
                 return;
 
-            // 현재 완료된 Delay 제거 (재시작/정지 결정 전에 정리)
-            if (IsValidDelay(status.DelayId))
+            if (status.Amount >= va.maxStacks)
+            {
+                _stackStorage[key] = new StackStatus(status.Amount, default);
                 _scheduler.Remove(status.DelayId);
-
-            var before = status.Amount;
-            var after = before;
-
-            if (before < va.maxStacks)
-            {
-                after = Math.Min(before + 1, va.maxStacks);
-
-                // Storage 갱신
-                if (after <= 0)
-                    Storage.RemoveStorage(key);
-                else
-                    Storage.AddStorage(key, new VariableState(after, tick));
-            }
-
-            // max에 도달했으면 periodic 중지(DelayId 없음)
-            if (after >= va.maxStacks)
-            {
-                _stackStorage[key] = new StackStatus(after, default);
                 return;
             }
-
-            // 아직 max 미만이면 다음 주기 시작
-            var nextDelayId = _scheduler.Start(tick, va.periodTick);
-            _stackStorage[key] = new StackStatus(after, nextDelayId);
+            // 다음 예약을 확보한 뒤 +1과 공개 수량을 확정합니다. 실패하면 기존 충전 상태를 유지합니다.
+            var after = TotalStack(va.maxStacks, status.Amount, 1);
+            ApplyVariable(key, va, after, tick, 0, status);
         }
-
         /// <summary>
         /// 추가 트리거 공식:
         /// - 적용 후 총량이 maxStacks 미만이면 재적용(=periodic) 개시
@@ -494,9 +488,6 @@ namespace PlayerScripts.Stack
                     _context.Stats.TryApply(new BuffData(buff.Type, buff.Value * amp, buff.displayName));
                     break;
 
-                case CCDefinition cc:
-                    _context.Act.ApplyCC(new CCData(cc.Type, cc.Value));
-                    break;
             }
         }
 
@@ -545,28 +536,33 @@ namespace PlayerScripts.Stack
                     _context.Stats.TryRemove(new BuffData(buff.Type, buff.Value * _stackStorage[stack].Amount, buff.displayName));
                     break;
 
-                case CCDefinition cc:
-                    _context.Act.RemoveCC(new CCData(cc.Type, cc.Value));
-                    break;
             }
         }
 
-        private int TotalStack(int max, params int[] applies)
+        private static int TotalStack(int max, int before, int requested)
         {
-            var total = applies.Sum();
-            if (total < 0) total = 0;
-            return Math.Min(total, max);
+            if (max < 0) throw new ArgumentOutOfRangeException(nameof(max));
+            // int.MaxValue에 추가하는 요청도 clamp 이전에 순환하지 않습니다.
+            var total = checked((long)before + requested);
+            return (int)Math.Min(max, Math.Max(0L, total));
         }
 
         private void SwapAndApply(long tick)
         {
             (_resolving, _collecting) = (_collecting, _resolving);
             if (_resolving.Count <= 0) return;
-            foreach (var delta in _resolving)
+            try
             {
-                ApplyStack(delta.Key, delta.Amount, tick, 0, delta.Metadata);
+                for (var i = 0; i < _resolving.Count; i++)
+                {
+                    var delta = _resolving[i];
+                    // 콜백/예외 전에 항목을 소비하여 다음 Tick에 재생되지 않게 합니다.
+                    _resolving[i] = default;
+                    try { ApplyStackCore(delta.Key, delta.Amount, tick, delta.DurationOverride, delta.Metadata); }
+                    catch (Exception error) { Debug.LogException(error); }
+                }
             }
-            _resolving.Clear();
+            finally { _resolving.Clear(); }
         }
     }
 
@@ -575,12 +571,14 @@ namespace PlayerScripts.Stack
         public readonly StackKey Key;
         public readonly int Amount;
         public readonly StackMetadata Metadata;
+        public readonly ushort DurationOverride;
 
-        public StackDelta(StackKey key, int amount, StackMetadata metadata = default)
+        public StackDelta(StackKey key, int amount, StackMetadata metadata = default, ushort durationOverride = 0)
         {
             Key = key;
             Amount = amount;
             Metadata = metadata;
+            DurationOverride = durationOverride;
         }
     }
 }
