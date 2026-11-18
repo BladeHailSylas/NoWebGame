@@ -28,6 +28,7 @@ namespace PlayerScripts.Stats
         public int BaseSpeed { get; private set; }
         public int Speed { get; private set; }
         public bool IsDead { get; private set; }
+        internal event Action Died;
 
         public List<byte> DamageReduction { get; private set; } = new();
         public List<byte> ArmorPenetration { get; private set; } = new();
@@ -131,7 +132,11 @@ namespace PlayerScripts.Stats
             {
                 Health = (int)Math.Max(0, Health - remaining);
                 if (Health <= 0)
+                {
                     IsDead = true;
+                    // 비활성화나 다음 Tick을 기다리지 않고 대기 Cast를 무효화합니다.
+                    Died?.Invoke();
+                }
             }
             AttackLog.Write(data.Trace, "DamageApplied", $"raw={rawDamage} calculated={damage} health={hpBefore}->{Health} healthDelta={Health - hpBefore} shield={shieldBefore}->{Shield} specialShield={specialBefore}->{SpecialShield} dead={IsDead}");
             AttackLog.Write(data.Trace, "DamageMath", $"armor={Armor} ap={data.APRatio} amplitude={data.Amplitude} reduction={TotalDamageReduction()} remaining={remaining}", true);

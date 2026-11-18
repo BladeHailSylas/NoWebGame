@@ -66,6 +66,8 @@ namespace PlayerScripts.Acts
             _dashCompletion = new TravelCompletion();
             _dashTravel = _motor.CreateTravel(dashContract);
             PreventingActivation = dashContract.PreventActivation;
+            // 실행에 들어간 현재 Dash는 이미 Pending에서 빠졌습니다. 다른 대기 루트만 취소합니다.
+            if (PreventingActivation) _context?.Attacker?.CancelPending("DashPreventsActivation");
             _observer.AfterPhysics = AfterDashPhysics;
             _observer.Disabled = publish => CancelDash(ExitCause.OwnerDisabled, publish);
             if (!dashContract.Context.Destination.HasValue && !dashContract.Context.Target.IsValid) CancelDash(ExitCause.TargetLost);

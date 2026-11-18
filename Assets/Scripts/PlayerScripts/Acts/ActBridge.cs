@@ -17,10 +17,10 @@ namespace PlayerScripts.Acts
         private readonly Mover _mover;
         private readonly Attacker _attacker;
         private Vector2 _inputVector;
-        private byte _innoxiousCount;
-        private byte _immovableCount;
+        private int _innoxiousCount;
+        private int _immovableCount;
         private long _tick;
-        public bool CanAttack => _innoxiousCount == 0;
+        public bool CanAttack => _innoxiousCount == 0 && !(_mover?.PreventingActivation ?? false);
         public bool CanMove => _immovableCount == 0;
     
         public ActBridge(Mover mover, Attacker attacker)
@@ -69,9 +69,10 @@ namespace PlayerScripts.Acts
         public void Tick(long tick)
         {
             _tick = tick;
-            _mover.MakeMove(new FixedVector2(_inputVector), _immovableCount);
-            _mover.DashTick(tick, _immovableCount);
-            _attacker.Tick(tick, _innoxiousCount);
+            var immovable = _immovableCount > 0 ? (byte)1 : (byte)0;
+            _mover.MakeMove(new FixedVector2(_inputVector), immovable);
+            _mover.DashTick(tick, immovable);
+            _attacker.Tick(tick, _innoxiousCount > 0 ? (byte)1 : (byte)0);
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace PlayerScripts.Acts
         /// </summary>
         public void PrepareAttack(SkillSlot slot)
         {
-            _attacker.PrepareCast(slot, _innoxiousCount);
+            _attacker.PrepareCast(slot, _innoxiousCount > 0 ? (byte)1 : (byte)0);
             //Preparing might be allowed, but block for now
         }
 
@@ -125,15 +126,15 @@ namespace PlayerScripts.Acts
             switch (cc.Type)
             {
                 case EffectType.Rooted:
-                    _immovableCount = (byte)Mathf.Max(0, _immovableCount - 1); //Overflow? Not likely to occur, but...
+                    _immovableCount = Mathf.Max(0, _immovableCount - 1);
                     break;
                 case EffectType.Suppressed:
-                    _innoxiousCount = (byte)Mathf.Max(0, _innoxiousCount - 1);
+                    _innoxiousCount = Mathf.Max(0, _innoxiousCount - 1);
                     break;
                 case EffectType.Stunned:
                 case EffectType.Tumbled:
-                    _innoxiousCount = (byte)Mathf.Max(0, _innoxiousCount - 1);
-                    _immovableCount = (byte)Mathf.Max(0, _immovableCount - 1);
+                    _innoxiousCount = Mathf.Max(0, _innoxiousCount - 1);
+                    _immovableCount = Mathf.Max(0, _immovableCount - 1);
                     break;
             }
         }
@@ -145,7 +146,7 @@ namespace PlayerScripts.Acts
         private void Innoxious()
         {
             _innoxiousCount += 1;
-            //Should cancel attacks(make CommandCollector cease all the commands)
+            _attacker?.CancelPending("AttackDisabledByCC");
         }
     }
 

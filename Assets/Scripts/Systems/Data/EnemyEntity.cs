@@ -119,17 +119,21 @@ namespace Systems.Data
         private void OnEnable()
         {
             if (!_initialized || _subscribedTicker != null) return;
+            _attacker?.Resume();
             _subscribedTicker = Time.Time.Ticker;
             if (_subscribedTicker != null) _subscribedTicker.OnTick += TickHandler;
         }
 
         private void OnDisable()
         {
+            _attacker?.Suspend("OwnerDisabled");
             _actBridge?.ClearMovementInput();
             StopAI();
             if (_subscribedTicker != null) _subscribedTicker.OnTick -= TickHandler;
             _subscribedTicker = null;
         }
+
+        private void OnDestroy() => _attacker?.Dispose();
 
         private void TickHandler(long tick)
         {

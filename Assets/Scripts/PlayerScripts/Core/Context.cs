@@ -27,6 +27,8 @@ namespace PlayerScripts.Core
 
         public StatsBridge Stats { get; private set; }
         public ActBridge Act { get; private set; }
+        public Attacker Attacker { get; private set; }
+        public void RegisterAttacker(Attacker attacker) => Attacker = attacker;
     
         public StackManager StackManager { get; private set; }
         public VariableStorage VariableStorage { get; private set; }

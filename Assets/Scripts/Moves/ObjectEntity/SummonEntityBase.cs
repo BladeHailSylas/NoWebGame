@@ -79,8 +79,15 @@ namespace Moves.ObjectEntity
             return true;
         }
 
+        private void OnEnable()
+        {
+            if (_context != null) OnEnabled();
+        }
+
         protected void OnEnabled()
         {
+            _attacker?.Resume();
+            if (_subscribedTicker != null) return;
             if (Time.Time.Ticker != null && _subscribedTicker == null)
             {
                 _subscribedTicker = Time.Time.Ticker;
@@ -94,11 +101,14 @@ namespace Moves.ObjectEntity
 
         private void OnDisable()
         {
+            _attacker?.Suspend("OwnerDisabled");
             _actBridge?.ClearMovementInput();
 
             if (_subscribedTicker != null) _subscribedTicker.OnTick -= TickHandler;
             _subscribedTicker = null;
         }
+
+        private void OnDestroy() => _attacker?.Dispose();
 
         private void TickHandler(long tick)
         {

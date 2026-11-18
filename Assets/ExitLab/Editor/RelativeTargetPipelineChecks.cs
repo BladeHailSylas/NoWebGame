@@ -378,7 +378,7 @@ namespace ExitLab
                 SetTime(new Ticker(), new DelayScheduler());
                 typeof(Ticker).GetProperty("Instance").SetValue(null, GameTime.Ticker); DelayScheduler.Instance = GameTime.DelayScheduler;
                 Services = Go("services", -10); Services.SetActive(false); Services.AddComponent<TargetResolver>();
-                Collector = Services.AddComponent<CommandCollector>(); Invoke(Collector, "OnEnable");
+                Collector = Services.AddComponent<CommandCollector>(); Services.SetActive(true); Invoke(Collector, "OnEnable");
                 Collector.CommandEnqueued += Commands.Add;
             }
             public Vector2 At(float x) => _origin + new Vector2(x, 0);

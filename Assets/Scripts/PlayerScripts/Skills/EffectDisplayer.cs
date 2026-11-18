@@ -5,7 +5,11 @@ using Moves.Mechanisms;
 
 namespace PlayerScripts.Skills
 {
-    public sealed class EffectDisplayer
+    public interface IEffectDisplayer
+    {
+        void Display(SkillCommand cmd);
+    }
+    public sealed class EffectDisplayer : IEffectDisplayer
     {
         public void Display(SkillCommand cmd)
         {

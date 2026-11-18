@@ -19,6 +19,7 @@ namespace PlayerScripts.Stats
         {
             _context = context;
             Stats = new StatsContainer(baseStats);
+            Stats.Died += () => _context.Attacker?.CancelPending("CasterDead");
         }
 
         public void Tick(long tick)

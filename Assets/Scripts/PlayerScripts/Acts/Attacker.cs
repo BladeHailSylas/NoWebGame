@@ -25,7 +25,9 @@ namespace PlayerScripts.Acts
             public readonly AttackTrace Trace;
             public readonly SkillSlot Slot;
             public readonly ExplicitAttackTarget Target;
-            public CastInput(SkillSlot slot, ExplicitAttackTarget target, AttackTrace trace) { Slot = slot; Target = target; Trace = trace; }
+            public readonly long Generation, CollectorGeneration;
+            public CastInput(SkillSlot slot, ExplicitAttackTarget target, AttackTrace trace, long generation, long collectorGeneration)
+            { Slot = slot; Target = target; Trace = trace; Generation = generation; CollectorGeneration = collectorGeneration; }
         }
         private List<CastInput> _collectingCasts = new();
         private List<CastInput> _resolvingCasts = new();
@@ -39,12 +41,15 @@ namespace PlayerScripts.Acts
         private readonly CommandCollector _collector;
         private readonly Transform _caster;
         private readonly Dictionary<SkillSlot, SkillBinding> _skills;
+        private long _generation;
+        private bool _suspended, _processing, _disposed;
         public Attacker(Context context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
         {
             _context = context;
             _caster = caster;
             _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
             _collector = collector;
+            _context.RegisterAttacker(this);
             _context.Logger.Info($"Attack controller initialised with {_skills.Count} skills.");
         }
         /// <summary>
@@ -55,40 +60,84 @@ namespace PlayerScripts.Acts
         /// </summary>
         public void Tick(long tick, byte innoxiousCount)
         {
-            // 1) Cast 요청 버퍼 swap
-            (_collectingCasts, _resolvingCasts) = (_resolvingCasts, _collectingCasts);
-
-            // 2) OnCooldown 정리 (TryCast 이전!)
-            if (_onCooldown.Count > 0)
+            if (_processing) return;
+            _processing = true;
+            try
             {
-                var completedSlots = new List<SkillSlot>();
+                // 1) Cast 요청 버퍼 swap
+                (_collectingCasts, _resolvingCasts) = (_resolvingCasts, _collectingCasts);
 
-                foreach (var kv in _onCooldown)
+                // 2) OnCooldown 정리 (TryCast 이전!)
+                if (_onCooldown.Count > 0)
                 {
-                    var delayId = kv.Value;
-                    if (delayId.Equals(default))
-                        continue;
+                    var completedSlots = new List<SkillSlot>();
 
-                    if (_context.DelayScheduler.IsCompleted(delayId, tick))
+                    foreach (var kv in _onCooldown)
                     {
-                        _context.DelayScheduler.Remove(delayId);
-                        completedSlots.Add(kv.Key);
+                        var delayId = kv.Value;
+                        if (delayId.Equals(default))
+                            continue;
+
+                        if (_context.DelayScheduler.IsCompleted(delayId, tick))
+                        {
+                            _context.DelayScheduler.Remove(delayId);
+                            completedSlots.Add(kv.Key);
+                        }
+                    }
+
+                    // 완료된 슬롯 정리
+                    foreach (var slot in completedSlots)
+                    {
+                        _onCooldown[slot] = default;
                     }
                 }
-
-                // 완료된 슬롯 정리
-                foreach (var slot in completedSlots)
+                // 3) 이번 Tick에 요청된 Cast 처리
+                while (_resolvingCasts.Count > 0)
                 {
-                    _onCooldown[slot] = default;
+                    var input = _resolvingCasts[0];
+                    _resolvingCasts.RemoveAt(0);
+                    try { TryCast(input, innoxiousCount, tick); }
+                    catch (Exception error)
+                    {
+                        AttackLog.Write(input.Trace, "InputException", $"slot={input.Slot} type={error.GetType().Name} message={error.Message}");
+                        Debug.LogException(error);
+                    }
                 }
             }
-            // 3) 이번 Tick에 요청된 Cast 처리
-            foreach (var input in _resolvingCasts)
+            finally { _resolvingCasts.Clear(); _processing = false; }
+        }
+
+        public void Suspend(string reason) { _suspended = true; CancelPending(reason); }
+        public void Resume() { if (!_disposed) _suspended = false; }
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true; Suspend("OwnerDestroyed");
+            // 비활성화 때는 CD를 유지하지만, 영구 파괴된 소유자의 예약은 더 이상 조회되지 않습니다.
+            foreach (var delay in _onCooldown.Values) _context.DelayScheduler?.Remove(delay);
+            _onCooldown.Clear(); _lastCommitTick.Clear();
+        }
+        public void CancelPending(string reason)
+        {
+            _generation++;
+            _collectingCasts.Clear(); _resolvingCasts.Clear();
+            if (_collector) _collector.CancelPending(_caster, reason);
+            // Collector가 파괴되거나 현재 명령을 큐에서 분리 중이어도 잔여 루트 핸들을 정리합니다.
+            foreach (var commit in _pending.Values.ToArray())
             {
-                TryCast(input, innoxiousCount, tick);
+                _context.DelayScheduler?.Remove(commit.DelayId);
+                commit.Cancel(reason);
             }
-            // 4) resolving 버퍼 정리
-            _resolvingCasts.Clear();
+        }
+        private string ValidateLifetime(long generation, long collectorGeneration)
+        {
+            if (generation != _generation) return "OwnerGenerationChanged";
+            if (_suspended || !_caster || !_context.Owner || !_context.Owner.isActiveAndEnabled) return "OwnerDisabled";
+            if (_context.Stats == null || _context.Stats.IsDead) return "CasterDead";
+            if (_context.Act != null && !_context.Act.CanAttack) return "AttackDisabled";
+            if (!_collector || collectorGeneration != _collector.Generation || !_collector.CanAcceptRoot(_context.DelayScheduler))
+                return "CollectorUnavailableOrGenerationChanged";
+            return null;
         }
 
         
@@ -105,7 +154,10 @@ namespace PlayerScripts.Acts
         public void EnqueueCast(SkillSlot slot) => EnqueueCast(slot, null, BeginInput(slot));
         public void EnqueueCast(SkillSlot slot, ExplicitAttackTarget target, AttackTrace trace)
         {
-            _collectingCasts.Add(new CastInput(slot, target, trace));
+            var collectorGeneration = _collector ? _collector.Generation : -1;
+            var reason = ValidateLifetime(_generation, collectorGeneration);
+            if (reason != null) { AttackLog.Write(trace, "InputRejected", $"reason={reason} slot={slot}"); return; }
+            _collectingCasts.Add(new CastInput(slot, target, trace, _generation, collectorGeneration));
             AttackLog.Write(trace, "InputQueued", $"slot={slot} target={AttackLog.Identity(target?.Target)}");
         }
 
@@ -119,6 +171,8 @@ namespace PlayerScripts.Acts
         {
             var slot = input.Slot;
             void Reject(string reason) => AttackLog.Write(input.Trace, "CastRejected", $"reason={reason} slot={slot} tick={tick}");
+            var lifetimeReason = ValidateLifetime(input.Generation, input.CollectorGeneration);
+            if (lifetimeReason != null) { Reject(lifetimeReason); return; }
             if (innoxiousCount > 0)
             {
                 Reject("CrowdControl");
@@ -201,6 +255,9 @@ namespace PlayerScripts.Acts
             if (_collector == null) { Reject("MissingCollector"); return; }
             // Hold/PrepareCast가 아니라 실제 입력 처리 경계에서 Target만 확정합니다.
             if (!_collector.TryPrepareRoot(cmd, out var prepared, out var reason)) { Reject(reason); return; }
+            // Target 준비 중 취소/비활성화가 재진입했다면 오래된 입력을 Commit하지 않습니다.
+            lifetimeReason = ValidateLifetime(input.Generation, input.CollectorGeneration);
+            if (lifetimeReason != null) { Reject(lifetimeReason); return; }
             if (!_context.Stats.CanSpendMana(cost)) { Reject("InsufficientMana"); return; }
             SwitchSelection selection = null;
             if (prepared.Mech is SwitchMechanism switchMechanism)
@@ -219,6 +276,7 @@ namespace PlayerScripts.Acts
             {
                 if (_pending.TryGetValue(slot, out var current) && ReferenceEquals(current, commit)) _pending.Remove(slot);
             });
+            commit.Configure(prepared.Trace.CommandId, slot, cost, () => ValidateLifetime(input.Generation, input.CollectorGeneration));
             var committedCommand = prepared.WithCommit(commit);
             void ApplyResources()
             {

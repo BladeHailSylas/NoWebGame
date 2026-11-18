@@ -107,6 +107,7 @@ namespace PlayerScripts.Core
 
         private void OnEnable()
         {
+            _attacker?.Resume();
             if (_controls == null)
             {
                 return;
@@ -139,6 +140,7 @@ namespace PlayerScripts.Core
 
         private void OnDisable()
         {
+            _attacker?.Suspend("OwnerDisabled");
             if (_controls != null)
             {
                 _controls.Player.Move.performed -= OnMovePerformed;
@@ -158,6 +160,8 @@ namespace PlayerScripts.Core
             if (_subscribedTicker != null) _subscribedTicker.OnTick -= TickHandler;
             _subscribedTicker = null;
         }
+
+        private void OnDestroy() => _attacker?.Dispose();
 
         private void TickHandler(long tick)
         {

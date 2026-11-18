@@ -74,6 +74,10 @@ namespace ExitLab
             ticker.Step();
             collector.enabled = false; collector.enabled = true;
             Check(Subscribers(ticker) == subscriptions + 1, "collector re-enable has one subscription");
+            // Phase 4: 서비스 자체를 끄면 기존 명령은 폐기합니다. 시간 소유자의 일시 정지와 구분합니다.
+            var cancelledProbe = probe;
+            probe = new Probe(); JsonUtility.FromJsonOverwrite("{\"delayTicks\":3}", probe);
+            collector.EnqueueCommand(new SkillCommand(service.transform, TargetMode.TowardsCoordinate, default, probe, default, SkillTarget.At(Vector2.right)));
             clockGo.SetActive(false);
             var paused = ticker.TickCount;
             yield return new WaitForSecondsRealtime(.08f);
@@ -91,6 +95,7 @@ namespace ExitLab
             var realElapsed = UnityEngine.Time.realtimeSinceStartup - realStart;
             Check(delta > 0 && delta <= Math.Ceiling(realElapsed * Ticker.TicksPerSecond) + 1, "repeated enable does not multiply tick loops");
             Check(scheduler.IsCompleted(delay, ticker.TickCount) && probe.Count == 1, "pending delay and command resume exactly once");
+            Check(cancelledProbe.Count == 0, "collector restart never resumes discarded command");
             var finalPause = ticker.TickCount;
             yield return new WaitForSecondsRealtime(.08f);
             Check(ticker.TickCount == finalPause, "second disable stops resumed loop");

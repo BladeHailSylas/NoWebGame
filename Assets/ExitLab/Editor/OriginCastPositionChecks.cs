@@ -42,6 +42,7 @@ namespace ExitLab
             typeof(GameTime).GetProperty("DelayScheduler").SetValue(null, new DelayScheduler());
             var resolver = services.AddComponent<TargetResolver>();
             var collector = services.AddComponent<CommandCollector>();
+            services.SetActive(true);
             // EditMode에서는 일반 MonoBehaviour의 실행 수명주기를 명시적으로 시작합니다.
             typeof(CommandCollector).GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(collector, null);
             var capture = new Capture();
