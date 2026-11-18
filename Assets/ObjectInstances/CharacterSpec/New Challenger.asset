@@ -15,24 +15,25 @@ MonoBehaviour:
   displayName: "\uAE40\uAE38\uAD90"
   baseHp: 128000
   baseHpGen: 1000
-  baseMana: 128000
-  baseManaGen: 8000
+  baseMana: 100
+  baseManaGen: 6
   baseAttack: 12100
-  baseDefense: 2000
+  baseDefense: 0
   baseSpeed: 8000
   CharacterVariables:
   - {fileID: 11400000, guid: bedf8f5819192ee48bf1fa1c7eacfe1d, type: 2}
+  - {fileID: 11400000, guid: 3bc1f4c479528bb4b810e0b893a602e1, type: 2}
   attack:
     slot: 0
     mode: 0
-    skillData: {fileID: 11400000, guid: 03bd7699fd9e41d42998048cea74d4a1, type: 2}
+    skillData: {fileID: 11400000, guid: 6c20aabd5653ad2489bc290984b6e4a2, type: 2}
   skill1:
     slot: 2
     mode: 0
     skillData: {fileID: 11400000, guid: 4ef5a0bd10efcd04a8f3f05d000a0232, type: 2}
   skill2:
     slot: 3
-    mode: 0
+    mode: 1
     skillData: {fileID: 11400000, guid: 6733abaac3b525744a6c903ea2117bad, type: 2}
   ultimate:
     slot: 4

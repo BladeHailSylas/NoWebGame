@@ -25,7 +25,7 @@ MonoBehaviour:
   attack:
     slot: 0
     mode: 0
-    skillData: {fileID: 11400000, guid: 6733abaac3b525744a6c903ea2117bad, type: 2}
+    skillData: {fileID: 11400000, guid: 7356a750b70d82d499acd5004b1c5ad0, type: 2}
   skill1:
     slot: 2
     mode: 0

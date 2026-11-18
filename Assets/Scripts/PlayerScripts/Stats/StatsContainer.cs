@@ -134,6 +134,7 @@ namespace PlayerScripts.Stats
                 if (Health <= 0)
                 {
                     IsDead = true;
+                    Debug.Log("Oof");
                     // 비활성화나 다음 Tick을 기다리지 않고 대기 Cast를 무효화합니다.
                     Died?.Invoke();
                 }

@@ -1,0 +1,129 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13cc4e30249147108873ff264a883568, type: 3}
+  m_Name: SkillData 5
+  m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
+  mechanismData:
+    rid: 1457004252751986767
+  ManaCost: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 1457004252751986767
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 1457004252751986768
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 1457004252751986768
+      type: {class: ProjectileMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 1
+            direction: 1
+            angleDegrees: 30
+            distance: 0
+        cooldownTicks: 180
+        delayTicks: 120
+        minRange: 0
+        maxRange: 18000
+        mask:
+          serializedVersion: 2
+          m_Bits: 128
+        targetMaskVersion: 1
+        targetRelations: 4
+        lifeTick: 900
+        projectilePrefab: {fileID: 3949609632709628406, guid: 23054f6688bfb2e4589ac9588da576ce, type: 3}
+        speed: 5
+        penetrative: 0
+        onHit:
+        - rid: 1457004252751986769
+        onExpire: []
+        callbackMode: 1
+        timeoutPolicy: 0
+        onCompleted: []
+        onInterrupted: []
+    - rid: 1457004252751986769
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962136461246536
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962136461246536
+      type: {class: StackMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 4
+        stack: {fileID: 11400000, guid: 58043ad49b236a14183c12b2928a2079, type: 2}
+        amount: 1
+        onHit:
+        - rid: 5885962136461246537
+        onExpire: []
+    - rid: 5885962136461246537
+      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      data:
+        mechanism:
+          rid: 5885962136461246538
+        mode: 0
+        requireRetarget: 0
+        respectBusy: 0
+        targetSource: 0
+    - rid: 5885962136461246538
+      type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      data:
+        destination:
+          mode: 0
+          position:
+            representation: 0
+            anchor: 0
+            direction: 0
+            angleDegrees: 0
+            distance: 0
+        cooldownTicks: 0
+        delayTicks: 0
+        minRange: 0
+        maxRange: 0
+        mask:
+          serializedVersion: 2
+          m_Bits: 0
+        targetMaskVersion: 1
+        targetRelations: 4
+        damageValue: 100
+        defaultAPRatio: 0
+        defaultAmplitude: 0
+        type: 4
+        onHit: []
+        onExpire: []

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
   mechanismData:
     rid: 1457004252751986763
+  ManaCost: 0
   references:
     version: 2
     RefIds:
@@ -37,7 +38,7 @@ MonoBehaviour:
             direction: 1
             angleDegrees: 45
             distance: 10
-        cooldownTicks: 0
+        cooldownTicks: 180
         delayTicks: 0
         minRange: 0
         maxRange: 20000
