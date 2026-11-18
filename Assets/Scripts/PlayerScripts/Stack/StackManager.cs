@@ -186,10 +186,7 @@ namespace PlayerScripts.Stack
 
                 case TriggerableDefinition trigger:
                 {
-                    int durationTick = durationOverride != 0 ? durationOverride : trigger.duration;
-                    nextDelayId = ReplaceReservation(oldStatus.DelayId, tick, durationTick);
-                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
-                    ResolveTrigger(stackKey, tick, metadata, amount);
+                    ApplyTrigger(stackKey, trigger, after, tick, durationOverride, metadata, oldStatus);
                     return;
                 }
 
@@ -213,7 +210,7 @@ namespace PlayerScripts.Stack
         private bool IsCurrentReservation(KeyValuePair<StackKey, StackStatus> entry) =>
             _stackStorage.TryGetValue(entry.Key, out var current) && current.DelayId.Equals(entry.Value.DelayId);
 
-        // 효과 없는 일반 정의와 Trigger의 기존 예약을 새 예약 확보 전까지 보존합니다.
+        // 효과 없는 일반 정의의 기존 예약을 새 예약 확보 전까지 보존합니다.
         private DelayId ReplaceReservation(DelayId previous, long tick, int duration)
         {
             var next = _scheduler.Start(tick, duration);
@@ -433,6 +430,15 @@ namespace PlayerScripts.Stack
             if (!_stackStorage.TryGetValue(key, out var status))
                 return;
 
+            if (key.def is TriggerableDefinition)
+            {
+                // 소비·만료·명시적 0 전이는 같은 종료 경로입니다. 실행 후 cleanup은 없습니다.
+                _metadata.Remove(key);
+                _stackStorage.Remove(key);
+                _scheduler.Remove(status.DelayId);
+                return;
+            }
+
             if (key.def is BuffDefinition)
             {
                 if (!_buffContributions.TryGetValue(key, out var contribution))
@@ -525,35 +531,39 @@ namespace PlayerScripts.Stack
             }
         }
 
-        private void ResolveTrigger(StackKey stack, long tick, StackMetadata metadata, int amount = 1)
+        private void ApplyTrigger(StackKey key, TriggerableDefinition trigger, int after, long tick,
+            ushort durationOverride, StackMetadata incoming, StackStatus previous)
         {
-            if (stack.def is not TriggerableDefinition trigger) return;
-            int storing;
-            if (!_metadata.TryGetValue(stack, out var storedData))
+            if (after == 0) { RemoveStackCompletely(key); return; }
+            var hadState = _stackStorage.ContainsKey(key);
+            var hadPayload = _metadata.TryGetValue(key, out var previousPayload);
+            // 수량 증가가 0이어도 요청 payload는 한 번 합산합니다. overflow는 요청 전체 거부입니다.
+            var payload = new StackMetadata(checked(previousPayload.Metadata + incoming.Metadata));
+            var next = _scheduler.Start(tick, durationOverride != 0 ? durationOverride : trigger.duration);
+            try
             {
-                storing = metadata.Metadata;
-                _metadata.Add(stack, metadata);
+                _metadata[key] = payload;
+                _stackStorage[key] = new StackStatus(after, next);
             }
-            else
+            catch
             {
-                storing = storedData.Metadata + metadata.Metadata;
+                if (hadPayload) _metadata[key] = previousPayload; else _metadata.Remove(key);
+                if (hadState) _stackStorage[key] = previous; else _stackStorage.Remove(key);
+                _scheduler.Remove(next);
+                throw;
             }
-            _metadata[stack] = new StackMetadata(storing);
-            if (!_stackStorage.TryGetValue(stack, out var status) || status.Amount < trigger.threshold) return;
-            if (trigger.effect.mechanism is not INewMechanism mech) return;
-            DamageData dmg = new(DamageType.Normal, storing);
+            _scheduler.Remove(previous.DelayId);
+            if (trigger.threshold <= 0 || trigger.threshold > trigger.maxStacks)
+            { Debug.LogWarning("StackTrigger preparation rejected: InvalidThreshold"); return; }
+            if (after < trigger.threshold) return;
 
-            // Runner를 거치지 않는 독립 실행이므로 실행 직전 적용자의 위치를 저장합니다.
-            Vector2? origin = stack.applier ? (Vector2)stack.applier.position : (Vector2?)null;
-            CastContext ctx = new(trigger.effect.mechanism, stack.applier, null, dmg, default, trigger.effect.mode,
-                originCastPosition: origin, trace: AttackTrace.Root(stack.applier).Command().Effect(),
-                source: $"Stack:{stack.def.name}#{stack.def.GetInstanceID()}/effect");
-            // 신규 Destination이 실패하면 소비하지 않습니다. 큐의 이번 트리거 시도는 여기서 끝납니다.
-            if (mech is NewMechanism spatial && spatial.Destination.mode != DestinationMode.Disabled &&
-                !SpatialExecution.TryPrepare(ctx, out ctx, out _)) return;
-            RemoveStackCompletely(stack);
-            _metadata[stack] = new StackMetadata(0);
-            mech.Execute(ctx);
+            // payloadは値コピー。準備中/実行中の再入Applyは_processingにより次のTickへ送られます。
+            if (!StackTriggerExecutor.TryPrepare(trigger.effect?.mechanism, trigger.effect?.mode ?? default,
+                    key.applier, payload.Metadata, $"Stack:{trigger.name}#{trigger.GetInstanceID()}/effect", out var prepared)) return;
+            // DelayIdをこの累積状態の識別子として再確認します。別の世代を消費しません。
+            if (!_stackStorage.TryGetValue(key, out var current) || !current.DelayId.Equals(next)) return;
+            RemoveStackCompletely(key);
+            StackTriggerExecutor.ExecutePrepared(prepared);
         }
 
         private void ResolveCache(StackKey stack)

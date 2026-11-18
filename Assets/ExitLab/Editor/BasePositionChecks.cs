@@ -153,13 +153,12 @@ namespace ExitLab
                 var metadata = (Dictionary<StackKey, StackMetadata>)typeof(StackManager).GetField("_metadata", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
                 var probe = new Probe(); probe.ConfigureDestination(Settings(BasePositionAnchor.ExitPosition));
                 def.threshold = 1; def.effect = new MechanismData { mechanism = probe }; var key = new StackKey(def, "fixture", go.transform);
-                storage[key] = new StackStatus(1, default);
-                var method = typeof(StackManager).GetMethod("ResolveTrigger", BindingFlags.Instance | BindingFlags.NonPublic);
-                method.Invoke(manager, new object[] { key, 0L, new StackMetadata(7), 1 });
+                // 내부 메서드에 상태를 주입하지 않고 실제 적용/준비/소비 경계를 검증합니다.
+                manager.ApplyStack(key, 1, 0, metadata: new StackMetadata(7));
                 Check(storage.ContainsKey(key) && metadata[key].Metadata == 7 && probe.Count == 0, "failed spatial trigger preserves stack and metadata");
                 probe.ConfigureDestination(Settings());
-                method.Invoke(manager, new object[] { key, 1L, new StackMetadata(0), 1 });
-                Check(!storage.ContainsKey(key) && metadata[key].Metadata == 0 && probe.Count == 1, "successful spatial trigger consumes once");
+                manager.ApplyStack(key, 0, 1);
+                Check(!storage.ContainsKey(key) && !metadata.ContainsKey(key) && probe.Count == 1 && probe.Last.Damage.Attack == 7, "successful spatial trigger consumes once and retains prepared payload");
                 Check(probe.Last.Source.StartsWith("Stack:") && probe.Last.OriginCastPosition == Vector2.zero, "direct stack source and origin recorded");
             }
             finally { Object.DestroyImmediate(def); Object.DestroyImmediate(go); }

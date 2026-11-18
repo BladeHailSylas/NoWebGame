@@ -233,7 +233,7 @@ namespace ExitLab
             var trigger = f.Def<TriggerableDefinition>(); trigger.threshold = 3; trigger.duration = 2;
             var tk = new StackKey(trigger); manager.ApplyStack(tk, 1, 0, metadata: new StackMetadata(7)); manager.Tick(2);
             var payloads = (Dictionary<StackKey, StackMetadata>)Get(manager, "_metadata");
-            Defect("Trigger-expired-payload", payloads[tk].Metadata.ToString(), "key absent", !States(manager).ContainsKey(tk) && payloads[tk].Metadata == 7);
+            Check(!States(manager).ContainsKey(tk) && !payloads.ContainsKey(tk), "Trigger expiry removes amount and payload together");
         }
     }
 }

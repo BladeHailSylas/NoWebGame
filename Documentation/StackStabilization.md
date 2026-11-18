@@ -80,3 +80,19 @@ Projectile 사례는 실제 EnemyEntity를 Caster/수신체로 만들고 실제 
 - 준비에서 수치/소유권을 검증하고 새 예약을 확보한 뒤 외부 콜백 없이 상태와 기여를 확정합니다. 실패 시 기존 상태·기여·예약을 보존합니다. 활성 ResetStats는 기록된 소유 기여를 다시 합성하며 Stack 수명은 갱신하지 않습니다.
 - 검증 진입점 `ExitLab.StackBuffChecks.RunPlayMode`는 별도 사본에서 S2·S1·기준 재현 검사를 연속 실행합니다. S2 78개, S1 95개, 기존 EditMode 866개, Cast PlayMode 68개가 통과했습니다. 기준 검사 21개 중 2개는 남은 결함의 형태 확인이므로 정상 동작 통과로 집계하지 않습니다.
 - 남은 결함은 DR 정수 절삭(별도 정책)과 Trigger 만료 payload(S3)입니다. 수동 전투 검증 및 파괴 정리는 S4 범위입니다. 로그와 원본/사본 C# 171개 일치 근거는 `audit-results/stack-s2/`에 있습니다.
+
+## S3 완료 — Trigger 누적·준비·전체 소비·직접 실행
+
+S2 변경을 `1dd0230` (`fix(stacks): calculate buffs from owned total contributions`)로 커밋한 뒤 진행했습니다. S3는 별도 미커밋 변경입니다.
+
+`StackManager.ApplyTrigger`가 Key 수량·payload·기간을 확정합니다. payload는 실제 수량 증가와 무관하게 요청당 한 번 합산하며 int overflow 또는 예약 실패 때 요청 전체를 거부하고 이전 상태를 보존합니다. 양수 수량에서 threshold(양수이며 maxStacks 이하)에 도달하면 요청당 한 번 준비합니다. 설정 오류는 진단을 남기고 미소비 상태로 유지합니다. 수량 0은 종료입니다.
+
+상태 없는 `StackTriggerExecutor`에는 선택한 Mechanism/Mode, 적용자, payload 값 사본, 출처만 전달합니다. `TryPrepare`는 기존 null Target·적용자 Origin·Normal DamageData 계약으로 공간을 준비하고 성공 여부를 반환합니다. 준비 실패/예외는 미소비입니다. `ExecutePrepared`는 Manager가 소비를 확정한 뒤 직접 실행하며, 본문 예외를 기록하고 격리합니다. 실제 명중이나 효과 발생까지 보장하는 성공 판정은 아닙니다.
+
+Manager는 준비 성공 후 해당 예약 ID가 여전히 현재 상태인지 확인하고 수량·payload·예약을 함께 제거합니다. 실행 후에는 Key를 재삭제하거나 payload=0을 다시 쓰지 않습니다. 기존 처리 가드 덕분에 준비/실행 중 재진입 요청은 다음 Tick으로 지연됩니다. 준비 실패 후 재진입은 기존 주기를, 소비 후 재진입은 새 주기를 이어갑니다. 이미 처리 버퍼에 있던 별개의 요청 두 개는 같은 Tick에도 각각 한 번 실행될 수 있습니다.
+
+새 적용 요청은 실제 증가 0이어도 준비를 재시도할 수 있습니다. Tick 자체로는 재시도하지 않습니다. 초과 중첩 이월·소비 후 복구·자동 재실행은 없습니다. 만료와 명시적 0 전이도 payload를 함께 정리합니다. 루트 Mana/CD/Pending·CanAttack·Switch 소비를 새로 적용하지 않습니다.
+
+검증 진입점은 분리 사본 전용 `ExitLab.StackTriggerChecks.RunPlayMode`입니다. S3 검사 후 Buff·전이·기준 검사를 연속 실행합니다. `StackTransitionChecks`에는 S3 직접 실행과 기존 루트 Pending/Mana/CD 독립성을 검증하는 6개 항목을 추가했습니다. 자세한 결과는 작업 공간 `audit-results/stack-s3/S3-report.md`에 기록합니다. S4 파괴 정리·수동 전투 검증과 별도 DR 절삭 문제는 남아 있습니다.
+
+S3 46개, S2 78개, 전이·직접 실행 계약 101개, 기존 EditMode 866개, Cast PlayMode 68개가 통과했습니다. 기존 공간 검사의 private `ResolveTrigger` 호출은 공개 `ApplyStack` 검사로 갱신했습니다. 기준 검사 21개 중 남은 결함 형태 확인은 DR 절삭 1개이며, Trigger payload 만료는 정상 기대값으로 전환했습니다. 최종 세 실행 모두 exit 0이고 원본/사본 C# 173개 SHA256이 일치합니다. S3 완료 후 중지하며 S4는 아직 착수하지 않았습니다.

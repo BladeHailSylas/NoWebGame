@@ -132,7 +132,7 @@ namespace ExitLab
             Application.logMessageReceived += Observe;
             try
             {
-                Transitions(); Ownership(); Failures(); Reentrancy(); Pending();
+                Transitions(); Ownership(); Failures(); Reentrancy(); Pending(); TriggerDirectContract();
                 Check(Errors.Count == 0, "no unexpected Unity errors: " + string.Join(";", Errors));
                 Debug.Log("StackTransitionChecks PASS " + Results.Count);
             }
@@ -259,6 +259,25 @@ namespace ExitLab
             Check(probe.Calls == 1 && f.States[key].Amount == 2 && f.AttackCount == 1, "execution reentry next buffer only; old trigger never replays");
             f.Manager.Tick(14); Check(f.Act.CanAttack, "expiry survives execution failure");
         }
+        private static void TriggerDirectContract()
+        {
+            // S3: 동일 Mechanism의 루트 Cast가 대기 중이어도 Stack은 직접 실행합니다.
+            using var f = new Fixture(); var probe = new Probe(); f.Cast(probe);
+            Check(f.Attacker.IsPending(SkillSlot.Attack) && probe.Calls == 0, "S3 root Cast is pending before direct trigger");
+            var d = f.Def<TriggerableDefinition>(); d.threshold = 1; d.duration = 3;
+            d.effect = new MechanismData { mechanism = probe }; var key = new StackKey(d, "A", f.Entity.transform);
+            f.Manager.ApplyStack(key, 1, 0);
+            Check(probe.Calls == 1 && f.Attacker.IsPending(SkillSlot.Attack), "S3 direct trigger ignores root delay and retains existing Pending");
+            Check(f.Stats.Stats.Mana == 90 && f.Commands.Count == 1, "S3 no extra root mana or collected command");
+            for (var i = 0; i < 6; i++) f.Clock.Step();
+            Check(probe.Calls == 2 && !f.Attacker.IsPending(SkillSlot.Attack), "S3 original Pending completes exactly once independently");
+            f.Attacker.EnqueueCast(SkillSlot.Attack); f.Attacker.Tick(f.Clock.TickCount, 0);
+            Check(f.Commands.Count == 1 && f.Stats.Stats.Mana == 90, "S3 original root cooldown remains unchanged");
+            f.Manager.ApplyStack(new StackKey(f.CC(EffectType.Suppressed)), 1, f.Clock.TickCount);
+            f.Manager.ApplyStack(key, 1, f.Clock.TickCount);
+            Check(!f.Act.CanAttack && probe.Calls == 3, "S3 direct trigger does not acquire root CanAttack policy");
+        }
+
         private static void Pending()
         {
             foreach (var type in new[] { EffectType.Rooted, EffectType.Suppressed, EffectType.Stunned, EffectType.Tumbled })
