@@ -11,7 +11,8 @@ namespace Characters
 	public struct SkillBinding
 	{
 		public SkillSlot slot;
-		public TargetMode mode;
+		// 기존 에셋 역직렬화용으로만 유지합니다. 루트 Mode는 skillData.mechanismData.mode를 사용합니다.
+		[HideInInspector] public TargetMode mode;
 		public SkillData skillData;
 	}
 

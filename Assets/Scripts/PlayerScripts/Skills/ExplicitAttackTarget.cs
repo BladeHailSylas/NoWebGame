@@ -30,12 +30,21 @@ namespace PlayerScripts.Skills
 
         public bool IsValid(Transform caster, INewMechanism mechanism) => Validate(caster, mechanism) == "Allowed";
         public string Validate(Transform caster, INewMechanism mechanism)
+            => ValidateCore(caster, mechanism, true);
+
+        /// <summary>준비된 루트의 수명·대상·관계만 재검증합니다. 선택 사거리 이탈은 허용합니다.</summary>
+        public string ValidateExecution(Transform caster, INewMechanism mechanism)
+            => ValidateCore(caster, mechanism, false);
+
+        private string ValidateCore(Transform caster, INewMechanism mechanism, bool checkRange)
         {
             if (_isCurrent != null && !_isCurrent()) return "RequestLifetimeEnded";
             if (!Caster) return "CasterMissing";
             if (caster != Caster.transform) return "CasterMismatch";
             if (mechanism == null) return "MechanismMissing";
-            var reason = EntityAttackSelection.Validate(Caster, Target, Relations, mechanism.MinRange, mechanism.MaxRange);
+            var reason = checkRange
+                ? EntityAttackSelection.Validate(Caster, Target, Relations, mechanism.MinRange, mechanism.MaxRange)
+                : EntityAttackSelection.ValidateIdentity(Caster, Target, Relations);
             if (reason != "Allowed") return reason;
             var policy = TargetPolicy.From(mechanism);
             return !policy.IsRelative || policy.Allows(caster, Target) ? "Allowed" : "MechanismRelationMaskMismatch";
@@ -43,24 +52,31 @@ namespace PlayerScripts.Skills
         public string Describe(INewMechanism mechanism) => $"target={AttackLog.Identity(Target)} selectionRelations={Relations} selectionRelation={EntityRelationResolver.Resolve(Caster, Target)} casterPosition={(Caster ? Caster.transform.position.ToString() : "missing")} targetPosition={(Target ? Target.transform.position.ToString() : "missing")} distance={(Caster && Target ? Vector2.Distance(Caster.transform.position, Target.transform.position) : -1)} min={mechanism?.MinRange} max={mechanism?.MaxRange}";
     }
 
-    /// <summary>임시 AI의 탐색/실행 전 검증이 같은 조건을 사용합니다. 기존 물리 Mask는 변환하지 않습니다.</summary>
+    /// <summary>AI의 선택 검사와 준비 후 유효성 검사에서 공통 신원·관계 규칙을 사용합니다.</summary>
     public static class EntityAttackSelection
     {
         public static bool IsAllowed(Entity caster, Entity target, TargetRelationMask mask, float min, float max) =>
             Validate(caster, target, mask, min, max) == "Allowed";
         public static string Validate(Entity caster, Entity target, TargetRelationMask mask, float min, float max)
         {
+            var reason = ValidateIdentity(caster, target, mask);
+            if (reason != "Allowed") return reason;
+            if (!ValidRange(min, max)) return "InvalidRange";
+            var distance = ((Vector2)target.transform.position - (Vector2)caster.transform.position).sqrMagnitude;
+            if (distance < min * min) return "BelowMinRange";
+            return distance <= max * max ? "Allowed" : "BeyondMaxRange";
+        }
+
+        public static string ValidateIdentity(Entity caster, Entity target, TargetRelationMask mask)
+        {
             if (!caster) return "CasterMissing";
             if (!caster.isActiveAndEnabled) return "CasterInactive";
             if (!target) return "TargetMissing";
             if (!target.isActiveAndEnabled) return "TargetInactive";
             if (!target.targetable) return "TargetNotTargetable";
-            if (!ValidRange(min, max)) return "InvalidRange";
             var relation = EntityRelationResolver.Resolve(caster, target);
             if (!TargetRelationMasks.Allows(mask, relation)) return relation == EntityRelation.Unknown ? "RelationUnknown" : "RelationMaskMismatch";
-            var distance = ((Vector2)target.transform.position - (Vector2)caster.transform.position).sqrMagnitude;
-            if (distance < min * min) return "BelowMinRange";
-            return distance <= max * max ? "Allowed" : "BeyondMaxRange";
+            return "Allowed";
         }
 
         public static bool ValidRange(float min, float max) => min >= 0 && max >= min &&

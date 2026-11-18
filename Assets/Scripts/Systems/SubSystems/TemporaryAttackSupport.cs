@@ -13,8 +13,8 @@ namespace Systems.SubSystems
         {
             if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null)
             { error = "Attack SkillData/Mechanism이 필요합니다."; return false; }
-            if (binding.mode != TargetMode.TowardsEntity)
-            { error = "임시 AI Attack은 TowardsEntity만 지원합니다."; return false; }
+            if (binding.skillData.mechanismData.mode != TargetMode.TowardsEntity)
+            { error = "임시 AI Attack은 SkillData의 루트 Mode가 TowardsEntity일 때만 지원합니다."; return false; }
             var root = binding.skillData.mechanismData.mechanism;
             if (!EntityAttackSelection.ValidRange(root.MinRange, root.MaxRange) || root.MaxRange <= 0)
             { error = "Attack 사거리는 0 <= MinRange <= MaxRange이며 MaxRange > 0이어야 합니다."; return false; }

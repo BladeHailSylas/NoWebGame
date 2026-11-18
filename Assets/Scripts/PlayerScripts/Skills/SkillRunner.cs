@@ -6,18 +6,21 @@ namespace PlayerScripts.Skills
 {
     public class SkillRunner
     {
-        private readonly TargetResolver _targetResolver;
+        private readonly CastPreparation _preparation;
         private readonly EffectDisplayer _displayer;
         public SkillRunner(TargetResolver resolver)
         {
-            _targetResolver = resolver;
+            _preparation = new CastPreparation(resolver);
         }
 
         public SkillRunner(TargetResolver resolver, EffectDisplayer displayer)
         {
-            _targetResolver = resolver;
+            _preparation = new CastPreparation(resolver);
             _displayer = displayer;
         }
+
+        public bool TryPrepareRoot(in SkillCommand cmd, out SkillCommand prepared, out string reason)
+            => _preparation.TryPrepareRoot(cmd, out prepared, out reason);
 
         public void Activate(in SkillCommand cmd)
         {
@@ -31,40 +34,20 @@ namespace PlayerScripts.Skills
 
         private void ActivateCore(in SkillCommand cmd)
         {
-            if (!cmd.Caster || cmd.Mech == null) { AttackLog.Write(cmd.Trace, "ExecutionRejected", "reason=MissingCasterOrMechanism"); return; }
-            // AI 요청만 실행 직전에 다시 검사합니다. 실패한 요청을 커서 탐색으로 대체하지 않습니다.
-            if (cmd.ExplicitTarget != null)
+            SkillTarget target;
+            TargetMode mode;
+            if (cmd.Preparation == CastPreparationState.RootTargetPrepared)
             {
-                var reason = cmd.ExplicitTarget.Validate(cmd.Caster, cmd.Mech);
-                if (reason != "Allowed" || !cmd.Target.Matches(cmd.ExplicitTarget.Target))
-                { AttackLog.Write(cmd.Trace, "ExecutionRejected", $"reason={(reason != "Allowed" ? reason : "CommandTargetMismatch")} {cmd.ExplicitTarget.Describe(cmd.Mech)}"); return; }
-            }
-            //Enforce maximum chain depth
-            //Determine target
-            var target = cmd.Target;
-            var mode = cmd.TargetMode;
-            if (cmd.Mech is DetectMechanism detect && !target.IsResolved)
-            {
-                var result = _targetResolver.Detect(cmd.Caster, detect, cmd.Trace);
-                target = result.Target;
-                mode = detect.requiredMode;
-            }
-            //TODO: Consider refactoring into: single target acquisition / post-acquisition interpretation
-            // Detect의 탐색 실패도 Execute에 전달하여 onNotFound를 실행합니다.
-            // 일반 탐색으로 재시도하면 실패 분기가 사라질 수 있습니다.
-            if (!target.IsResolved && cmd.Mech is not DetectMechanism)
-            {
-                var req = new TargetRequest(cmd.Caster, cmd.Mech.MinRange, cmd.Mech.MaxRange, cmd.TargetMode, cmd.Mask, cmd.Trace, cmd.Targeting);
-                //Temporarily Foe, should be added further target request
-                // TODO: Later support range/mask overrides from skill data.
-                var result = _targetResolver.ResolveTarget(req);
-                if (!result.Found)
-                {
-                    AttackLog.Write(cmd.Trace, "ExecutionRejected", "reason=TargetNotFound");
-                    return;
-                }
-                target = result.Target;
+                var validationReason = CastPreparation.ValidatePrepared(cmd);
+                if (validationReason != "Allowed")
+                { AttackLog.Write(cmd.Trace, "ExecutionRejected", $"reason={validationReason}"); return; }
+                target = cmd.Target;
                 mode = cmd.TargetMode;
+            }
+            else if (!_preparation.TryResolveDeferred(cmd, out target, out mode, out var reason))
+            {
+                AttackLog.Write(cmd.Trace, "ExecutionRejected", $"reason={reason}");
+                return;
             }
             AttackLog.Write(cmd.Trace, "Execute", $"mechanism={cmd.Mech.GetType().Name} mode={mode} target={target} targetVersion={cmd.Targeting.Version} relations={cmd.Targeting.Relations} legacyQueryLayers={cmd.Mask.value} origin={cmd.Caster.position}");
             // 요청 시점이 아니라 실제 실행 직전에 한 번만 확정합니다. (0, 0)도 유효합니다.

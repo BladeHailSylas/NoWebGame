@@ -61,6 +61,7 @@ namespace ExitLab
             {
                 SetTime(new Ticker(), new DelayScheduler());
                 var services = Go("services"); services.SetActive(false);
+                services.AddComponent<TargetResolver>();
                 collector = services.AddComponent<CommandCollector>();
                 // Edit Mode의 MonoBehaviour 생명주기는 검증에서 명시적으로 호출합니다.
                 Invoke(collector, "OnEnable");
@@ -211,7 +212,8 @@ namespace ExitLab
             context.RegisterScheduler(GameTime.DelayScheduler);
             var stats = new StatsBridge(context, new BaseStatsContainer(100, 0, 0, 0, 100, 0, 0));
             context.RegisterStats(stats); context.RegisterVariableStorage(new VariableStorage());
-            var attacker = new Attacker(context, caster.transform, new Dictionary<SkillSlot, SkillBinding> { { SkillSlot.Attack, spec.attack } }, collector);
+            var bindings = new Dictionary<SkillSlot, SkillBinding> { { SkillSlot.Attack, spec.attack } };
+            var attacker = new Attacker(context, caster.transform, bindings, collector);
             var captured = new List<SkillCommand>();
             collector.CommandEnqueued += captured.Add;
             var first = new ExplicitAttackTarget(caster, one, TargetRelationMask.Enemy);
@@ -221,9 +223,12 @@ namespace ExitLab
             Check(captured.Count == 2 && captured[0].Target.Matches(one) && captured[1].Target.Matches(two), "request targets isolated in shared queue");
             attacker.EnqueueCast(SkillSlot.Attack, first); attacker.Tick(GameTime.Ticker.TickCount, 1);
             Check(captured.Count == 2, "innoxious input blocked by existing Attacker");
+            skill.mechanismData.mode = TargetMode.TowardsSelf;
+            bindings[SkillSlot.Attack] = new SkillBinding { skillData = skill, mode = TargetMode.TowardsEntity };
             attacker.EnqueueCast(SkillSlot.Attack); attacker.Tick(GameTime.Ticker.TickCount, 0);
-            Check(captured.Count == 3 && captured[2].ExplicitTarget == null && !captured[2].Target.IsResolved, "legacy player input stays unresolved");
-            // 미지정 플레이어 입력은 실행하지 않고 요청 내용만 관찰합니다.
+            Check(captured.Count == 3 && captured[2].ExplicitTarget == null && captured[2].Target.Matches(caster) &&
+                captured[2].Preparation == CastPreparationState.RootTargetPrepared, "player root resolves Target at input processing");
+            // Phase 2의 의도적 계약 변경: 준비된 일반 루트 요청을 관찰합니다.
             collector.CeaseCommand(); collector.CommandEnqueued -= captured.Add;
         }
 
@@ -238,7 +243,10 @@ namespace ExitLab
             Check(!TemporaryAttackSupport.Validate(spec.attack, out _), "cyclic Chain rejected");
             damage.onHit = null;
             var binding = spec.attack; binding.mode = TargetMode.TowardsCursor;
-            Check(!TemporaryAttackSupport.Validate(binding, out _), "cursor Attack rejected");
+            Check(TemporaryAttackSupport.Validate(binding, out _), "AI support ignores legacy slot Mode");
+            binding.mode = TargetMode.TowardsEntity;
+            binding.skillData.mechanismData.mode = TargetMode.TowardsCursor;
+            Check(!TemporaryAttackSupport.Validate(binding, out _), "SkillData cursor Attack rejected despite Entity slot Mode");
         }
 
         private static SkillData Skill()

@@ -55,6 +55,14 @@ namespace PlayerScripts.Skills
             _ticker.OnTick -= TickHandler;
         }
 
+        /// <summary>실제 Runner와 같은 Resolver로 루트 Target만 준비합니다. 큐에는 추가하지 않습니다.</summary>
+        public bool TryPrepareRoot(in SkillCommand request, out SkillCommand prepared, out string reason)
+        {
+            prepared = request;
+            if (_runner == null) { reason = "CollectorNotInitialized"; return false; }
+            return _runner.TryPrepareRoot(request, out prepared, out reason);
+        }
+
         /// <summary>
         /// 기술 시전 요청.
         /// - 여기서는 "허용 여부"를 판단하지 않음 (Attacker 책임)

@@ -136,11 +136,12 @@ namespace PlayerScripts.Acts
             }
 
             if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null) { Reject("MissingSkillDataOrMechanism"); return; }
-            if (input.Target != null)
+            // 루트 선택 방식은 스킬의 계약입니다. 슬롯의 이전 mode 값은 사용하지 않습니다.
+            var rootMode = binding.skillData.mechanismData.mode;
+            if (input.Target != null && rootMode != TargetMode.TowardsEntity)
             {
-                var reason = binding.mode != TargetMode.TowardsEntity ? "UnsupportedExplicitTargetMode" : input.Target.Validate(_caster, binding.skillData.mechanismData.mechanism);
-                AttackLog.Write(input.Trace, "TargetValidation", $"result={reason} {input.Target.Describe(binding.skillData.mechanismData.mechanism)}");
-                if (reason != "Allowed") { Reject(reason); return; }
+                Reject("UnsupportedExplicitTargetMode");
+                return;
             }
 
             SkillCommand cmd;
@@ -155,7 +156,7 @@ namespace PlayerScripts.Acts
                 }
                 cmd = new SkillCommand(
                     caster: _caster,
-                    mode: binding.mode,
+                    mode: rootMode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
                     mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
@@ -169,7 +170,7 @@ namespace PlayerScripts.Acts
             else {
                 cmd = new SkillCommand(
                     caster: _caster,
-                    mode: binding.mode,
+                    mode: rootMode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
                     mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
@@ -180,7 +181,10 @@ namespace PlayerScripts.Acts
                     source: $"Skill:{binding.skillData.name}#{binding.skillData.GetInstanceID()}/slot:{slot}/root"
                 );}
             if (_collector == null) { Reject("MissingCollector"); return; }
-            _collector.EnqueueCommand(cmd);
+            // Hold/PrepareCast가 아니라 실제 입력 처리 경계에서 Target만 확정합니다.
+            // 비용 Commit과 Pending 잠금은 다음 Phase에서 이 준비 결과에 연결합니다.
+            if (!_collector.TryPrepareRoot(cmd, out var prepared, out var reason)) { Reject(reason); return; }
+            _collector.EnqueueCommand(prepared);
         }
 
         public void PrepareCast(SkillSlot slot, byte innoxiousCount)

@@ -232,6 +232,7 @@ namespace Moves
             SwitchVariable va = default, int masker = 0, TravelResult? exit = null,
             Vector2? originCastPosition = null, ExplicitAttackTarget explicitTarget = null, AttackTrace trace = default, string source = null)
         {
+            Preparation = CastPreparationState.Deferred;
             Source = source ?? "ExternalCommand";
             Caster = caster;
             Target = target;
@@ -250,10 +251,23 @@ namespace Moves
             Trace = trace.CommandId != 0 ? trace : (trace.AttackId != 0 ? trace : AttackTrace.Root(caster)).Command();
         }
 
+        // 준비 완료는 비용 Commit과 다릅니다. Detect의 미발견도 준비된 결과일 수 있습니다.
+        public readonly CastPreparationState Preparation;
+        internal SkillCommand WithPreparedTarget(SkillTarget target, TargetMode mode) => new(this, target, mode);
+
+        private SkillCommand(in SkillCommand request, SkillTarget target, TargetMode mode)
+        {
+            Trace = request.Trace; Source = request.Source; Caster = request.Caster;
+            Target = target; TargetMode = mode; CastPosition = request.CastPosition;
+            OriginCastPosition = request.OriginCastPosition; Mech = request.Mech; Damage = request.Damage;
+            Mask = request.Mask; Targeting = request.Targeting; ExplicitTarget = request.ExplicitTarget;
+            Var = request.Var; Exit = request.Exit; Preparation = CastPreparationState.RootTargetPrepared;
+        }
+
         public bool Equals(SkillCommand other)
         {
             return Caster == other.Caster && Target.Equals(other.Target) && Equals(Mech, other.Mech) &&
-                ReferenceEquals(ExplicitTarget, other.ExplicitTarget);
+                ReferenceEquals(ExplicitTarget, other.ExplicitTarget) && Preparation == other.Preparation;
         }
 
         public override bool Equals(object obj)
@@ -263,7 +277,7 @@ namespace Moves
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Caster, Target, Mech, ExplicitTarget);
+            return HashCode.Combine(Caster, Target, Mech, ExplicitTarget, Preparation);
         }
     }
 
