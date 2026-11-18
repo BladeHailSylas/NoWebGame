@@ -64,10 +64,21 @@ namespace PlayerScripts.Stats
             IsDead = false;
         }
         // ===== Damage / Stat Manipulation =====
+        public bool CanSpendMana(int amount) => amount >= 0 && Mana >= amount;
+        public bool TrySpendMana(int amount)
+        {
+            if (!CanSpendMana(amount)) return false;
+            Mana -= amount;
+            return true;
+        }
+        // Commit이 공개되기 전 내부 실패 보상에만 사용합니다. 발동 후 환급 API가 아닙니다.
+        internal void RestoreManaBeforeCommit(int previous) => Mana = previous;
+
         public void ReduceStat(ReduceType stat, int amount, int apRatio = 0, DamageType type = DamageType.Normal)
         {
             if (stat == ReduceType.Mana)
             {
+                if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
                 Mana = Math.Max(0, Mana - amount);
             }
         }

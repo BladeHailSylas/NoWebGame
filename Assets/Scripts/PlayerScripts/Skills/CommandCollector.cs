@@ -3,59 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using Moves;
 using Moves.Mechanisms;
-using Systems.Data;
-using UnityEngine;
+using PlayerScripts.Stack;
 using Systems.Time;
+using UnityEngine;
 using Time = Systems.Time.Time;
 
 namespace PlayerScripts.Skills
 {
     /// <summary>
-    /// CommandCollector (기술 딜레이 전용)
-    ///
-    /// 합의된 처리 모델:
-    /// - EnqueueCommand는 "수집(collecting)"만 수행한다. (DelayScheduler.Start 호출 금지)
-    /// - TickHandler 진입 시 collecting/resolving swap으로 이번 Tick 처리 대상을 확정한다.
-    /// - resolving의 모든 Command에 대해 Delay를 스케줄하고 scheduled에 등록한다.
-    /// - scheduled를 검사하여 Delay 완료된 Command는 즉시 실행(Activate)하고 executed에 담는다.
-    /// - scheduled 순회가 끝난 뒤 executed를 통해 scheduled에서 제거한다. (foreach 안전)
-    /// - 0틱 지연도 동일 파이프라인을 거쳐 "다음 Tick에서" 실행되도록 강제된다.
+    /// 루트는 Commit 시 예약한 Delay를 사용하고, 외부/Chain은 기존 수집 Tick에서 예약합니다.
+    /// 이중 버퍼는 실행 중 생긴 자식이 같은 순회에서 재귀 실행되는 것을 방지합니다.
     /// </summary>
     public class CommandCollector : MonoBehaviour, ICommandPort
     {
         private SkillRunner _runner;
         private DelayScheduler _scheduler;
-        private EffectDisplayer _displayer;
         private Ticker _ticker;
-
-        // 이중 버퍼: "수집 중" / "이번 Tick에 해결(Resolve)할 입력"
+        private bool _ready;
         private List<SkillCommand> _collecting = new();
         private List<SkillCommand> _resolving = new();
-
-        // Delay 진행 중인 Command들
         private readonly List<ScheduledCommand> _scheduled = new();
-
         public static CommandCollector Instance { get; private set; }
-        // 등록과 실제 실행을 별도로 관측합니다. 콜백 수를 큐 스냅샷으로 추측하지 않습니다.
         public event Action<SkillCommand> CommandEnqueued;
 
         private void OnEnable()
         {
-            _displayer = new EffectDisplayer();
-            _runner = new SkillRunner(GetComponent<TargetResolver>(), _displayer);
-            _scheduler = Time.DelayScheduler;
-            _ticker = Time.Ticker;
-
-            _ticker.OnTick += TickHandler;
-            Instance = this;
+            _runner = new SkillRunner(GetComponent<TargetResolver>(), new EffectDisplayer());
+            _scheduler = Time.DelayScheduler; _ticker = Time.Ticker;
+            _ticker.OnTick += TickHandler; _ready = true; Instance = this;
         }
-
         private void OnDisable()
         {
-            _ticker.OnTick -= TickHandler;
+            _ready = false;
+            if (_ticker != null) _ticker.OnTick -= TickHandler;
+            // 시전자별 수명 사건 연결은 Phase 4에서 수행합니다.
         }
-
-        /// <summary>실제 Runner와 같은 Resolver로 루트 Target만 준비합니다. 큐에는 추가하지 않습니다.</summary>
+        internal bool CanAcceptRoot(DelayScheduler scheduler) => _ready && isActiveAndEnabled &&
+            ReferenceEquals(_scheduler, scheduler) && ReferenceEquals(_ticker, Time.Ticker);
         public bool TryPrepareRoot(in SkillCommand request, out SkillCommand prepared, out string reason)
         {
             prepared = request;
@@ -63,141 +47,111 @@ namespace PlayerScripts.Skills
             return _runner.TryPrepareRoot(request, out prepared, out reason);
         }
 
-        /// <summary>
-        /// 기술 시전 요청.
-        /// - 여기서는 "허용 여부"를 판단하지 않음 (Attacker 책임)
-        /// - DelayScheduler를 호출하지 않고, 이번 Tick의 collecting 버퍼에 수집만 한다.
-        /// </summary>
+        // 단일 Unity 스레드에서만 호출합니다. 외부 콜백은 모든 내부 변경이 성공한 뒤 통지합니다.
+        internal bool TryAcceptRoot(SkillCommand command, Action applyResources, Action rollbackResources, out string reason)
+        {
+            reason = "CollectorUnavailable";
+            var root = command.Commit;
+            if (!_ready || !isActiveAndEnabled || root == null || root.State != CastCommitState.Prepared) return false;
+            var added = false;
+            try
+            {
+                root.DelayId = _scheduler.Start(root.CommitTick, command.Mech.DelayTicks);
+                _collecting.Add(command); added = true;
+                applyResources();
+                root.Publish();
+            }
+            catch (Exception error)
+            {
+                rollbackResources();
+                if (added) _collecting.RemoveAt(_collecting.Count - 1);
+                _scheduler.Remove(root.DelayId);
+                reason = "CommitFailed:" + error.GetType().Name;
+                return false;
+            }
+            reason = "Allowed";
+            AttackLog.Write(command.Trace, "Committed", $"commitTick={root.CommitTick} dueTick={root.DueTick}");
+            Notify(command);
+            return true;
+        }
+
         public void EnqueueCommand(SkillCommand cmd)
         {
-            AttackLog.Write(cmd.Trace, "Enqueued", $"mechanism={cmd.Mech?.GetType().Name} target={cmd.Target} collector={GetInstanceID()}");
-            // TickHandler 실행 중에 호출되어도 안전:
-            // TickHandler는 _resolving만 처리하며, Enqueue는 _collecting에만 쌓이기 때문.
-            _collecting.Add(cmd);
-            CommandEnqueued?.Invoke(cmd);
-            //Debug.Log($"Command {cmd.Mech} came from {cmd.Caster} towards {cmd.Target} using {cmd.TargetMode}");
+            // Committed 루트 복사본을 다시 넣어 비용 없이 재실행할 수 없습니다.
+            if (cmd.Commit != null) { AttackLog.Write(cmd.Trace, "CommandDropped", "reason=RootRequiresCommitAdmission"); return; }
+            if (!_ready) { AttackLog.Write(cmd.Trace, "CommandDropped", "reason=CollectorUnavailable"); return; }
+            StackManager.ConsumptionChange consumption = null;
+            if (cmd.Mech is SwitchMechanism sw)
+            {
+                var selection = new SwitchSelection(sw, cmd.Var);
+                if (!selection.CanAccept(cmd.Var)) { AttackLog.Write(cmd.Trace, "CommandDropped", "reason=VariableUnavailable"); return; }
+                cmd = cmd.WithSwitchSelection(selection);
+            }
+            var added = false;
+            try
+            {
+                _collecting.Add(cmd); added = true;
+                consumption = cmd.SwitchSelection?.Begin(cmd.Var, _ticker.TickCount);
+                consumption?.Complete();
+            }
+            catch
+            {
+                consumption?.Rollback();
+                if (added) _collecting.RemoveAt(_collecting.Count - 1);
+                throw;
+            }
+            Notify(cmd);
         }
-
+        private void Notify(SkillCommand cmd)
+        {
+            // 관측 콜백의 예외로 이미 성립한 Commit을 되돌리지 않습니다.
+            AttackLog.Write(cmd.Trace, "Enqueued", $"mechanism={cmd.Mech?.GetType().Name} target={cmd.Target} collector={GetInstanceID()} commit={cmd.Commit?.CommitTick}");
+            if (CommandEnqueued == null) return;
+            foreach (Action<SkillCommand> observer in CommandEnqueued.GetInvocationList())
+                try { observer(cmd); }
+                catch (Exception error) { Debug.LogException(error); }
+        }
         private void TickHandler(long tick)
         {
-            // 0) 이번 Tick 처리 입력 확정
             (_collecting, _resolving) = (_resolving, _collecting);
-            
-            // 1) resolving -> scheduled (Delay Schedule)
-            if (_resolving.Count > 0)
+            foreach (var cmd in _resolving)
             {
-                foreach (var cmd in _resolving)
-                {
-                    // Params가 delayTick을 소유한다는 합의 반영
-                    var delayTick = cmd.Mech.DelayTicks;
-
-                    // Start는 TickHandler에서만 호출한다 (시간 통보 모델)
-                    var delayId = _scheduler.Start(tick, delayTick);
-                    AttackLog.Write(cmd.Trace, "Scheduled", $"delayTicks={delayTick} scheduledTick={tick}");
-
-                    _scheduled.Add(new ScheduledCommand
-                    {
-                        Command = cmd,
-                        DelayId = delayId
-                    });
-                }
-
-                // 이번 Tick에 수집된 입력 처리 완료
-                _resolving.Clear();
+                if (cmd.Commit != null && cmd.Commit.State != CastCommitState.Committed) continue;
+                var delay = cmd.Commit?.DelayId ?? _scheduler.Start(tick, cmd.Mech.DelayTicks);
+                _scheduled.Add(new ScheduledCommand { Command = cmd, DelayId = delay });
+                AttackLog.Write(cmd.Trace, "Scheduled", $"delayTicks={cmd.Mech.DelayTicks} startTick={cmd.Commit?.CommitTick ?? tick}");
             }
-            
-            // 2) scheduled 검사 -> 즉시 실행 + executed 수집
-            if (_scheduled.Count == 0) return;
-
-            // foreach 안전을 위해 지역 리스트로 "이번 Tick에 실행된 것"을 수집
-            var executedIndices = new List<int>(4);
-
-
-            for (var i = 0; i < _scheduled.Count; i++)
+            _resolving.Clear();
+            for (var i = 0; i < _scheduled.Count;)
             {
                 var entry = _scheduled[i];
-
-                if (!_scheduler.IsCompleted(entry.DelayId, tick))
-                    continue;
-
-                // Delay 종료 처리
-                if (!entry.DelayId.Equals(default))
-                    _scheduler.Remove(entry.DelayId);
-
-                // 즉시 실행
-                AttackLog.Write(entry.Command.Trace, "Dispatch", $"tick={tick}");
-                _runner.Activate(entry.Command);
-                executedIndices.Add(i);
-                // 아래는 SwitchVariable 처리 로직
-                if (entry.Command is not { Mech: SwitchMechanism sw }) continue;
-                var caster = entry.Command.Caster;
-                if (!caster.TryGetComponent<IStackable>(out var stackable)) continue;
-                if (entry.Command.Var.Variable is null) continue;
-                stackable.TryRemoveStack(entry.Command.Var);
-            }
-
-            
-            // 3) executed 기반으로 scheduled 정리
-            if (executedIndices.Count > 0)
-            {
-                // List.Remove는 요소 개수만큼 선형 탐색이지만,
-                // scheduled 규모가 작을 것으로 예상되므로 단순함/안전성을 우선한다.
-                for (var i = executedIndices.Count - 1; i >= 0; i--)
+                if (!_scheduler.IsCompleted(entry.DelayId, tick)) { i++; continue; }
+                // Pending을 풀고 실행에 넘긴 명령을 다시 실행하지 않도록 먼저 큐에서 분리합니다.
+                _scheduled.RemoveAt(i); _scheduler.Remove(entry.DelayId);
+                entry.Command.Commit?.BeginExecution();
+                try
                 {
-                    var index = executedIndices[i];
-                    _scheduled.RemoveAt(index);
+                    AttackLog.Write(entry.Command.Trace, "Dispatch", $"tick={tick}");
+                    _runner.Activate(entry.Command);
+                    entry.Command.Commit?.Returned();
                 }
-
+                catch { entry.Command.Commit?.Failed(); throw; }
             }
         }
-
-        /// <summary>
-        /// 시전 중인 모든 기술 취소.
-        /// (CC / 행동 불능 대응)
-        /// - 진행 중이던 Delay 전부 제거
-        /// - collecting/resolving/scheduled 전부 초기화
-        /// !!! 모든 개체의 SkillCommand가 무효화됨, 특정 개체의 SkillCommand만 취소할 수 있도록 확장 필요 !!!
-        /// nullable parameter를 사용하여 특정 Caster/Target/Mechanism만 취소하도록 확장하거나, 새 오버로드가 필요할 것
-        /// </summary>
         public void CeaseCommand()
         {
-            foreach (var cmd in _collecting.Concat(_resolving).Concat(_scheduled.Select(e => e.Command)))
-                AttackLog.Write(cmd.Trace, "Cancelled", "reason=CeaseAllCommands scope=AllCasters");
-            // scheduled에 등록된 Delay 제거
-            foreach (var entry in _scheduled)
+            foreach (var cmd in _collecting.Concat(_resolving).Concat(_scheduled.Select(s => s.Command)))
             {
-                if (!entry.DelayId.Equals(default))
-                    _scheduler.Remove(entry.DelayId);
+                if (cmd.Commit != null) { _scheduler.Remove(cmd.Commit.DelayId); cmd.Commit.Cancel(); }
+                AttackLog.Write(cmd.Trace, "Cancelled", "reason=CeaseAllCommands scope=AllCasters");
             }
-
-            _scheduled.Clear();
-            _collecting.Clear();
-            _resolving.Clear();
+            foreach (var entry in _scheduled) _scheduler.Remove(entry.DelayId);
+            _scheduled.Clear(); _collecting.Clear(); _resolving.Clear();
         }
-
-        /// <summary>
-        /// Delay가 이미 시작된 Command의 저장 단위.
-        /// - struct로 둬서 GC를 줄이고, 값 비교(Remove)도 쉽게 한다.
-        /// </summary>
-        private struct ScheduledCommand : IEquatable<ScheduledCommand>
+        private struct ScheduledCommand
         {
             public SkillCommand Command;
             public DelayId DelayId;
-
-            public bool Equals(ScheduledCommand other)
-            {
-                return Command.Equals(other.Command) && DelayId.Equals(other.DelayId);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is ScheduledCommand other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(Command, DelayId);
-            }
         }
     }
 }

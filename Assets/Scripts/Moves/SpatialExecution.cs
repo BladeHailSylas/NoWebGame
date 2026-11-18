@@ -17,7 +17,7 @@ namespace Moves
             // Runner 밖에서 시작한 독립 실행에도 고유 추적 식별자를 부여합니다.
             if (input.Trace.AttackId == 0)
                 input = new CastContext(input.Mech, input.Caster, input.Target, input.Damage, input.Var, input.Mode,
-                    input.Exit, input.OriginCastPosition, AttackTrace.Root(input.Caster).Command().Effect(), input.Source);
+                    input.Exit, input.OriginCastPosition, AttackTrace.Root(input.Caster).Command().Effect(), input.Source, input.SwitchSelection);
             var settings = input.Mech is NewMechanism mech ? mech.Destination : default;
             var origin = input.OriginCastPosition ?? (input.Caster ? (Vector2?)input.Caster.position : null);
             var values = new BasePositionInputs(input.Caster ? (Vector2?)input.Caster.position : null,

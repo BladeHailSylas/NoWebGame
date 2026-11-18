@@ -3,6 +3,7 @@ using System.Linq;
 using Moves;
 using Systems.Stacks;
 using Systems.Stacks.Definition;
+using Systems.Stacks.ExclusiveGroups;
 using UnityEngine;
 
 namespace PlayerScripts.Stack
@@ -55,9 +56,19 @@ namespace PlayerScripts.Stack
 
         public SwitchVariable GetVariable(VariableDefinition def)
         {
-            var key = new StackKey(def);
-            return _public.TryGetValue(key, out var value) ? new SwitchVariable(def, value.Amount) : new SwitchVariable(def, 0);
+            return TrySelect(def, out _, out var value) ? new SwitchVariable(def, value.Amount) : new SwitchVariable(def, 0);
         }
+
+        public bool TrySelect(VariableDefinition def, out StackKey key, out VariableState state)
+        {
+            // 같은 종류의 적용자가 여럿이면 이름 순으로 선택하여 정확한 Key를 보존합니다.
+            foreach (var pair in _public.OrderBy(p => p.Key.applierName, System.StringComparer.Ordinal))
+                if (pair.Key.def == def && pair.Value.Amount > 0)
+                { key = pair.Key; state = pair.Value; return true; }
+            key = default; state = default; return false;
+        }
+        internal bool TryGetRaw(StackKey key, out VariableState state) => _raw.TryGetValue(key, out state);
+        internal bool TryGetPublic(StackKey key, out VariableState state) => _public.TryGetValue(key, out state);
 
         public bool Has(StackDefinition def) //Don't check applier since VariableDefinition itself doesn't have its applier
         {
@@ -97,7 +108,7 @@ namespace PlayerScripts.Stack
                 return;
 
             // 이 Variable이 속한 모든 exclusive 그룹을 갱신해야 한다
-            foreach (var group in va.exclusiveGroup)
+            foreach (var group in va.exclusiveGroup ?? System.Array.Empty<ExclusiveGroup>())
             {
                 var gid = group.groupId;
 

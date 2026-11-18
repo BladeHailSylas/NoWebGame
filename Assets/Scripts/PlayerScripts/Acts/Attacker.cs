@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Characters;
@@ -31,18 +32,19 @@ namespace PlayerScripts.Acts
 
         // === 쿨타임 상태 ===
         private readonly Dictionary<SkillSlot, DelayId> _onCooldown = new();
+        private readonly Dictionary<SkillSlot, CastCommit> _pending = new();
+        private readonly Dictionary<SkillSlot, long> _lastCommitTick = new();
+        public bool IsPending(SkillSlot slot) => _pending.ContainsKey(slot);
         private readonly Context _context;
         private readonly CommandCollector _collector;
         private readonly Transform _caster;
         private readonly Dictionary<SkillSlot, SkillBinding> _skills;
-        private VariableStorage _storage;
         public Attacker(Context context, Transform caster, Dictionary<SkillSlot, SkillBinding> skills, CommandCollector collector)
         {
             _context = context;
             _caster = caster;
             _skills = skills ?? new Dictionary<SkillSlot, SkillBinding>();
             _collector = collector;
-            _storage = _context.VariableStorage;
             _context.Logger.Info($"Attack controller initialised with {_skills.Count} skills.");
         }
         /// <summary>
@@ -129,6 +131,12 @@ namespace PlayerScripts.Acts
                 // 쿨타임 중 → 발동 불가
                 return;
             }
+
+            if (!_caster || !_context.Owner || !_context.Owner.isActiveAndEnabled || _context.Stats.IsDead)
+            { Reject("CasterUnavailable"); return; }
+            if (_pending.ContainsKey(slot)) { Reject("PendingCast"); return; }
+            if (_lastCommitTick.TryGetValue(slot, out var lastTick) && lastTick == tick)
+            { Reject("AlreadyCommittedThisTick"); return; }
             if (!_skills.TryGetValue(slot, out var binding))
             {
                 AttackLog.Write(input.Trace, "CastRejected", "reason=MissingBinding");
@@ -136,6 +144,12 @@ namespace PlayerScripts.Acts
             }
 
             if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null) { Reject("MissingSkillDataOrMechanism"); return; }
+            var cost = binding.skillData.ManaCost;
+            var cooldown = binding.skillData.mechanismData.mechanism.CooldownTicks;
+            if (cost < 0 || cooldown < 0) { Reject("InvalidCostOrCooldown"); return; }
+            if (tick < 0 || tick > long.MaxValue - binding.skillData.mechanismData.mechanism.DelayTicks)
+            { Reject("InvalidCommitTick"); return; }
+            if (!_collector || !_collector.CanAcceptRoot(_context.DelayScheduler)) { Reject("CollectorUnavailable"); return; }
             // 루트 선택 방식은 스킬의 계약입니다. 슬롯의 이전 mode 값은 사용하지 않습니다.
             var rootMode = binding.skillData.mechanismData.mode;
             if (input.Target != null && rootMode != TargetMode.TowardsEntity)
@@ -148,10 +162,14 @@ namespace PlayerScripts.Acts
             if (binding.skillData.mechanismData.mechanism is SwitchMechanism switcher)
             {
                 SwitchVariable sv = default;
-                foreach (var sw in switcher.cases)
+                foreach (var sw in switcher.cases ?? Array.Empty<SwitchCase>())
                 {
-                    if (!_storage.Has(sw.variable)) continue;
-                    sv = _storage.GetVariable(sw.variable);
+                    if (sw?.variable == null) continue;
+                    // Summon은 Attacker 생성 뒤 Storage를 등록하므로 생성 시점의 null을 캐시하지 않습니다.
+                    if (_context.VariableStorage == null) { Reject("MissingVariableStorage"); return; }
+                    if (!_context.VariableStorage.Has(sw.variable)) continue;
+                    if (_context.StackManager == null) { Reject("MissingStackManager"); return; }
+                    sv = _context.StackManager.CaptureVariable(sw.variable);
                     break;
                 }
                 cmd = new SkillCommand(
@@ -182,9 +200,44 @@ namespace PlayerScripts.Acts
                 );}
             if (_collector == null) { Reject("MissingCollector"); return; }
             // Hold/PrepareCast가 아니라 실제 입력 처리 경계에서 Target만 확정합니다.
-            // 비용 Commit과 Pending 잠금은 다음 Phase에서 이 준비 결과에 연결합니다.
             if (!_collector.TryPrepareRoot(cmd, out var prepared, out var reason)) { Reject(reason); return; }
-            _collector.EnqueueCommand(prepared);
+            if (!_context.Stats.CanSpendMana(cost)) { Reject("InsufficientMana"); return; }
+            SwitchSelection selection = null;
+            if (prepared.Mech is SwitchMechanism switchMechanism)
+            {
+                selection = new SwitchSelection(switchMechanism, prepared.Var);
+                if (!selection.CanAccept(prepared.Var)) { Reject("VariableUnavailable"); return; }
+                prepared = prepared.WithSwitchSelection(selection);
+            }
+            var previousMana = _context.Stats.Stats.Mana;
+            var hadLast = _lastCommitTick.TryGetValue(slot, out var previousLast);
+            var hadCooldown = _onCooldown.TryGetValue(slot, out var previousCooldown);
+            DelayId nextCooldown = default;
+            StackManager.ConsumptionChange consumption = null;
+            CastCommit commit = null;
+            commit = new CastCommit(tick, prepared.Mech.DelayTicks, () =>
+            {
+                if (_pending.TryGetValue(slot, out var current) && ReferenceEquals(current, commit)) _pending.Remove(slot);
+            });
+            var committedCommand = prepared.WithCommit(commit);
+            void ApplyResources()
+            {
+                if (cooldown > 0) nextCooldown = _context.DelayScheduler.Start(tick, cooldown);
+                consumption = selection?.Begin(committedCommand.Var, tick);
+                if (!_context.Stats.TrySpendMana(cost)) throw new InvalidOperationException("ManaChangedBeforeCommit");
+                _onCooldown[slot] = nextCooldown; _pending.Add(slot, commit); _lastCommitTick[slot] = tick;
+                // 이 뒤에는 실패 가능한 도메인 작업/사용자 콜백 없이 Commit을 공개합니다.
+                consumption?.Complete();
+            }
+            void RollbackResources()
+            {
+                consumption?.Rollback();
+                _context.Stats.Stats.RestoreManaBeforeCommit(previousMana);
+                _context.DelayScheduler.Remove(nextCooldown); _pending.Remove(slot);
+                if (hadCooldown) _onCooldown[slot] = previousCooldown; else _onCooldown.Remove(slot);
+                if (hadLast) _lastCommitTick[slot] = previousLast; else _lastCommitTick.Remove(slot);
+            }
+            if (!_collector.TryAcceptRoot(committedCommand, ApplyResources, RollbackResources, out reason)) Reject(reason);
         }
 
         public void PrepareCast(SkillSlot slot, byte innoxiousCount)

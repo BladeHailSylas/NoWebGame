@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PlayerScripts.Skills;
+using PlayerScripts.Stack;
 using Systems.Data;
 using Systems.Stacks.Definition;
 using UnityEngine;
@@ -112,6 +113,7 @@ namespace Moves
     /// </summary>
     public struct CastContext
     {
+        public readonly SwitchSelection SwitchSelection;
         public readonly AttackTrace Trace;
         public readonly string Source;
         public readonly Vector2? Destination;
@@ -150,8 +152,9 @@ namespace Moves
             SwitchVariable va = default,
             TargetMode mode = TargetMode.TowardsEntity,
             TravelResult? exit = null,
-            Vector2? originCastPosition = null, AttackTrace trace = default, string source = null)
+            Vector2? originCastPosition = null, AttackTrace trace = default, string source = null, SwitchSelection switchSelection = null)
         {
+            SwitchSelection = switchSelection;
             Trace = trace;
             Mech = mech;
             Caster = caster;
@@ -184,8 +187,9 @@ namespace Moves
             TargetMode mode,
             SwitchVariable va = default,
             TravelResult? exit = null,
-            Vector2? originCastPosition = null, AttackTrace trace = default, string source = null)
+            Vector2? originCastPosition = null, AttackTrace trace = default, string source = null, SwitchSelection switchSelection = null)
         {
+            SwitchSelection = switchSelection;
             Trace = trace;
             Mech = mech;
             Caster = caster;
@@ -198,18 +202,20 @@ namespace Moves
             Source = source ?? "ExternalDirect"; Destination = null; SpatialPrepared = false;
         }
         private CastContext(CastContext input, Vector2? origin, Vector2? destination)
-            : this(input.Mech, input.Caster, input.Target, input.Damage, input.Var, input.Mode, input.Exit, origin, input.Trace, input.Source)
+            : this(input.Mech, input.Caster, input.Target, input.Damage, input.Var, input.Mode, input.Exit, origin, input.Trace, input.Source, input.SwitchSelection)
         { Destination = destination; SpatialPrepared = true; }
         internal CastContext WithSpatial(Vector2? origin, Vector2? destination) => new(this, origin, destination);
         public CastContext WithExit(TravelResult result)
         {
-            var copy = new CastContext(Mech, Caster, Target, Damage, Var, Mode, result, OriginCastPosition, Trace, Source);
+            var copy = new CastContext(Mech, Caster, Target, Damage, Var, Mode, result, OriginCastPosition, Trace, Source, SwitchSelection);
             return SpatialPrepared ? copy.WithSpatial(OriginCastPosition, Destination) : copy;
         }
     } 
 
     public readonly struct SkillCommand : IEquatable<SkillCommand>
     {
+        public readonly CastCommit Commit;
+        public readonly SwitchSelection SwitchSelection;
         public readonly AttackTrace Trace;
         public readonly string Source;
         public readonly Transform Caster;
@@ -233,6 +239,7 @@ namespace Moves
             Vector2? originCastPosition = null, ExplicitAttackTarget explicitTarget = null, AttackTrace trace = default, string source = null)
         {
             Preparation = CastPreparationState.Deferred;
+            Commit = null; SwitchSelection = null;
             Source = source ?? "ExternalCommand";
             Caster = caster;
             Target = target;
@@ -257,12 +264,20 @@ namespace Moves
 
         private SkillCommand(in SkillCommand request, SkillTarget target, TargetMode mode)
         {
+            Commit = request.Commit; SwitchSelection = request.SwitchSelection;
             Trace = request.Trace; Source = request.Source; Caster = request.Caster;
             Target = target; TargetMode = mode; CastPosition = request.CastPosition;
             OriginCastPosition = request.OriginCastPosition; Mech = request.Mech; Damage = request.Damage;
             Mask = request.Mask; Targeting = request.Targeting; ExplicitTarget = request.ExplicitTarget;
             Var = request.Var; Exit = request.Exit; Preparation = CastPreparationState.RootTargetPrepared;
         }
+
+        private SkillCommand(in SkillCommand request, CastCommit commit, SwitchSelection selection)
+        {
+            this = request; Commit = commit; SwitchSelection = selection;
+        }
+        internal SkillCommand WithCommit(CastCommit commit) => new(this, commit, SwitchSelection);
+        internal SkillCommand WithSwitchSelection(SwitchSelection selection) => new(this, Commit, selection);
 
         public bool Equals(SkillCommand other)
         {
@@ -283,11 +298,13 @@ namespace Moves
 
     public readonly struct SwitchVariable
     {
+        public readonly VariableConsumption Consumption;
         public readonly VariableDefinition Variable;
         public readonly int Amount;
 
-        public SwitchVariable(VariableDefinition va, int amount)
+        public SwitchVariable(VariableDefinition va, int amount, VariableConsumption consumption = null)
         {
+            Consumption = consumption;
             Variable = va;
             Amount = amount;
         }

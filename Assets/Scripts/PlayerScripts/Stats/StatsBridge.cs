@@ -29,6 +29,8 @@ namespace PlayerScripts.Stats
         public double DR => Stats.TotalDamageReduction();
         public double DA => Stats.TotalDamageAmplitude();
         public bool IsDead => Stats.IsDead;
+        public bool CanSpendMana(int amount) => Stats.CanSpendMana(amount);
+        public bool TrySpendMana(int amount) => Stats.TrySpendMana(amount);
         public DamageData DamageData() => new(DamageType.Normal, Stats.AttackDamage, 1, AP, DA);
         public void ApplyManaCost(int amount)
         {

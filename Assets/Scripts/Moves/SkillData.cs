@@ -10,5 +10,7 @@ namespace Moves
     public class SkillData : ScriptableObject
     {
         [SerializeReference] public MechanismData mechanismData;
+        [Min(0), Tooltip("현재 Mana와 같은 내부 단위입니다. 0은 무료입니다.")]
+        public int ManaCost;
     }
 }

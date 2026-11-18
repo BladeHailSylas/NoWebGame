@@ -147,7 +147,7 @@ namespace ExitLab
                 "preparing twice retains command identity and Target");
             GameTime.Ticker.Step();
             Aim(_one.transform.position); _two.transform.position = new Vector2(20, 0); _caster.transform.position = new Vector2(4, 2);
-            GameTime.Ticker.Step(); Check(probe.Count == 0, "existing two-tick Delay retained");
+            Check(probe.Count == 0, "root waits until CommitTick plus two");
             GameTime.Ticker.Step();
             Check(probe.Count == 1 && probe.Last.Target.Matches(_two), "prepared player Entity executes beyond range without cursor reselection");
             Check(_queries == 1, "prepared execution never queries again");
@@ -207,15 +207,15 @@ namespace ExitLab
             var missing = Queued[0];
             Check(!missing.Target.IsResolved && missing.Preparation == CastPreparationState.RootTargetPrepared && missing.TargetMode == TargetMode.TowardsEntity,
                 "Detect miss is prepared with requiredMode, not rejected");
-            Queued.Clear(); Aim(_one.transform.position); _runner.Activate(missing);
+            Queued.Clear(); Aim(_one.transform.position); Step(1);
             Check(Queued.Count == 1 && ReferenceEquals(Queued[0].Mech, child), "Detect miss cannot acquire newly available Target after preparation");
             Check(Queued[0].Preparation == CastPreparationState.Deferred, "Detect child has independent deferred preparation state");
             Reset(); Aim(_one.transform.position); Input(); var found = Queued[0]; Queued.Clear(); _one.targetable = false;
-            _runner.Activate(found);
+            Step(1);
             Check(Queued.Count == 1 && ReferenceEquals(Queued[0].Mech, child) && Queued[0].Target.Entity == _one,
                 "Detect lost Target uses failure branch and preserves identity for child");
             Reset(); Aim(_one.transform.position); Input(); found = Queued[0]; Queued.Clear(); _one.transform.position = new Vector2(30, 0);
-            _runner.Activate(found);
+            Step(1);
             Check(Queued.Count == 1 && ReferenceEquals(Queued[0].Mech, success), "Detect found Target remains found beyond selection range");
             Reset(); var origin = new Vector2(7, 8); var exit = new TravelResult(ExitKind.Interrupted, ExitCause.WallBlocked, new Vector2(6, 5));
             var ctx = new CastContext(child, _caster.transform, SkillTarget.ForEntity(_one), default, originCastPosition: origin, exit: exit);
@@ -266,7 +266,7 @@ namespace ExitLab
         private static void Input() { _attacker.EnqueueCast(SkillSlot.Attack); _attacker.Tick(GameTime.Ticker.TickCount, 0); }
         private static void Reset()
         {
-            _collector.CeaseCommand(); Queued.Clear(); _caster.transform.position = Vector2.zero;
+            _collector.CeaseCommand(); Step(1); Queued.Clear(); _caster.transform.position = Vector2.zero;
             _one.gameObject.SetActive(true); _one.targetable = true; _one.gameObject.layer = LayerMask.NameToLayer("You");
             _one.transform.position = Vector2.right; _two.transform.position = Vector2.right * 2;
         }

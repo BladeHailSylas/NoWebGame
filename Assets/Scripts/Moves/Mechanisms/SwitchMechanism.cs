@@ -15,6 +15,10 @@ namespace Moves.Mechanisms
     /// </summary>
     public class SwitchMechanism : NewMechanism, INewMechanism
     {
+        // 부정형 저장: 옛 SerializeReference에 필드가 없으면 false이므로 기존 소비 동작을 유지합니다.
+        [SerializeField, Tooltip("켜면 Variable을 소비하지 않습니다. 꺼짐(기본값)은 Consume=true입니다.")]
+        private bool preserveVariable;
+        public bool Consume { get => !preserveVariable; set => preserveVariable = !value; }
         [Tooltip("우선순위 순으로 검사되는 Variable 분기 목록")]
         public SwitchCase[] cases;
 
@@ -31,6 +35,15 @@ namespace Moves.Mechanisms
         {
             if (ctx.Mech is not SwitchMechanism mech)
                 return;
+
+            if (ctx.SwitchSelection != null)
+            {
+                SkillUtils.ActivateChain(new[] { ctx.SwitchSelection.Branch }, ctx, trigger: "SwitchSelected");
+                return;
+            }
+            // 직접 실행은 큐 수락 경계를 거치지 않습니다. 소비 증표 없는 유료 분기를 무료 실행하지 않습니다.
+            if (Consume && ctx.Var.Variable && (ctx.Var.Consumption == null || !ctx.Var.Consumption.Consumed))
+            { AttackLog.Write(ctx.Trace, "ExecutionRejected", "reason=SwitchRequiresAcceptedConsumption"); return; }
 
             MechanismData selected = default;
             var chosen = false;

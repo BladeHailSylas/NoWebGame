@@ -268,13 +268,71 @@ namespace PlayerScripts.Stack
 
         public void TryConsume(SwitchVariable sv)
         {
-            StackKey stack = default;
-            foreach (var key in _stackStorage.Keys.Where(key => key.def.ID.Equals(sv.Variable.ID)))
+            if (sv.Consumption != null)
             {
-                stack = key;
-                break;
+                if (!sv.Consumption.CanConsume || sv.Consumption.Consumed) return;
+                var change = sv.Consumption.Begin(_currentTick); change?.Complete();
+                return;
             }
-            ConsumeVariable(stack, sv.Amount, _currentTick);
+            // 호환 호출도 ID만으로 임의 적용자의 스택을 제거하지 않습니다.
+            if (sv.Variable && Storage.TrySelect(sv.Variable, out var key, out _) && CanConsumeExact(key, sv.Amount))
+                ConsumeVariable(key, sv.Amount, _currentTick);
+        }
+
+        public SwitchVariable CaptureVariable(VariableDefinition definition)
+        {
+            return Storage.TrySelect(definition, out var key, out var value)
+                ? new SwitchVariable(definition, value.Amount, new VariableConsumption(this, key, value.Amount)) : default;
+        }
+        internal bool CanConsumeExact(StackKey key, int amount) => amount > 0 && key.def is VariableDefinition &&
+            _stackStorage.TryGetValue(key, out var status) && status.Amount >= amount &&
+            Storage.TryGetPublic(key, out var visible) && visible.Amount >= amount;
+
+        internal ConsumptionChange BeginConsumption(VariableConsumption receipt, long tick)
+        {
+            if (!CanConsumeExact(receipt.Key, receipt.Amount)) throw new InvalidOperationException("VariableChangedBeforeCommit");
+            return new ConsumptionChange(this, receipt, tick);
+        }
+
+        // 기존 충전 예약은 성공 확정까지 제거하지 않습니다. 실패 시 원래 핸들과 Delta까지 그대로 보존합니다.
+        internal sealed class ConsumptionChange
+        {
+            private readonly StackManager _owner;
+            private readonly VariableConsumption _receipt;
+            private readonly StackStatus _before;
+            private readonly VariableState _visibleBefore;
+            private readonly DelayId _replacement;
+            private bool _finished;
+            internal ConsumptionChange(StackManager owner, VariableConsumption receipt, long tick)
+            {
+                _owner = owner; _receipt = receipt;
+                var key = receipt.Key; var va = (VariableDefinition)key.def;
+                _before = owner._stackStorage[key]; owner.Storage.TryGetRaw(key, out _visibleBefore);
+                var after = _before.Amount - receipt.Amount;
+                if (va.isPeriodic && ShouldStartPeriodicOnRemove(_before.Amount, after, va.maxStacks))
+                    _replacement = owner._scheduler.Start(tick, va.periodTick);
+                try
+                {
+                    if (after == 0) owner.Storage.RemoveStorage(key);
+                    else owner.Storage.AddStorage(key, new VariableState(after, tick));
+                    owner._stackStorage[key] = new StackStatus(after, IsValidDelay(_replacement) ? _replacement : _before.DelayId);
+                }
+                catch { Rollback(); throw; }
+            }
+            internal void Complete()
+            {
+                if (_finished) return;
+                if (IsValidDelay(_replacement)) _owner._scheduler.Remove(_before.DelayId);
+                _receipt.MarkConsumed(); _finished = true;
+            }
+            internal void Rollback()
+            {
+                if (_finished) return;
+                _owner._scheduler.Remove(_replacement);
+                _owner._stackStorage[_receipt.Key] = _before;
+                _owner.Storage.AddStorage(_receipt.Key, _visibleBefore);
+                _finished = true;
+            }
         }
         /// <summary>
         /// Variable 소비(Amount 감소) 전용 API.
