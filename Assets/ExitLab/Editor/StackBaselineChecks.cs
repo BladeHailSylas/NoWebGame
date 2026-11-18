@@ -154,23 +154,24 @@ namespace ExitLab
             var buff = f.Def<BuffDefinition>(); buff.Type = EffectType.DamageBoost; buff.Value = 10; buff.duration = 3; buff.maxStacks = 1;
             var key = new StackKey(buff); var manager = f.Manager(100, out var stats);
             manager.ApplyStack(key, 1, 0); manager.ApplyStack(key, 1, 1); manager.Tick(4);
-            Defect("R03-cap", stats.AttackDamage.ToString(), "100", stats.AttackDamage == 110);
+            Check(stats.AttackDamage == 100, "R03-cap fixed: capped Buff fully expires");
             buff.maxStacks = 10;
             var split = f.Manager(5, out var ss); var batch = f.Manager(5, out var bs);
             split.ApplyStack(key, 1, 0); split.ApplyStack(key, 1, 0); batch.ApplyStack(key, 2, 0);
-            Defect("R03-batching", $"split={ss.AttackDamage},batch={bs.AttackDamage}", "both=6", ss.AttackDamage == 7 && bs.AttackDamage == 6);
+            Check(ss.AttackDamage == 6 && bs.AttackDamage == 6, "R03-batching fixed: split and batch both equal 6");
             split.Tick(3); batch.Tick(3);
-            Defect("R03-rounding-release", ss.AttackDamage.ToString(), "5", ss.AttackDamage == 6 && bs.AttackDamage == 5);
+            Check(ss.AttackDamage == 5 && bs.AttackDamage == 5, "R03-rounding-release fixed: both return to 5");
             foreach (var type in new[] { EffectType.APBoost, EffectType.DRBoost })
             {
                 buff.Type = type; var listManager = f.Manager(100, out var ls);
                 listManager.ApplyStack(key, 1, 0); listManager.ApplyStack(key, 1, 0);
                 var list = type == EffectType.APBoost ? ls.ArmorPenetration : ls.DamageReduction;
-                Check(list.Count == 2 && list[0] == 10 && list[1] == 10, type + " baseline stores two 10 entries");
+                double Factor() => (double)typeof(StatsContainer).GetMethod("OwnedPercentageFactor", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(ls, new object[] { type });
+                Check(list.Count == 0 && Math.Abs(Factor() - 0.8) < 1e-12, type + " owned aggregate 20 percent; no duplicate legacy entries");
                 if (type == EffectType.DRBoost)
-                    Defect("DR-separate-truncation", ls.TotalDamageReduction().ToString(), "0.81 before unrelated rounding policy", ls.TotalDamageReduction() == 0);
+                    Defect("DR-separate-truncation", ls.TotalDamageReduction().ToString(), "0.8 before unrelated rounding policy", ls.TotalDamageReduction() == 0);
                 listManager.Tick(3);
-                Defect("R03-" + type + "-release", string.Join(",", list), "empty", list.Count == 2);
+                Check(list.Count == 0 && Factor() == 1, "R03-" + type + "-release fixed: no remaining contribution");
             }
         }
         private static Dictionary<StackKey, StackStatus> States(StackManager manager) => (Dictionary<StackKey, StackStatus>)Get(manager, "_stackStorage");

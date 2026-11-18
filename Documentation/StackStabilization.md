@@ -70,3 +70,13 @@ Projectile 사례는 실제 EnemyEntity를 Caster/수신체로 만들고 실제 
 4. S4: 파괴 정리, 미결 정책 현행 보존, 전체 Cast/Variable/Switch/Stack 회귀 및 수동 전투 검증.
 
 세부 설계와 실행 로그·결과·해시 목록은 프로젝트 작업 공간의 `audit-results/stack-design-plan-2026-11-18.md` 및 `audit-results/stack-s0/`에서 관리합니다.
+
+## S2 완료 — Buff 총량과 소유 기여
+
+- 선행 S0/S1 변경은 `c74e7dd` (`fix(stacks): own CC restrictions and stabilize stack transitions`)로 커밋했습니다. S2는 별도 미커밋 변경입니다. S3는 통합하지 않았습니다.
+- StackManager는 Key별 BuffContribution handle을 보관하고, StatsContainer는 해당 handle의 실제 수치·비율 기여를 보관합니다. 갱신은 총량 N의 새 기여로 교체하고 종료는 기록된 기여만 회수합니다.
+- DamageBoost/ArmorBoost/Haste/Slow는 `Base × Value × N`을 long으로 계산하고 `(값+50)/100`으로 한 번 반올림합니다. 계산·최종 능력치의 int 범위를 벗어나면 적용을 거부합니다. 기존 일반 BuffData 호출은 변경하지 않았습니다.
+- AP/DR은 Key당 `clamp(Value×N,0,100)` 하나의 기여를 소유 목록에서 관리합니다. 기존 public 목록은 일반 BuffData 호출용으로 유지하며, 최종 계산에서 양쪽을 곱셈 합성합니다. 회수는 값 비교가 아닌 handle로 수행하고 100% 해제 시에도 역나눗셈을 하지 않습니다.
+- 준비에서 수치/소유권을 검증하고 새 예약을 확보한 뒤 외부 콜백 없이 상태와 기여를 확정합니다. 실패 시 기존 상태·기여·예약을 보존합니다. 활성 ResetStats는 기록된 소유 기여를 다시 합성하며 Stack 수명은 갱신하지 않습니다.
+- 검증 진입점 `ExitLab.StackBuffChecks.RunPlayMode`는 별도 사본에서 S2·S1·기준 재현 검사를 연속 실행합니다. S2 78개, S1 95개, 기존 EditMode 866개, Cast PlayMode 68개가 통과했습니다. 기준 검사 21개 중 2개는 남은 결함의 형태 확인이므로 정상 동작 통과로 집계하지 않습니다.
+- 남은 결함은 DR 정수 절삭(별도 정책)과 Trigger 만료 payload(S3)입니다. 수동 전투 검증 및 파괴 정리는 S4 범위입니다. 로그와 원본/사본 C# 171개 일치 근거는 `audit-results/stack-s2/`에 있습니다.

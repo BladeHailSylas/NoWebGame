@@ -34,6 +34,7 @@ namespace PlayerScripts.Stack
         private readonly Dictionary<StackKey, StackStatus> _stackStorage = new();
         private readonly Dictionary<StackKey, StackMetadata> _metadata = new();
         private readonly Dictionary<StackKey, ActBridge.CCContribution> _ccContributions = new();
+        private readonly Dictionary<StackKey, StatsContainer.BuffContribution> _buffContributions = new();
 
         public StackManager(Context ctx, VariableStorage storage)
         {
@@ -173,14 +174,7 @@ namespace PlayerScripts.Stack
                 }
                 case BuffDefinition buff:
                 {
-                    // Buff/CC는 Expirable 모델
-                    int durationTick = durationOverride != 0 ? durationOverride : buff.duration;
-
-                    nextDelayId = ReplaceReservation(oldStatus.DelayId, tick, durationTick);
-
-                    _stackStorage[stackKey] = new StackStatus(after, nextDelayId);
-
-                    ResolveApply(stackKey, tick, amount);
+                    ApplyBuff(stackKey, buff, after, tick, durationOverride, oldStatus);
                     return;
                 }
 
@@ -219,12 +213,42 @@ namespace PlayerScripts.Stack
         private bool IsCurrentReservation(KeyValuePair<StackKey, StackStatus> entry) =>
             _stackStorage.TryGetValue(entry.Key, out var current) && current.DelayId.Equals(entry.Value.DelayId);
 
-        // Buff 효과 자체의 원자적 교체는 S2에서 처리합니다. S1에서는 예약 실패 시 옛 예약을 보존합니다.
+        // 효과 없는 일반 정의와 Trigger의 기존 예약을 새 예약 확보 전까지 보존합니다.
         private DelayId ReplaceReservation(DelayId previous, long tick, int duration)
         {
             var next = _scheduler.Start(tick, duration);
             _scheduler.Remove(previous);
             return next;
+        }
+
+        /// <summary>Key 총량의 최종 기여를 교체합니다. 실패 복구에는 산식 재계산을 사용하지 않습니다.</summary>
+        private void ApplyBuff(StackKey key, BuffDefinition definition, int after, long tick,
+            ushort durationOverride, StackStatus previous)
+        {
+            if (after == 0) { RemoveStackCompletely(key); return; }
+            var hadState = _stackStorage.ContainsKey(key);
+            _buffContributions.TryGetValue(key, out var contribution);
+            var change = _context.Stats.PrepareBuffChange(contribution, definition.Type, definition.Value, after);
+            var replacement = _scheduler.Start(tick, durationOverride != 0 ? durationOverride : definition.duration);
+            try
+            {
+                // 이 구간은 외부 콜백이 없습니다. Stats Commit 실패도 아래에서 원상 복구합니다.
+                _buffContributions[key] = change.Handle;
+                _stackStorage[key] = new StackStatus(after, replacement);
+                change.Commit();
+            }
+            catch
+            {
+                change.Rollback();
+                if (contribution != null) _buffContributions[key] = contribution;
+                else _buffContributions.Remove(key);
+                if (hadState) _stackStorage[key] = previous;
+                else _stackStorage.Remove(key);
+                _scheduler.Remove(replacement);
+                throw;
+            }
+            _scheduler.Remove(previous.DelayId);
+            change.Complete();
         }
 
         private void ApplyVariable(StackKey key, VariableDefinition definition, int after, long tick,
@@ -409,6 +433,20 @@ namespace PlayerScripts.Stack
             if (!_stackStorage.TryGetValue(key, out var status))
                 return;
 
+            if (key.def is BuffDefinition)
+            {
+                if (!_buffContributions.TryGetValue(key, out var contribution))
+                    throw new InvalidOperationException("Active Buff has no owned contribution");
+                var change = _context.Stats.PrepareBuffChange(contribution, default, 0, 0);
+                // 준비/Commit 실패 시 기존 수량과 예약을 유지합니다.
+                change.Commit();
+                _buffContributions.Remove(key);
+                _stackStorage.Remove(key);
+                _scheduler.Remove(status.DelayId);
+                change.Complete();
+                return;
+            }
+
             if (key.def is CCDefinition)
             {
                 // 저장된 증표의 종류를 사용하므로 정의 변경이나 중복 종료로 다른 CC를 풀지 않습니다.
@@ -484,10 +522,6 @@ namespace PlayerScripts.Stack
                     // 별도 적용 효과(예: UI, 상태 플래그)가 필요하면 여기서 처리.
                     break;
 
-                case BuffDefinition buff:
-                    _context.Stats.TryApply(new BuffData(buff.Type, buff.Value * amp, buff.displayName));
-                    break;
-
             }
         }
 
@@ -528,12 +562,6 @@ namespace PlayerScripts.Stack
             {
                 case VariableDefinition:
                     // Variable의 "해제 효과"가 필요하다면 여기서 처리 가능.
-                    break;
-
-                case BuffDefinition buff:
-                    // 제거 시점의 Amount를 기준으로 제거(기존 방식 유지)
-                    // 주의: RemoveStackCompletely에서 _stackStorage.Remove 전에 호출되므로 안전.
-                    _context.Stats.TryRemove(new BuffData(buff.Type, buff.Value * _stackStorage[stack].Amount, buff.displayName));
                     break;
 
             }
