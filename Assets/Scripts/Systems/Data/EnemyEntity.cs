@@ -4,6 +4,7 @@ using System.Linq;
 using Characters;
 using JetBrains.Annotations;
 using Moves;
+using Moves.Mechanisms;
 using PlayerScripts.Acts;
 using PlayerScripts.Core;
 using PlayerScripts.Skills;
@@ -39,6 +40,10 @@ namespace Systems.Data
         [SerializeField] private bool logAIDecisions;
         [Tooltip("임시 AI의 선택 조건입니다. 기존 Mechanism의 물리 Mask/명중 필터를 변환하지 않습니다.")]
         [SerializeField] private TargetRelationMask aiTargetRelations = TargetRelationMask.Enemy;
+        [Header("활성화되면 자동으로 Triggerable을 중첩합니다.")]
+        [SerializeField] private bool enableTriggerableStack = false;
+        // Enemy마다 별도 런타임 정의를 소유합니다. 프로젝트 에셋으로 저장하지 않습니다.
+        private TriggerableDefinition _temporaryTriggerableStack;
         private List<VariableDefinition> _characterVariables;
         private Logger _logger;
         private Context _context;
@@ -133,7 +138,15 @@ namespace Systems.Data
             _subscribedTicker = null;
         }
 
-        private void OnDestroy() => _attacker?.Dispose();
+        private void OnDestroy()
+        {
+            try { _attacker?.Dispose(); }
+            finally
+            {
+                try { _stackManager?.Dispose(); }
+                finally { if (_temporaryTriggerableStack) Destroy(_temporaryTriggerableStack); }
+            }
+        }
 
         private void TickHandler(long tick)
         {
@@ -146,6 +159,53 @@ namespace Systems.Data
             else if (_brain != null) StopAI();
             _actBridge.Tick(tick);
             _statsBridge.Tick(tick);
+            if (enableTriggerableStack && tick % 60 == 0)
+            {
+                EnsureTemporaryTriggerableStack();
+                // 요청당 +1 중첩/+1 payload. 큐 방식이므로 다음 정상 Tick에서 처리합니다.
+                ApplyStack(new StackKey(_temporaryTriggerableStack, name, transform), tick,
+                    amount: 1, metadata: new StackMetadata(1));
+            }
+        }
+
+        private void EnsureTemporaryTriggerableStack()
+        {
+            if (_temporaryTriggerableStack) return;
+            var damage = new TemporarySelfDamageMechanism
+            {
+                damageValue = 100,
+                // 알려진 DR 정수 절삭/방어력의 영향을 배제하여 payload 피해를 확인합니다.
+                type = DamageType.Fixed
+            };
+            damage.ConfigureRelativeTargets(TargetRelationMask.Self);
+            _temporaryTriggerableStack = ScriptableObject.CreateInstance<TriggerableDefinition>();
+            _temporaryTriggerableStack.name = "TemporarySelfDamageTrigger";
+            _temporaryTriggerableStack.hideFlags = HideFlags.DontSave;
+            _temporaryTriggerableStack.threshold = 3;
+            _temporaryTriggerableStack.maxStacks = 3;
+            _temporaryTriggerableStack.duration = 180;
+            _temporaryTriggerableStack.effect = new MechanismData
+            {
+                mechanism = damage,
+                mode = TargetMode.TowardsSelf
+            };
+        }
+
+        /// <summary>
+        /// 임시 검증용 Damage입니다. 공통 Trigger의 null Target 계약은 바꾸지 않고,
+        /// 이 예시에서만 자신을 지정한 뒤 실제 DamageMechanism의 피해 처리를 호출합니다.
+        /// </summary>
+        private sealed class TemporarySelfDamageMechanism : DamageMechanism
+        {
+            protected override void ExecuteCore(CastContext ctx)
+            {
+                if (!ctx.Caster || !ctx.Caster.TryGetComponent<EnemyEntity>(out var owner)) return;
+                var before = owner._statsBridge.Stats.Health;
+                var selfContext = new CastContext(ctx.Mech, ctx.Caster, SkillTarget.ForEntity(owner),
+                    ctx.Damage, ctx.Var, ctx.Mode, ctx.Exit, ctx.OriginCastPosition, ctx.Trace, ctx.Source, ctx.SwitchSelection);
+                base.ExecuteCore(selfContext);
+                Debug.Log($"[TemporaryTrigger] {owner.name}: payload={ctx.Damage.Attack}, HP={before}->{owner._statsBridge.Stats.Health}", owner);
+            }
         }
 
         private void StartAI()

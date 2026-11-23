@@ -63,6 +63,10 @@ namespace PlayerScripts.Stats
             Stats.TryApply(data);
         }
 
+        // Stack 전용 경로는 성공/복구 가능한 기여 기록을 그대로 전달합니다.
+        internal StatsContainer.BuffChange PrepareBuffChange(StatsContainer.BuffContribution previous,
+            EffectType type, byte value, int amount) => Stats.PrepareBuffChange(previous, type, value, amount);
+
         public void TryRemove(BuffData data)
         {
             //Debug.Log($"I am removing {data.Name}({data.Type}, {data.Value}%)");

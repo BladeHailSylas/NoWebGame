@@ -161,7 +161,11 @@ namespace PlayerScripts.Core
             _subscribedTicker = null;
         }
 
-        private void OnDestroy() => _attacker?.Dispose();
+        private void OnDestroy()
+        {
+            try { _attacker?.Dispose(); }
+            finally { _stackManager?.Dispose(); }
+        }
 
         private void TickHandler(long tick)
         {

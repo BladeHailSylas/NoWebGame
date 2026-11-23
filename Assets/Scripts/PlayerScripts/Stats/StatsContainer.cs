@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PlayerScripts.Stats
 {
-    public sealed class StatsContainer
+    public sealed partial class StatsContainer
     {
         // ===== Base and Current Stats =====
         public int BaseHealth { get; private set; }
@@ -53,13 +53,15 @@ namespace PlayerScripts.Stats
 
         public void ResetToBase()
         {
+            // 활성 Stack의 기여를 보존합니다. 범위 검증도 상태를 바꾸기 전에 끝냅니다.
+            GetResetBuffStats(out var attack, out var armor, out var speed);
             MaxHealth = BaseHealth;
             Health = MaxHealth;
             MaxMana = BaseMana;
             Mana = MaxMana;
-            Armor = BaseArmor;
-            AttackDamage = BaseAttackDamage;
-            Speed = BaseSpeed;
+            Armor = armor;
+            AttackDamage = attack;
+            Speed = speed;
             Shield = 0;
             SpecialShield = 0;
             IsDead = false;
@@ -154,6 +156,7 @@ namespace PlayerScripts.Stats
             double total = 1;
             foreach (var ap in ArmorPenetration)
                 total *= (1 - ap / 100.0);
+            total *= OwnedPercentageFactor(EffectType.APBoost);
             return 1 - total;
         }
 
@@ -162,6 +165,7 @@ namespace PlayerScripts.Stats
             var total = 1.0;
             foreach (var dr in DamageReduction)
                 total *= (1 - dr / 100.0);
+            total *= OwnedPercentageFactor(EffectType.DRBoost);
 
             // Lower bound to prevent healing from damage
             return (int)Math.Max(0.15, total);
