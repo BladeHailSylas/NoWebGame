@@ -18,7 +18,7 @@ MonoBehaviour:
   baseMana: 100
   baseManaGen: 6
   baseAttack: 12100
-  baseDefense: 0
+  baseDefense: 2000
   baseSpeed: 8000
   CharacterVariables:
   - {fileID: 11400000, guid: bedf8f5819192ee48bf1fa1c7eacfe1d, type: 2}

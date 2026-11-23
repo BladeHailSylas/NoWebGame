@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 3413068668995016357}
   - component: {fileID: 32189647861880344}
   m_Layer: 0
-  m_Name: AreaEntityBase
+  m_Name: AreaEntityBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

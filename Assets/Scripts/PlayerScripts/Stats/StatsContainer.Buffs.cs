@@ -113,6 +113,19 @@ namespace PlayerScripts.Stats
             return total;
         }
 
+        internal void ReleaseBuffsForDisposal(IEnumerable<BuffContribution> contributions)
+        {
+            long attack = AttackDamage, armor = Armor, speed = Speed;
+            foreach (var item in contributions)
+                if (ReferenceEquals(item.Owner, this) && item.Active)
+                { attack -= item.Effect.Attack; armor -= item.Effect.Armor; speed -= item.Effect.Speed; }
+            // 기존 직접 효과 API는 unchecked int 연산입니다. 종료도 그 표현 범위를 유지합니다.
+            AttackDamage = unchecked((int)attack); Armor = unchecked((int)armor); Speed = unchecked((int)speed);
+            foreach (var item in contributions)
+                if (ReferenceEquals(item.Owner, this) && item.Active)
+                { _buffContributions.Remove(item); item.Active = false; item.Effect = default; }
+        }
+
         private void GetResetBuffStats(out int attack, out int armor, out int speed)
         {
             long a = BaseAttackDamage, d = BaseArmor, s = BaseSpeed;

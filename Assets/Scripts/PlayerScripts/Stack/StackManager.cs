@@ -19,7 +19,7 @@ namespace PlayerScripts.Stack
     /// - StackStatus는 (Amount, DelayId)만 가짐
     ///   -> 따라서 Expirable+Periodic을 동시에 갖는 Variable은 이 버전에서 지원하지 않음.
     /// </summary>
-    public class StackManager
+    public class StackManager : IDisposable
     {
         private readonly Context _context;
         public VariableStorage Storage;
@@ -27,6 +27,8 @@ namespace PlayerScripts.Stack
         private List<StackDelta> _resolving = new();
         private List<StackDelta> _collecting = new();
         private bool _processing;
+        private bool _disposed;
+        private readonly HashSet<ConsumptionChange> _consumptionChanges = new();
 
         // 현재 Tick 캐시 (모듈이 "마지막으로 실행된 시점"만 기억)
         private long _currentTick;
@@ -45,17 +47,20 @@ namespace PlayerScripts.Stack
 
         public void EnqueueStack(StackKey stackKey, int amount)
         {
+            if (_disposed) return;
             _collecting.Add(new StackDelta(stackKey, amount));
         }
 
         //Overloading EnqueueStack explicitly to prevent confusion.
         public void EnqueueStack(StackKey stackKey, int amount, StackMetadata metadata)
         {
+            if (_disposed) return;
             _collecting.Add(new StackDelta(stackKey, amount, metadata));
         }
 
         public void EnqueueStack(StackDelta delta)
         {
+            if (_disposed) return;
             _collecting.Add(delta);
         }
 
@@ -67,7 +72,7 @@ namespace PlayerScripts.Stack
         public void Tick(long tick)
         {
             // 외부 콜백이 Tick을 다시 호출해도 처리 중인 버퍼를 교환하지 않습니다.
-            if (_processing) return;
+            if (_disposed || _processing) return;
             if (tick < 0) throw new ArgumentOutOfRangeException(nameof(tick));
             _processing = true;
             try { TickCore(tick); }
@@ -140,6 +145,7 @@ namespace PlayerScripts.Stack
         /// </summary>
         public void ApplyStack(StackKey stackKey, int amount, long tick, ushort durationOverride = 0, StackMetadata metadata = default)
         {
+            if (_disposed) return;
             if (_processing)
             {
                 // 재진입 요청은 다음 정상 Tick에서 처리합니다. 기간 override도 보존합니다.
@@ -320,6 +326,7 @@ namespace PlayerScripts.Stack
 
         public void TryConsume(SwitchVariable sv)
         {
+            if (_disposed) return;
             if (sv.Consumption != null)
             {
                 if (!sv.Consumption.CanConsume || sv.Consumption.Consumed) return;
@@ -333,10 +340,11 @@ namespace PlayerScripts.Stack
 
         public SwitchVariable CaptureVariable(VariableDefinition definition)
         {
+            if (_disposed) return default;
             return Storage.TrySelect(definition, out var key, out var value)
                 ? new SwitchVariable(definition, value.Amount, new VariableConsumption(this, key, value.Amount)) : default;
         }
-        internal bool CanConsumeExact(StackKey key, int amount) => amount > 0 && key.def is VariableDefinition &&
+        internal bool CanConsumeExact(StackKey key, int amount) => !_disposed && amount > 0 && key.def is VariableDefinition &&
             _stackStorage.TryGetValue(key, out var status) && status.Amount >= amount &&
             Storage.TryGetPublic(key, out var visible) && visible.Amount >= amount;
 
@@ -368,6 +376,7 @@ namespace PlayerScripts.Stack
                     if (after == 0) owner.Storage.RemoveStorage(key);
                     else owner.Storage.AddStorage(key, new VariableState(after, tick));
                     owner._stackStorage[key] = new StackStatus(after, IsValidDelay(_replacement) ? _replacement : _before.DelayId);
+                    owner._consumptionChanges.Add(this);
                 }
                 catch { Rollback(); throw; }
             }
@@ -376,6 +385,7 @@ namespace PlayerScripts.Stack
                 if (_finished) return;
                 if (IsValidDelay(_replacement)) _owner._scheduler.Remove(_before.DelayId);
                 _receipt.MarkConsumed(); _finished = true;
+                _owner._consumptionChanges.Remove(this);
             }
             internal void Rollback()
             {
@@ -383,6 +393,14 @@ namespace PlayerScripts.Stack
                 _owner._scheduler.Remove(_replacement);
                 _owner._stackStorage[_receipt.Key] = _before;
                 _owner.Storage.AddStorage(_receipt.Key, _visibleBefore);
+                _finished = true;
+                _owner._consumptionChanges.Remove(this);
+            }
+            internal void DiscardForDisposal()
+            {
+                // 공개 전 보상 작업이 늦게 반환되어도 파괴된 소유자 상태를 복원하지 않습니다.
+                _owner._scheduler.Remove(_before.DelayId);
+                _owner._scheduler.Remove(_replacement);
                 _finished = true;
             }
         }
@@ -394,6 +412,7 @@ namespace PlayerScripts.Stack
         /// </summary>
         public void ConsumeVariable(StackKey key, int consumeAmount, long tick)
         {
+            if (_disposed) return;
             if (consumeAmount <= 0)
                 return;
 
@@ -601,6 +620,24 @@ namespace PlayerScripts.Stack
                 }
             }
             finally { _resolving.Clear(); }
+        }
+
+        /// <summary>파괴 전용 종료입니다. disable은 이 메서드를 호출하지 않고 누적/큐를 보존합니다.</summary>
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true; // 외부에서 남은 참조로 요청해도 다시 누적하지 않습니다.
+            _collecting.Clear(); _resolving.Clear();
+            foreach (var change in _consumptionChanges) change.DiscardForDisposal();
+            _consumptionChanges.Clear();
+            foreach (var status in _stackStorage.Values) _scheduler.Remove(status.DelayId);
+            foreach (var contribution in _ccContributions.Values) _context.Act.ReleaseCC(contribution);
+            // 종류별 제거 순서에서 일시적인 int overflow가 생기지 않도록 전체 기여를 함께 회수합니다.
+            _context.Stats?.Stats.ReleaseBuffsForDisposal(_buffContributions.Values);
+            foreach (var key in _stackStorage.Keys)
+                if (key.def is VariableDefinition) Storage.RemoveStorage(key);
+            _ccContributions.Clear(); _buffContributions.Clear();
+            _metadata.Clear(); _stackStorage.Clear();
         }
     }
 

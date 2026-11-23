@@ -475,6 +475,7 @@ MonoBehaviour:
   randomSeed: 12345
   logAIDecisions: 0
   aiTargetRelations: 4
+  enableTriggerableStack: 0
 --- !u!50 &233214992
 Rigidbody2D:
   serializedVersion: 5
@@ -884,6 +885,7 @@ MonoBehaviour:
   randomSeed: 12345
   logAIDecisions: 0
   aiTargetRelations: 4
+  enableTriggerableStack: 0
 --- !u!58 &573116490
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1443,6 +1445,7 @@ MonoBehaviour:
   randomSeed: 12345
   logAIDecisions: 0
   aiTargetRelations: 4
+  enableTriggerableStack: 1
 --- !u!114 &863693150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2827,6 +2830,7 @@ MonoBehaviour:
   randomSeed: 12345
   logAIDecisions: 0
   aiTargetRelations: 4
+  enableTriggerableStack: 0
 --- !u!114 &2067559226
 MonoBehaviour:
   m_ObjectHideFlags: 0

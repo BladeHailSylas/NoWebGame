@@ -19,7 +19,7 @@ namespace PlayerScripts.Stack
             {
                 if (mechanism == null)
                 { Debug.LogWarning("StackTrigger preparation rejected: MissingMechanism"); return false; }
-                Vector2? origin = caster ? (Vector2)caster.position : (Vector2?)null;
+                Vector2? origin = caster ? (Vector2)caster.position : null;
                 var input = new CastContext(mechanism, caster, null, new DamageData(DamageType.Normal, payload),
                     default, mode, originCastPosition: origin,
                     trace: AttackTrace.Root(caster).Command().Effect(), source: source);

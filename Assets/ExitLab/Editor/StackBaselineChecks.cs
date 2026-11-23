@@ -185,6 +185,14 @@ namespace ExitLab
             var stack = new StackMechanism { stack = cc, amount = 1 };
             var all = TargetRelationMask.Self | TargetRelationMask.Ally | TargetRelationMask.Enemy | TargetRelationMask.Neutral | TargetRelationMask.Unrelated;
             stack.ConfigureRelativeTargets(all);
+            // S4: 같은 실제 명중에 Buff 누적과 Trigger 후속 Chain을 함께 연결합니다.
+            var buff = f.Def<BuffDefinition>(); buff.Type = EffectType.DamageBoost; buff.Value = 10; buff.duration = 120;
+            var buffStack = new StackMechanism { stack = buff }; buffStack.ConfigureRelativeTargets(all);
+            var trigger = f.Def<TriggerableDefinition>(); trigger.threshold = 2; trigger.duration = 120;
+            var triggeredBuff = new StackMechanism { stack = buff }; triggeredBuff.ConfigureRelativeTargets(all);
+            trigger.effect = new MechanismData { mechanism = new DummyMechanism { onHit = new List<MechanismData> {
+                new() { mechanism = triggeredBuff, mode = TargetMode.TowardsSelf } } } };
+            var triggerStack = new StackMechanism { stack = trigger }; triggerStack.ConfigureRelativeTargets(all);
             var key = new StackKey(cc, caster.name, caster.transform);
             for (var hit = 1; hit <= 2; hit++)
             {
@@ -193,7 +201,8 @@ namespace ExitLab
                 go.AddComponent<CircleCollider2D>().radius = 0.1f;
                 var projectile = go.AddComponent<ProjectileEntity>();
                 var mech = new ProjectileMechanism { speed = 60, lifeTick = 30, callbackMode = ExitCallbackMode.Classified,
-                    onHit = new List<MechanismData> { new() { mechanism = stack, mode = TargetMode.TowardsEntity } } };
+                    onHit = new List<MechanismData> { new() { mechanism = stack, mode = TargetMode.TowardsEntity },
+                        new() { mechanism = buffStack, mode = TargetMode.TowardsEntity }, new() { mechanism = triggerStack, mode = TargetMode.TowardsEntity } } };
                 mech.ConfigureRelativeTargets(all & ~TargetRelationMask.Self);
                 projectile.Init(new CastContext(mech, caster.transform, SkillTarget.ForEntity(target), default));
                 for (var step = 0; step < 12 && projectile.UniqueHitCount == 0; step++)
@@ -202,17 +211,20 @@ namespace ExitLab
                 }
                 Check(projectile.UniqueHitCount == 1, "actual Projectile collider hit " + hit);
                 f.Step(3);
-                Check(f.StackCommands == hit && States(stacks)[key].Amount == hit, "Chain Collector -> StackMechanism -> Enemy.Enqueue -> StackManager " + hit);
+                Check(f.StackCommands == hit * 3 + (hit == 2 ? 1 : 0) && States(stacks)[key].Amount == hit, "Chain Collector -> StackMechanism -> Enemy.Enqueue -> StackManager " + hit);
                 Results.Add($"OBSERVE hit={hit};tick={f.Clock.TickCount};amount={States(stacks)[key].Amount};counter={Get(act, "_innoxiousCount")}");
                 // Destroy is deferred in PlayMode; remove the finished fixture before firing again.
                 if (go) Object.DestroyImmediate(go);
             }
             Check(!act.CanAttack && act.CanMove, "Suppressed blocks attack only before expiry");
+            Check(((StatsBridge)Get(target, "_statsBridge")).Stats.AttackDamage == 120, "S4 actual hit Buff stacks calculate total contribution");
+            Check(((StatsBridge)Get(caster, "_statsBridge")).Stats.AttackDamage == 110 && !States(stacks).ContainsKey(new StackKey(trigger, caster.name, caster.transform)), "S4 Trigger consumes then directly emits follow-up Chain to caster");
             f.Step(121);
             Check(!States(stacks).ContainsKey(key), "CC stack actually expired");
             var remaining = (int)Get(act, "_innoxiousCount");
             // S1부터 정상 계약으로 전환합니다. 수정 전 결과는 S0 산출물에 보존했습니다.
             Check(remaining == 0 && act.CanAttack, "STACK-CC-01 fixed: actual Projectile Chain expires with counter=0 and CanAttack=True");
+            Check(((StatsBridge)Get(target, "_statsBridge")).Stats.AttackDamage == 100 && ((StatsBridge)Get(caster, "_statsBridge")).Stats.AttackDamage == 100, "S4 both hit Buff and triggered follow-up expire without residue");
         }
         private static void Characteristics()
         {

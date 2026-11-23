@@ -96,3 +96,17 @@ Manager는 준비 성공 후 해당 예약 ID가 여전히 현재 상태인지 �
 검증 진입점은 분리 사본 전용 `ExitLab.StackTriggerChecks.RunPlayMode`입니다. S3 검사 후 Buff·전이·기준 검사를 연속 실행합니다. `StackTransitionChecks`에는 S3 직접 실행과 기존 루트 Pending/Mana/CD 독립성을 검증하는 6개 항목을 추가했습니다. 자세한 결과는 작업 공간 `audit-results/stack-s3/S3-report.md`에 기록합니다. S4 파괴 정리·수동 전투 검증과 별도 DR 절삭 문제는 남아 있습니다.
 
 S3 46개, S2 78개, 전이·직접 실행 계약 101개, 기존 EditMode 866개, Cast PlayMode 68개가 통과했습니다. 기존 공간 검사의 private `ResolveTrigger` 호출은 공개 `ApplyStack` 검사로 갱신했습니다. 기준 검사 21개 중 남은 결함 형태 확인은 DR 절삭 1개이며, Trigger payload 만료는 정상 기대값으로 전환했습니다. 최종 세 실행 모두 exit 0이고 원본/사본 C# 173개 SHA256이 일치합니다. S3 완료 후 중지하며 S4는 아직 착수하지 않았습니다.
+
+## S4 — 파괴 정리와 통합 검증
+
+S3를 `d1253e0` (`fix(stacks): separate trigger preparation from consumption and execution`)로 커밋한 뒤 진행했습니다. S4 변경은 미커밋 상태입니다.
+
+`StackManager.Dispose`는 한 번만 종료하며 요청·Tick·추가 소비를 차단합니다. 현재/다음 큐, 소유 예약, CC·Buff 기여, Variable 저장 상태, Trigger payload를 정리합니다. 파괴 시 CC 취소 알림이나 Stack 만료 Chain을 다시 발행하지 않습니다. 일반 효과와 다른 예약은 보존합니다. Player/Enemy의 OnDestroy는 Attacker 정리를 시도한 뒤 finally에서 Stack을 정리합니다. OnDisable은 Dispose를 호출하지 않습니다.
+
+열린 Variable 소비 작업의 이전/새 예약도 회수하고 보상을 닫으므로, 뒤늦은 Rollback/Complete가 파괴된 소유자의 상태를 복원하거나 결제로 표시하지 않습니다. Buff는 기록된 소유 기여 전체를 long으로 합산 회수하여 반대 효과의 제거 순서 때문에 일시적으로 int 범위를 넘지 않도록 합니다. 기존 일반 능력치 API의 int 표현은 유지합니다.
+
+분리 사본 전용 `ExitLab.StackLifecycleChecks.RunPlayMode`가 파괴/disable/재진입 종료 검사와 S1~S3 및 실제 Projectile 통합 검사를 실행합니다. 원본/사본 C# 174개 SHA256 일치 근거 및 실행 결과는 `audit-results/stack-s4/`에 보관합니다. 사용자는 수동 전투 검증 미실시를 확인했으며, 이 항목은 자동 검사로 대체 완료 처리하지 않습니다. 보고서와 수동 절차는 `S4-report.md`, `manual-combat-guide.md`에 기록합니다. 영구 sentinel·disable 중 적용·이름 기반 적용자 Key 및 별도 DR 절삭 정책은 변경하지 않습니다.
+
+## 사용자 플레이 테스트 확인 (2026-11-23)
+
+사용자가 Stack 플레이 테스트에서 사용 안내에 기재된 기대 결과를 실제 관측했다고 보고했습니다. 안내 범위의 수동 검증을 완료로 갱신합니다. 앞선 수동 미실시·미커밋 표기는 각 단계 작성 당시의 기록입니다. 이 확인은 별도의 예외 주입·모든 경계 조건 수동 검증을 뜻하지 않습니다. 이번 커밋은 S4와 임시 자기 피해 Trigger 예시, 현재 씬·캐릭터·Area 프리팹 변경을 함께 보존합니다. 무시된 PlayGroundAssets는 추가하지 않습니다. DR 정수 절삭과 미합의 정책은 별도 과제로 유지합니다.
