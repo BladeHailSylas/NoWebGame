@@ -169,94 +169,112 @@ namespace PlayerScripts.Acts
 
         private void TryCast(CastInput input, byte innoxiousCount, long tick)
         {
+            // 검사 → Variable 캡처 → 명령 생성 → Target 준비 → 수락 순서를 유지합니다.
+            if (!TryValidateRootRequest(input, innoxiousCount, tick, out var binding, out var cost, out var cooldown)) return;
+            // 루트 선택 방식은 스킬의 계약입니다. 슬롯의 이전 mode 값은 사용하지 않습니다.
+            var rootMode = binding.skillData.mechanismData.mode;
+            if (input.Target != null && rootMode != TargetMode.TowardsEntity)
+            { RejectCast(input, tick, "UnsupportedExplicitTargetMode"); return; }
+
+            if (!TryCaptureRootVariable(binding.skillData.mechanismData.mechanism, out var variable, out var reason))
+            { RejectCast(input, tick, reason); return; }
+            var command = CreateRootCommand(input, binding, rootMode, variable);
+            if (_collector == null) { RejectCast(input, tick, "MissingCollector"); return; }
+            // 입력 준비 훅이 아니라 실제 입력 처리 경계에서 Target을 확정합니다.
+            if (!_collector.TryPrepareRoot(command, out var prepared, out reason))
+            { RejectCast(input, tick, reason); return; }
+            TryAcceptPreparedRoot(input, tick, prepared, cost, cooldown);
+        }
+
+        private static void RejectCast(CastInput input, long tick, string reason)
+            => AttackLog.Write(input.Trace, "CastRejected", $"reason={reason} slot={input.Slot} tick={tick}");
+
+        // 같은 시점의 기존 검사도 삭제하지 않습니다. 거절 우선순위와 비용 캡처 시점을 보존합니다.
+        private bool TryValidateRootRequest(CastInput input, byte innoxiousCount, long tick,
+            out SkillBinding binding, out int cost, out short cooldown)
+        {
+            binding = default; cost = default; cooldown = default;
             var slot = input.Slot;
-            void Reject(string reason) => AttackLog.Write(input.Trace, "CastRejected", $"reason={reason} slot={slot} tick={tick}");
+            void Reject(string reason) => RejectCast(input, tick, reason);
             var lifetimeReason = ValidateLifetime(input.Generation, input.CollectorGeneration);
-            if (lifetimeReason != null) { Reject(lifetimeReason); return; }
+            if (lifetimeReason != null) { Reject(lifetimeReason); return false; }
             if (innoxiousCount > 0)
             {
                 Reject("CrowdControl");
-                return;
+                return false;
             } 
             
             if (_onCooldown.TryGetValue(slot, out var delayId) && !delayId.Equals(default))
             {
                 Reject("Cooldown");
                 // 쿨타임 중 → 발동 불가
-                return;
+                return false;
             }
 
             if (!_caster || !_context.Owner || !_context.Owner.isActiveAndEnabled || _context.Stats.IsDead)
-            { Reject("CasterUnavailable"); return; }
-            if (_pending.ContainsKey(slot)) { Reject("PendingCast"); return; }
+            { Reject("CasterUnavailable"); return false; }
+            if (_pending.ContainsKey(slot)) { Reject("PendingCast"); return false; }
             if (_lastCommitTick.TryGetValue(slot, out var lastTick) && lastTick == tick)
-            { Reject("AlreadyCommittedThisTick"); return; }
-            if (!_skills.TryGetValue(slot, out var binding))
+            { Reject("AlreadyCommittedThisTick"); return false; }
+            if (!_skills.TryGetValue(slot, out binding))
             {
                 AttackLog.Write(input.Trace, "CastRejected", "reason=MissingBinding");
-                return;
+                return false;
             }
 
-            if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null) { Reject("MissingSkillDataOrMechanism"); return; }
-            var cost = binding.skillData.ManaCost;
-            var cooldown = binding.skillData.mechanismData.mechanism.CooldownTicks;
-            if (cost < 0 || cooldown < 0) { Reject("InvalidCostOrCooldown"); return; }
+            if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null) { Reject("MissingSkillDataOrMechanism"); return false; }
+            cost = binding.skillData.ManaCost;
+            cooldown = binding.skillData.mechanismData.mechanism.CooldownTicks;
+            if (cost < 0 || cooldown < 0) { Reject("InvalidCostOrCooldown"); return false; }
             if (tick < 0 || tick > long.MaxValue - binding.skillData.mechanismData.mechanism.DelayTicks)
-            { Reject("InvalidCommitTick"); return; }
-            if (!_collector || !_collector.CanAcceptRoot(_context.DelayScheduler)) { Reject("CollectorUnavailable"); return; }
-            // 루트 선택 방식은 스킬의 계약입니다. 슬롯의 이전 mode 값은 사용하지 않습니다.
-            var rootMode = binding.skillData.mechanismData.mode;
-            if (input.Target != null && rootMode != TargetMode.TowardsEntity)
-            {
-                Reject("UnsupportedExplicitTargetMode");
-                return;
-            }
+            { Reject("InvalidCommitTick"); return false; }
+            if (!_collector || !_collector.CanAcceptRoot(_context.DelayScheduler)) { Reject("CollectorUnavailable"); return false; }
+            return true;
+        }
 
-            SkillCommand cmd;
-            if (binding.skillData.mechanismData.mechanism is SwitchMechanism switcher)
+        // 선택만 수행합니다. 정확한 수량 소비는 준비 후 수락 단계에 남깁니다.
+        private bool TryCaptureRootVariable(INewMechanism mechanism, out SwitchVariable variable, out string reason)
+        {
+            variable = default; reason = null;
+            if (mechanism is SwitchMechanism switcher)
             {
-                SwitchVariable sv = default;
                 foreach (var sw in switcher.cases ?? Array.Empty<SwitchCase>())
                 {
                     if (sw?.variable == null) continue;
                     // Summon은 Attacker 생성 뒤 Storage를 등록하므로 생성 시점의 null을 캐시하지 않습니다.
-                    if (_context.VariableStorage == null) { Reject("MissingVariableStorage"); return; }
+                    if (_context.VariableStorage == null) { reason = "MissingVariableStorage"; return false; }
                     if (!_context.VariableStorage.Has(sw.variable)) continue;
-                    if (_context.StackManager == null) { Reject("MissingStackManager"); return; }
-                    sv = _context.StackManager.CaptureVariable(sw.variable);
+                    if (_context.StackManager == null) { reason = "MissingStackManager"; return false; }
+                    variable = _context.StackManager.CaptureVariable(sw.variable);
                     break;
                 }
-                cmd = new SkillCommand(
-                    caster: _caster,
-                    mode: rootMode,
-                    castPosition: FixedVector2.FromVector2(_caster.position),
-                    mech: binding.skillData.mechanismData.mechanism,
-                    damage: _context.Stats.DamageData(),
-                    va : sv,
-                    masker: binding.skillData.mechanismData.mechanism.Mask,
-                    target: input.Target == null ? default : SkillTarget.ForEntity(input.Target.Target),
-                    explicitTarget: input.Target, trace: input.Trace,
-                    source: $"Skill:{binding.skillData.name}#{binding.skillData.GetInstanceID()}/slot:{slot}/root"
-                );
             }
-            else {
-                cmd = new SkillCommand(
+            return true;
+        }
+
+        // 일반/Switch 모두 같은 명령을 구성하며 Variable만 다릅니다. DamageData는 지금 캡처합니다.
+        private SkillCommand CreateRootCommand(CastInput input, SkillBinding binding, TargetMode rootMode, SwitchVariable variable)
+        {
+            return new SkillCommand(
                     caster: _caster,
                     mode: rootMode,
                     castPosition: FixedVector2.FromVector2(_caster.position),
                     mech: binding.skillData.mechanismData.mechanism,
                     damage: _context.Stats.DamageData(),
-                    va: default,
+                    va: variable,
                     masker: binding.skillData.mechanismData.mechanism.Mask,
                     target: input.Target == null ? default : SkillTarget.ForEntity(input.Target.Target),
                     explicitTarget: input.Target, trace: input.Trace,
-                    source: $"Skill:{binding.skillData.name}#{binding.skillData.GetInstanceID()}/slot:{slot}/root"
-                );}
-            if (_collector == null) { Reject("MissingCollector"); return; }
-            // Hold/PrepareCast가 아니라 실제 입력 처리 경계에서 Target만 확정합니다.
-            if (!_collector.TryPrepareRoot(cmd, out var prepared, out var reason)) { Reject(reason); return; }
+                    source: $"Skill:{binding.skillData.name}#{binding.skillData.GetInstanceID()}/slot:{input.Slot}/root"
+                );
+        }
+
+        private void TryAcceptPreparedRoot(CastInput input, long tick, SkillCommand prepared, int cost, short cooldown)
+        {
+            var slot = input.Slot;
+            void Reject(string reason) => RejectCast(input, tick, reason);
             // Target 준비 중 취소/비활성화가 재진입했다면 오래된 입력을 Commit하지 않습니다.
-            lifetimeReason = ValidateLifetime(input.Generation, input.CollectorGeneration);
+            var lifetimeReason = ValidateLifetime(input.Generation, input.CollectorGeneration);
             if (lifetimeReason != null) { Reject(lifetimeReason); return; }
             if (!_context.Stats.CanSpendMana(cost)) { Reject("InsufficientMana"); return; }
             SwitchSelection selection = null;
@@ -295,17 +313,19 @@ namespace PlayerScripts.Acts
                 if (hadCooldown) _onCooldown[slot] = previousCooldown; else _onCooldown.Remove(slot);
                 if (hadLast) _lastCommitTick[slot] = previousLast; else _lastCommitTick.Remove(slot);
             }
-            if (!_collector.TryAcceptRoot(committedCommand, ApplyResources, RollbackResources, out reason)) Reject(reason);
+            if (!_collector.TryAcceptRoot(committedCommand, ApplyResources, RollbackResources, out var reason)) Reject(reason);
         }
 
-        public void PrepareCast(SkillSlot slot, byte innoxiousCount)
+        /// <summary>
+        /// 기존 입력 호출자를 위한 호환 진입점입니다. 실제 Cast 준비는 처리 Tick에서 수행합니다.
+        /// </summary>
+        public void PrepareCast(SkillSlot slot, byte innoxiousCount) => NotifyInputPrepared(slot, innoxiousCount);
+
+        /// <summary>
+        /// 입력 준비를 알리는 훅입니다. Target 선택, 자원 소비, 예약 및 Hold 시작은 수행하지 않습니다.
+        /// </summary>
+        private void NotifyInputPrepared(SkillSlot slot, byte innoxiousCount)
         {
-            // TODO:
-            // HoldMechanism 도입 시:
-            // - 쿨타임 중이면 홀드 진입 차단
-            // - 여기서 홀드 시작 처리
-            // 현재는 의도적으로 비워 둔다
-            
             if (innoxiousCount > 0) return;
             if (!_skills.TryGetValue(slot, out var binding))
             {
@@ -313,7 +333,15 @@ namespace PlayerScripts.Acts
                 return;
             }
 
-            _context.Logger.Info($"Preparing {binding.skillData.mechanismData.mechanism.GetType().Name} (cooldown {binding.skillData.mechanismData.mechanism.CooldownTicks}).");
+            // 빈 슬롯의 설정은 진단 후 반환합니다. 실행 요청의 검증은 TryCast가 별도로 담당합니다.
+            if (!binding.skillData || binding.skillData.mechanismData?.mechanism == null)
+            {
+                _context.Logger.Warn($"Cannot prepare input for slot {slot}: MissingSkillDataOrMechanism.");
+                return;
+            }
+
+            var mechanism = binding.skillData.mechanismData.mechanism;
+            _context.Logger.Info($"Preparing {mechanism.GetType().Name} (cooldown {mechanism.CooldownTicks}).");
         }
     }
 }

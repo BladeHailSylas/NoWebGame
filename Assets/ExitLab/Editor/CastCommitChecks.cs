@@ -126,7 +126,7 @@ namespace ExitLab
             Application.logMessageReceived += Observe;
             try
             {
-                ManaAndLocks(); Timing(); SwitchCosts(); FailureAndObservers(); Serialization();
+                PipelineBaseline(); ManaAndLocks(); Timing(); SwitchCosts(); FailureAndObservers(); Serialization();
                 Check(Errors.Count == 0, "no unexpected runtime errors: " + string.Join(";", Errors));
                 Debug.Log($"CastCommitChecks PASS {Results.Count}");
             }
@@ -139,6 +139,52 @@ namespace ExitLab
                 typeof(Ticker).GetProperty("Instance").SetValue(null, oldTickerInstance); DelayScheduler.Instance = oldSchedulerInstance;
                 typeof(CommandCollector).GetProperty("Instance").SetValue(null, oldCollector);
                 File.WriteAllLines(Path.GetFullPath(Path.Combine(Application.dataPath, "../../cast-commit-" + (Application.isPlaying ? "play" : "edit") + ".txt")), Results);
+            }
+        }
+        // P1: P0에서 재현한 빈 설정 예외를 정상 반환 기대값으로 전환합니다.
+        // 입력 준비와 실행 요청 모두 자원을 변경하지 않아야 합니다.
+        private static void PipelineBaseline()
+        {
+            using (var f = new Fixture())
+            {
+                f.Attacker.PrepareCast(SkillSlot.Attack, 0);
+                f.Cast(SkillSlot.Attack);
+                Check(f.Commands.Count == 0 && f.Stats.Stats.Mana == 100 && f.Scheduler.GetAllEntries().Count == 0,
+                    "P0 missing binding rejects without resources");
+            }
+            for (var missing = 0; missing < 3; missing++)
+            {
+                using var f = new Fixture();
+                var skill = f.Bind(MakeProbe(), 20);
+                if (missing == 0) f.Bindings[SkillSlot.Attack] = new SkillBinding();
+                else if (missing == 1) skill.mechanismData = null;
+                else skill.mechanismData.mechanism = null;
+                f.Attacker.PrepareCast(SkillSlot.Attack, 0);
+                Check(f.Commands.Count == 0 && f.Stats.Stats.Mana == 100 &&
+                    f.Scheduler.GetAllEntries().Count == 0 && !f.Attacker.IsPending(SkillSlot.Attack),
+                    $"P1 PrepareCast null configuration {missing} returns without resources");
+                f.Cast(SkillSlot.Attack);
+                Check(f.Commands.Count == 0 && f.Stats.Stats.Mana == 100 &&
+                    f.Scheduler.GetAllEntries().Count == 0 && !f.Attacker.IsPending(SkillSlot.Attack),
+                    $"P0 null configuration {missing} execution request rejects without resources");
+            }
+            using (var f = new Fixture())
+            {
+                var skill = f.Bind(MakeProbe(), 20);
+                skill.mechanismData.mode = TargetMode.TowardsEntity;
+                var prepared = false;
+                // 명시 대상 검증 콜백 중 취소해 준비 전/후 세대 검사의 차이를 검증합니다.
+                var target = new ExplicitAttackTarget(f.Caster, f.Caster, TargetRelationMask.Self, () =>
+                {
+                    prepared = true;
+                    f.Attacker.CancelPending("P0CancelDuringPreparation");
+                    return true;
+                });
+                f.Attacker.EnqueueCast(SkillSlot.Attack, target);
+                f.Attacker.Tick(f.Clock.TickCount, 0);
+                Check(prepared && f.Commands.Count == 0 && f.Stats.Stats.Mana == 100 &&
+                    f.Scheduler.GetAllEntries().Count == 0 && !f.Attacker.IsPending(SkillSlot.Attack),
+                    "P0 cancellation during target preparation rejects stale input before resources");
             }
         }
         private static Probe MakeProbe(int delay = 0, int cooldown = 0)
