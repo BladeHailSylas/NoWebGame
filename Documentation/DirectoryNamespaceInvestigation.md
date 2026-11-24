@@ -142,11 +142,11 @@ Assets/Scripts/
 - [기존 파이프라인 설계](SkillPipelineImprovementDesign.md)
 - [복합 실행 타입 Generals.cs](../Assets/Scripts/Moves/Generals.cs)
 - [복합 계약 Interfaces.cs](../Assets/Scripts/Systems/Data/Interfaces.cs)
-- [공용 Context와 Logger](../Assets/Scripts/PlayerScripts/Core/Context.cs)
-- [Enemy의 공용 모듈 구성](../Assets/Scripts/Systems/Data/EnemyEntity.cs)
-- [Summon의 공용 모듈 구성](../Assets/Scripts/Moves/ObjectEntity/SummonEntityBase.cs)
+- [공용 Context와 Logger](../Assets/Scripts/Combat/Runtime/Context.cs)
+- [Enemy의 공용 모듈 구성](../Assets/Scripts/Entities/Enemy/EnemyEntity.cs)
+- [Summon의 공용 모듈 구성](../Assets/Scripts/Entities/Summon/SummonEntityBase.cs)
 - [namespace 문자열에 의존하는 마이그레이션 도구](../Assets/Editor/TargetMaskMigration.cs)
 - [Shape와 ObjectPrefab 혼합 파일](../Assets/Scripts/Moves/ObjectEntity/EntitySettings.cs)
-- [정의 저장소의 현재 namespace](../Assets/Scripts/Systems/Stacks/StackStorage.cs)
+- [정의 저장소의 현재 namespace](../Assets/Scripts/Combat/Stacks/Registry/StackStorage.cs)
 
 이 보고서의 파일별 판단은 코드 배치와 사용 관계에 관한 정적 조사 결과입니다. 타입 이관 성공, 씬 참조 보존, 성능 개선은 아직 검증한 결과가 아닙니다.

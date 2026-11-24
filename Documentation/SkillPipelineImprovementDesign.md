@@ -4,6 +4,8 @@
 
 최신 상태: 사용자 위임에 따라 실제 Input System 이벤트를 사용하는 PlayMode 기능 검증 30개를 통과했습니다. [위임 검증 보고서](SkillPipelineDelegatedValidation.md)를 참조하세요. 아래 수동 검증 대기 문구는 이전 단계 기록입니다. 화면 표현·실물 장치·원본 씬 배치 확인은 별도이며 B/C 및 Git 작업은 시작하지 않았습니다.
 
+후속 B 진행(2026-11-24): 별도 승인 후 B0/B1 물리 이동을 완료했습니다. [B0/B1 보고서](DirectoryLayoutB0B1Report.md)와 [이동 명세](DirectoryLayoutBManifest.csv)의 B1 목적지가 현재 경로입니다. 아래 A1/P2 당시 경로·진행 상태는 역사적 기록입니다. namespace와 코드 본문은 유지했고 B2 이후 및 C는 미착수입니다.
+
 2026-11-24 후속 결정: 사람의 실제 플레이 검증은 B/C 후 v0.2 최종 통합 시험으로 모읍니다. 각 구조 변경 단계의 컴파일·참조·직렬화·자동 회귀 검증은 그때까지 미루지 않습니다. 파이프라인의 위임 기능 검증은 완료로 유지하며, 최종 플레이 테스트가 완료됐다고 간주하지 않습니다. 사용자 요청에 따라 dev 기반 새 브랜치에 현재 파이프라인 작업을 커밋하고 B 계획서를 별도로 작성합니다. 이전 Git 미실시 표기는 각 단계 당시 기록입니다.
 
 진행 기록: 사용자 승인에 따라 P0 기준 확인과 A1 파일 분리를 완료했습니다. 결과는 [P0/A1 작업 보고서](SkillPipelineP0A1Report.md)에 기록했습니다. 아래 설계의 후속 단계는 아직 실행하지 않았으며 Git 작업도 수행하지 않았습니다.
@@ -236,3 +238,9 @@ PlayGroundAssets는 이번 A1 및 파이프라인 작업에서 계속 보존합�
 - [Cast Commit 계약](CastCommit.md), [Cast 준비 계약](CastPreparation.md), [Cast 회귀 검증](CastRefactorValidation.md), [Stack 안정화 기록](StackStabilization.md).
 
 이번 작성에서는 기존 소스·애셋을 수정하지 않았습니다. PlayGroundAssets는 수정·삭제·이동하거나 Git에 강제 추가하지 않았습니다. 설계 문서는 현재 작업 커밋 이후 작성한 검토용 산출물입니다.
+
+후속 진행(2026-11-24): B2 공용 Context·효과 수신·Stats·Stack 19개 파일의 물리 이동을 완료했습니다. namespace와 런타임 코드는 유지합니다. [B2 완료 보고서](DirectoryLayoutB2Report.md)를 참조하십시오. B3/B4 및 C는 이번 실행에 포함하지 않았습니다.
+
+후속 진행(2026-11-24): B3 행동·이동·Entity·관계·임시 AI 20개 파일의 물리 이동과 정적 검증을 마쳤습니다. Unity는 실행하지 않았으며 import·참조 로드·회귀 검증은 대기합니다. [B3 보고서](DirectoryLayoutB3Report.md)를 참조하십시오. B4 및 C는 이번 실행에 포함하지 않았습니다.
+
+후속 진행(2026-11-24): B4 Mechanism·효과 객체·표시·공간·진단·입력 28개 파일의 이동과 정적 검증을 마쳤습니다. [B4 보고서](DirectoryLayoutB4Report.md)를 참조하십시오. Unity와 Git은 실행하지 않았으며 B3/B4 실행 검증과 B5 통합 검증은 대기합니다.
