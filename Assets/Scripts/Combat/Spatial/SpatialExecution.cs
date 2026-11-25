@@ -1,8 +1,14 @@
-using Moves.Mechanisms;
-using Moves.ObjectEntity;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Moves.ObjectEntity;
+
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Diagnostics.Runtime;
+
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Combat.Spatial
 {
     /// <summary>Target 탐색은 Runner 책임입니다. 직접 실행도 이 경계에서 같은 공간 준비를 수행합니다.</summary>
     public static class SpatialExecution

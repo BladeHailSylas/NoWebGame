@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 13cc4e30249147108873ff264a883568, type: 3}
   m_Name: SkillData 2
-  m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Definitions.SkillData
   mechanismData:
     rid: 1457004252751986767
   ManaCost: 0
@@ -19,7 +19,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1457004252751986767
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986768
@@ -28,7 +28,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 1457004252751986768
-      type: {class: ProjectileMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: ProjectileMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 1
@@ -62,7 +62,7 @@ MonoBehaviour:
         onInterrupted:
         - rid: 5885961816855543995
     - rid: 1457004252751986769
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986770
@@ -71,7 +71,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 1457004252751986770
-      type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: DamageMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -97,7 +97,7 @@ MonoBehaviour:
         onHit: []
         onExpire: []
     - rid: 1457004252751986771
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986772
@@ -106,7 +106,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 1
     - rid: 1457004252751986772
-      type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: AreaMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -132,7 +132,7 @@ MonoBehaviour:
         onExpire: []
         effectPrefab: {fileID: 0}
     - rid: 1457004252751986773
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986774
@@ -141,7 +141,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 1457004252751986774
-      type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: DamageMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -167,7 +167,7 @@ MonoBehaviour:
         onHit: []
         onExpire: []
     - rid: 1457004252751986776
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986777
@@ -176,7 +176,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 1
     - rid: 1457004252751986777
-      type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: AreaMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -202,7 +202,7 @@ MonoBehaviour:
         onExpire: []
         effectPrefab: {fileID: 0}
     - rid: 1457004252751986778
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986779
@@ -211,7 +211,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 1457004252751986779
-      type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: DamageMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -237,7 +237,7 @@ MonoBehaviour:
         onHit: []
         onExpire: []
     - rid: 5885961816855543995
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 5885961816855543996
@@ -246,7 +246,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 1
     - rid: 5885961816855543996
-      type: {class: AreaMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: AreaMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0

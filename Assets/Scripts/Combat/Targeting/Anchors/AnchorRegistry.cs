@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Systems.Anchor
+namespace NoWebGame.Combat.Targeting.Anchors
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Anchor", "Assembly-CSharp", "AnchorRegistry")]
     public sealed class AnchorRegistry : MonoBehaviour
     {
         public static AnchorRegistry Instance;

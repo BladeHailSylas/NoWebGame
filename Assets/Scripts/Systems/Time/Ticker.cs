@@ -1,6 +1,6 @@
 using System;
 
-namespace Systems.Time
+namespace NoWebGame.Systems.Time
 {
     /// <summary>전투 세션의 단조 증가 시계. 지속시간과 달리 절대 Tick은 long으로 전달합니다.</summary>
     public sealed class Ticker

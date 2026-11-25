@@ -1,12 +1,20 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Targeting;
 using System.Collections.Generic;
-using PlayerScripts.Skills;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
+
+
+
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "StackMechanism")]
+    [System.Serializable]
     public class StackMechanism : NewMechanism, INewMechanism
     {
         [Header("Stack")]

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Combat.Spatial
 {
     public enum BasePositionRepresentation { Polar = 0 }
     public enum BasePositionAnchor { CasterPosition = 0, InputTargetPosition = 1, OriginCastPosition = 2, ExitPosition = 3 }

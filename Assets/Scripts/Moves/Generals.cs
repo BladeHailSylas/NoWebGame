@@ -1,17 +1,27 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement.Travel;
 using System;
 using System.Collections.Generic;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using Systems.Data;
-using Systems.Stacks.Definition;
+
+
+
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Moves
 {
     /// <summary>
     /// Encapsulates damage configuration for hitscan or projectile skills.
     /// DamageType Type, int Value, int Attack, double APRatio, double Amplitude, (Optional) Transform Attacker
     /// </summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves", "Assembly-CSharp", "DamageData")]
     public readonly struct DamageData
     {
         public readonly AttackTrace Trace;
@@ -47,6 +57,7 @@ namespace Moves
         void Execute(CastContext ctx);
     }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves", "Assembly-CSharp", "NewMechanism")]
     [Serializable]
     public abstract class NewMechanism : INewMechanism, IRelativeTargeting
     {
@@ -88,6 +99,7 @@ namespace Moves
         public LayerMask Mask => mask;
     }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves", "Assembly-CSharp", "ObjectGeneratingMechanism")]
     public abstract class ObjectGeneratingMechanism
     {
         
@@ -108,6 +120,7 @@ namespace Moves
         TowardsCaster,
         AutoDetection,
     }
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves", "Assembly-CSharp", "SwitchVariable")]
     public readonly struct SwitchVariable
     {
         public readonly VariableConsumption Consumption;
@@ -122,6 +135,7 @@ namespace Moves
         }
     }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves", "Assembly-CSharp", "MechanismData")]
     [Serializable]
     public class MechanismData
     {

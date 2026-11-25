@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
-using Systems.Stacks.Definition;
+using global::NoWebGame.Combat.Stacks.Definitions;
+
 using UnityEditor;
 using UnityEngine;
 

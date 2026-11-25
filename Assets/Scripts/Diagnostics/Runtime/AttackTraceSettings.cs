@@ -1,9 +1,11 @@
+using global::NoWebGame.Diagnostics.Runtime;
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Diagnostics.Runtime
 {
     /// <summary>장면에 하나만 추가하세요. Caster는 Enemy/Player Entity의 루트 Transform입니다.</summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves", "Assembly-CSharp", "AttackTraceSettings")]
+[DisallowMultipleComponent]
     public sealed class AttackTraceSettings : MonoBehaviour
     {
         public bool traceEnabled = true;

@@ -1,11 +1,16 @@
 #nullable enable
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
 using System;
-using PlayerScripts.Skills;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "DetectMechanism")]
+    [System.Serializable]
     public class DetectMechanism : NewMechanism, INewMechanism
     {
         public TargetMode requiredMode;

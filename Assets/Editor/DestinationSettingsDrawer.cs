@@ -1,4 +1,6 @@
-using Moves;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Spatial;
+
 using UnityEditor;
 using UnityEngine;
 

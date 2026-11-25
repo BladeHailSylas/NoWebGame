@@ -1,10 +1,15 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
 using System;
 using System.Collections.Generic;
-using Moves;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace Systems.SubSystems
+namespace NoWebGame.Movement.Travel
 {
     /// <summary>
     /// Projectile/Dash의 공통 이동 구간 검사입니다. 실제 Collider 형상을 Cast하고,

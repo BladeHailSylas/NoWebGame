@@ -1,7 +1,8 @@
 using UnityEngine;
 
-namespace PlayerScripts.Core
+namespace NoWebGame.Entities.Player
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "PlayerScripts.Core", "Assembly-CSharp", "PlayerInfo")]
     public class PlayerInfo : MonoBehaviour
     {
         public ushort id;

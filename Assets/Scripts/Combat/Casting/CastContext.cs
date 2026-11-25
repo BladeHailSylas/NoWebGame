@@ -1,7 +1,12 @@
-using PlayerScripts.Skills;
+using global::NoWebGame.Moves;
+
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Movement.Travel;
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Combat.Casting
 {
     /// <summary>
     /// INewParams params, Transform Caster, Transform Target, TargetMode Mode, DamageData Damage, (Optional) SwitchVariable Var

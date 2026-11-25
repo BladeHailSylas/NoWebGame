@@ -1,11 +1,18 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
 using System;
-using Moves;
-using PlayerScripts.Acts;
-using PlayerScripts.Skills;
-using Systems.Data;
+
+
+
+
 using UnityEngine;
 
-namespace Systems.SubSystems
+namespace NoWebGame.Prototypes.Enemy
 {
     /// <summary>경로 탐색 없이 매 N틱에 공격 또는 8방향 배회를 선택하는 검증용 AI입니다.</summary>
     public sealed class TemporaryEnemyBrain

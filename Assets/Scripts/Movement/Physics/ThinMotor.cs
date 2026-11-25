@@ -1,9 +1,13 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
 using System;
-using Moves;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace Systems.SubSystems
+namespace NoWebGame.Movement.Physics
 {
     /// <summary>투사체의 Rigidbody 설정과 공통 이동 검사를 연결합니다.</summary>
     public sealed class ThinMotor

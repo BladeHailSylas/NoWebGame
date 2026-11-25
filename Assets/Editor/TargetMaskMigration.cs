@@ -1,3 +1,5 @@
+using global::NoWebGame.Moves;
+using global::NoWebGame.Entities.Relations;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,8 +7,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using Moves;
-using Systems.Data;
+
+
 using UnityEditor;
 using UnityEngine;
 
@@ -63,9 +65,9 @@ namespace Editor
                 var name = type.Groups["class"].Value;
                 var ns = type.Groups["ns"].Value;
                 if (string.IsNullOrEmpty(name)) return block; // 빈 관리 참조는 대체하지 않습니다.
-                var resolved = System.Type.GetType($"{ns}.{name}, {type.Groups["asm"].Value}", false);
+                var resolved = NamespaceTypeMap.Resolve(ns, name, type.Groups["asm"].Value);
                 var isMechanism = resolved != null && typeof(INewMechanism).IsAssignableFrom(resolved);
-                if (!isMechanism && ns != "Moves.Mechanisms") return block;
+                if (!isMechanism && !NamespaceTypeMap.IsMechanismNamespace(ns)) return block;
                 recognized++;
                 var row = new Row { Path = path, Reference = match.Groups["rid"].Value, Type = name, Status = "REVIEW", Reason = "Unsupported or missing Mechanism type" };
                 rows.Add(row);
@@ -106,7 +108,7 @@ namespace Editor
                 mask = Mask(block, "mask");
                 return block.Insert(mask.Index + mask.Length, additions);
             });
-            if (Regex.Matches(text, @"ns: Moves.Mechanisms[,}]").Count > recognized)
+            if (Regex.Matches(text, @"ns: (?:Moves\.Mechanisms|NoWebGame\.Combat\.Mechanisms)[,}]").Count > recognized)
                 rows.Add(new Row { Path = path, Status = "REVIEW", Reason = "Unsupported managed-reference YAML layout" });
             return new FilePlan { Path = path, Before = text, After = after, Hash = Hash(text) };
         }

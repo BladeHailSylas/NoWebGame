@@ -1,22 +1,35 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Stacks;
-using Systems.Data;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
+
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -141,9 +154,9 @@ namespace ExitLab
                 var storage = new VariableStorage(); var manager = new StackManager(context, storage);
                 finite.duration = 3; periodic.isPeriodic = true; periodic.periodTick = 2; periodic.maxStacks = 2;
                 permanent.duration = 65535;
-                finite.exclusiveGroup = Array.Empty<Systems.Stacks.ExclusiveGroups.ExclusiveGroup>();
-                periodic.exclusiveGroup = Array.Empty<Systems.Stacks.ExclusiveGroups.ExclusiveGroup>();
-                permanent.exclusiveGroup = Array.Empty<Systems.Stacks.ExclusiveGroups.ExclusiveGroup>();
+                finite.exclusiveGroup = Array.Empty<global::NoWebGame.Combat.Stacks.Definitions.ExclusiveGroup>();
+                periodic.exclusiveGroup = Array.Empty<global::NoWebGame.Combat.Stacks.Definitions.ExclusiveGroup>();
+                permanent.exclusiveGroup = Array.Empty<global::NoWebGame.Combat.Stacks.Definitions.ExclusiveGroup>();
                 var finiteKey = new StackKey(finite); var periodicKey = new StackKey(periodic); var permanentKey = new StackKey(permanent);
                 manager.ApplyStack(finiteKey, 1, start); manager.ApplyStack(periodicKey, 1, start); manager.ApplyStack(permanentKey, 1, start);
                 manager.Tick(start + 2);

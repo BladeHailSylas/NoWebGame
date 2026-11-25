@@ -1,22 +1,38 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Interaction;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Systems.Time;
 using System.Collections.Generic;
-using Characters;
-using JetBrains.Annotations;
-using Moves.Mechanisms;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
-using UnityEngine;
-using Logger = PlayerScripts.Core.Logger;
-using Time = Systems.Time;
 
-namespace Moves.ObjectEntity
+using JetBrains.Annotations;
+
+
+
+
+
+
+
+
+
+
+using UnityEngine;
+using Logger = global::NoWebGame.Combat.Runtime.Logger;
+using Time = global::NoWebGame.Systems.Time;
+
+namespace NoWebGame.Entities.Summon
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "SummonEntityBase")]
     public abstract class SummonEntityBase : Entity
     {
         [Header("Configuration")]
@@ -64,7 +80,7 @@ namespace Moves.ObjectEntity
             _mover = new Mover(_context, _statsBridge, rb, col);
             _attacker = new Attacker(_context, transform, BuildSkillDictionary(), commandCollector);
             _actBridge = new ActBridge(_mover, _attacker);
-            _context.RegisterScheduler(Time.Time.DelayScheduler);
+            _context.RegisterScheduler(global::NoWebGame.Systems.Time.Time.DelayScheduler);
             _context.RegisterStats(_statsBridge);
             _context.RegisterAct(_actBridge);
             _storage = new VariableStorage();
@@ -88,9 +104,9 @@ namespace Moves.ObjectEntity
         {
             _attacker?.Resume();
             if (_subscribedTicker != null) return;
-            if (Time.Time.Ticker != null && _subscribedTicker == null)
+            if (global::NoWebGame.Systems.Time.Time.Ticker != null && _subscribedTicker == null)
             {
-                _subscribedTicker = Time.Time.Ticker;
+                _subscribedTicker = global::NoWebGame.Systems.Time.Time.Ticker;
                 _subscribedTicker.OnTick += TickHandler;
             }
             else

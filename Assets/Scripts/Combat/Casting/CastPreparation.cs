@@ -1,7 +1,12 @@
-using Moves;
-using Moves.Mechanisms;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
 
-namespace PlayerScripts.Skills
+
+
+
+namespace NoWebGame.Combat.Casting
 {
     public enum CastPreparationState
     {

@@ -1,8 +1,9 @@
+using global::NoWebGame.Entities.Core;
 using System;
-using Systems.Data;
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Combat.Targeting
 {
     public enum TargetKind { Unresolved = 0, Entity = 1, Position = 2 }
 

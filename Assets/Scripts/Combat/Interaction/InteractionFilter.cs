@@ -1,12 +1,19 @@
-using Moves;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks.Instances;
-using Systems.SubSystems;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
+
+
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Core
+namespace NoWebGame.Combat.Interaction
 {
     public class InteractionFilter
     {

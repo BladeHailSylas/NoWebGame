@@ -1,10 +1,14 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
 using System;
-using Moves;
-using Systems.Data;
-using Systems.SubSystems;
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Skills
+namespace NoWebGame.Combat.Targeting
 {
     /// <summary>
     /// AI가 선택한 루트 공격 대상의 요청별 스냅샷입니다.

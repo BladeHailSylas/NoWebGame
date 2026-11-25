@@ -1,10 +1,13 @@
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Diagnostics.Runtime;
 using System;
 using System.Collections.Generic;
-using Moves;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Stats
+namespace NoWebGame.Combat.Stats
 {
     public sealed partial class StatsContainer
     {
@@ -167,8 +170,9 @@ namespace PlayerScripts.Stats
                 total *= (1 - dr / 100.0);
             total *= OwnedPercentageFactor(EffectType.DRBoost);
 
-            // Lower bound to prevent healing from damage
-            return (int)Math.Max(0.15, total);
+            // 잔여 피해 배율은 소수를 유지합니다. 정수 피해 변환은 ApplyDamage에서만 수행합니다.
+            // 여러 DR의 곱셈 합성 후 최소 15%의 피해가 남도록 제한합니다.
+            return Math.Max(0.15, total);
         }
 
         // ===== Regeneration =====

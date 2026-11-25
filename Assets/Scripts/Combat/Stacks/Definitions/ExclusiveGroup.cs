@@ -1,8 +1,9 @@
 using UnityEngine;
 
-namespace Systems.Stacks.ExclusiveGroups
+namespace NoWebGame.Combat.Stacks.Definitions
 {
-    [CreateAssetMenu(menuName="Variables/ExclusiveGroup")]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks.ExclusiveGroups", "Assembly-CSharp", "ExclusiveGroup")]
+[CreateAssetMenu(menuName="Variables/ExclusiveGroup")]
     public class ExclusiveGroup : ScriptableObject
     {
         public ushort groupId;

@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
-using Moves;
-using Systems.Data;
-using Systems.Stacks.Definition;
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using System.Collections.Generic;
+
+
+
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Characters
+namespace NoWebGame.Characters
 {
-	[System.Serializable]
+	[UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Characters", "Assembly-CSharp", "SkillBinding")]
+    [System.Serializable]
 	public struct SkillBinding
 	{
 		public SkillSlot slot;
@@ -16,7 +21,8 @@ namespace Characters
 		public SkillData skillData;
 	}
 
-	[CreateAssetMenu(menuName = "Game/Characters/Spec")]
+	[UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Characters", "Assembly-CSharp", "CharacterSpec")]
+[CreateAssetMenu(menuName = "Game/Characters/Spec")]
 	public class CharacterSpec : ScriptableObject
 	{
 		public string displayName;

@@ -1,9 +1,12 @@
+using GameTime = global::NoWebGame.Systems.Time.Time;
+using global::NoWebGame.Systems.Time;
 using System.Collections;
 using UnityEngine;
 
-namespace Systems.Time
+namespace NoWebGame.Systems.Time
 {
-    [DefaultExecutionOrder(-80)]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Time", "Assembly-CSharp", "TickerRunner")]
+[DefaultExecutionOrder(-80)]
     [DisallowMultipleComponent]
     public class TickerRunner : MonoBehaviour
     {
@@ -23,11 +26,11 @@ namespace Systems.Time
             _owner = this;
             _ticker = new Ticker();
             _scheduler = new DelayScheduler();
-            Time.Ticker = _ticker;
-            Time.DelayScheduler = _scheduler;
+            GameTime.Ticker = _ticker;
+            GameTime.DelayScheduler = _scheduler;
             Ticker.Instance = _ticker;
             DelayScheduler.Instance = _scheduler;
-            Time.Initialize();
+            GameTime.Initialize();
         }
 
         private void OnEnable()
@@ -46,7 +49,7 @@ namespace Systems.Time
         private void OnDestroy()
         {
             if (_owner != this) return;
-            Time.Release(_ticker, _scheduler);
+            GameTime.Release(_ticker, _scheduler);
             _owner = null;
         }
 

@@ -1,15 +1,25 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Movement.Physics;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
 using System.Collections.Generic;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stats;
-using Systems.Anchor;
-using Systems.Data;
-using Systems.SubSystems;
+
+
+
+
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Acts
+namespace NoWebGame.Movement
 {
     /// <summary>
     /// Handles locomotion and vulnerability logic for the player character. The

@@ -1,24 +1,35 @@
 #if UNITY_EDITOR
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Entities.Player;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Characters;
-using PlayerScripts.Core;
+
+
 using UnityEngine.SceneManagement;
-using Moves;
-using Moves.Mechanisms;
-using Moves.ObjectEntity;
-using PlayerScripts.Skills;
-using PlayerScripts.Acts;
-using Systems.Data;
-using Systems.SubSystems;
-using Systems.Time;
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {

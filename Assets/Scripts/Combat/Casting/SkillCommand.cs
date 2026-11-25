@@ -1,9 +1,15 @@
+using global::NoWebGame.Moves;
+
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
 using System;
-using PlayerScripts.Skills;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Combat.Casting
 {
     public readonly struct SkillCommand : IEquatable<SkillCommand>
     {

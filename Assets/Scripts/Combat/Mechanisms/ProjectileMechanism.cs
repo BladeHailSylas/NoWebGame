@@ -1,12 +1,17 @@
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Movement.Travel;
 using System;
 using System.Collections.Generic;
-using Moves.ObjectEntity;
-using PlayerScripts.Skills;
+
+
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "ProjectileMechanism")]
     [Serializable]
     public class ProjectileMechanism : NewMechanism, INewMechanism
     {

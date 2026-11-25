@@ -1,9 +1,11 @@
-﻿using System.Numerics;
-using Moves;
-using Moves.Effects.Definitions;
-using Moves.Mechanisms;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Casting;
+using System.Numerics;
 
-namespace PlayerScripts.Skills
+
+
+
+namespace NoWebGame.Combat.Presentation
 {
     public interface IEffectDisplayer
     {

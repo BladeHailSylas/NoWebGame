@@ -1,10 +1,15 @@
+using global::NoWebGame.Entities.Summon;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
 using System.Collections.Generic;
-using Moves.ObjectEntity;
-using PlayerScripts.Skills;
+
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "SummonMechanism")]
+    [System.Serializable]
     public class SummonMechanism : NewMechanism, INewMechanism
     {
         [Header("Time")]

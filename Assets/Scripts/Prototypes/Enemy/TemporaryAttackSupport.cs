@@ -1,10 +1,14 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Targeting;
 using System.Collections.Generic;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Skills;
 
-namespace Systems.SubSystems
+
+
+
+
+namespace NoWebGame.Prototypes.Enemy
 {
     /// <summary>임시 AI가 처리하지 못하는 재탐색/분기 스킬은 커서로 실행하지 않고 설정 단계에서 거부합니다.</summary>
     public static class TemporaryAttackSupport

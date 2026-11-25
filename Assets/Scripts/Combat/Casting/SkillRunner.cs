@@ -1,8 +1,13 @@
-﻿using Moves;
-using Moves.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Presentation;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Skills
+namespace NoWebGame.Combat.Casting
 {
     public class SkillRunner
     {

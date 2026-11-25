@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace Moves.Effects.Definitions
+namespace NoWebGame.Combat.Presentation
 {
-    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Effects.Definitions", "Assembly-CSharp", "AreaEffectEntity")]
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class AreaEffectEntity : MonoBehaviour
     {
         [SerializeField] private float lifetime = 0.3f;

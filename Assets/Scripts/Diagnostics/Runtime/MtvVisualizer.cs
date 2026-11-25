@@ -1,13 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace Debuggers
+namespace NoWebGame.Diagnostics.Runtime
 {
     /// <summary>
     /// 임의 위치(현 위치 또는 previewPosition)에서 벽과의 평균 법선/MTV를 구해 시각화합니다.
     /// - Projectile/Teleport 프리뷰/Player 센서 디버깅 등 범용.
     /// - 위치를 바꾸지 않으며, 샘플링만 수행.
     /// </summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Debuggers", "Assembly-CSharp", "NormalMtvVisualizer2D")]
+[DisallowMultipleComponent]
     public sealed class NormalMtvVisualizer2D : MonoBehaviour
     {
         [Header("Probe")]

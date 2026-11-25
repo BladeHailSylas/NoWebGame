@@ -1,8 +1,10 @@
-using Systems.Data;
+using global::NoWebGame.Systems.Data;
+
 using UnityEngine;
 
-namespace Moves.ObjectEntity
+namespace NoWebGame.Moves.ObjectEntity
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "ObjectPrefab")]
     public abstract class ObjectPrefab : MonoBehaviour
     {
         public new string name;
@@ -25,6 +27,8 @@ namespace Moves.ObjectEntity
     }
 
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "CircleArea")]
+    [System.Serializable]
     public class CircleArea : IAreaShapes
     {
         public FixedVector2 CenterCoordinate { get; private set; }
@@ -36,6 +40,8 @@ namespace Moves.ObjectEntity
         }
     }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "BoxArea")]
+    [System.Serializable]
     public class BoxArea : IBoxLikeArea
     {
         public FixedVector2 CenterCoordinate { get; private set; }
@@ -57,6 +63,8 @@ namespace Moves.ObjectEntity
             CenterCoordinate = new FixedVector2(center);
         }
     }
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "LaserArea")]
+    [System.Serializable]
     public class LaserArea : IBoxLikeArea
     {
         public int Width;

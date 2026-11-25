@@ -1,9 +1,11 @@
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Entities.Core;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using Moves.ObjectEntity;
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -80,7 +82,7 @@ namespace ExitLab
                 if (harness.coordinateTarget.GetComponentInChildren<Collider2D>(true)) throw new InvalidOperationException("빈 목표에 Collider 존재");
                 if (!harness.entityTarget.GetComponent<ExitLabEntity>() || !harness.entityTarget.GetComponent<Collider2D>()) throw new InvalidOperationException("같은 객체 목표 구성 오류");
                 var child = harness.childColliderTarget.GetComponentInChildren<Collider2D>(true);
-                if (!child || child.GetComponent<Systems.Data.Entity>() || !harness.childColliderTarget.GetComponent<ExitLabEntity>()) throw new InvalidOperationException("자식 Collider 목표 구성 오류");
+                if (!child || child.GetComponent<global::NoWebGame.Entities.Core.Entity>() || !harness.childColliderTarget.GetComponent<ExitLabEntity>()) throw new InvalidOperationException("자식 Collider 목표 구성 오류");
                 if (LayerMask.NameToLayer("Foe") != 7 || LayerMask.NameToLayer("Walls&Obstacles") != 3) throw new InvalidOperationException("레이어 불일치");
                 var prefab = harness.projectilePrefab;
                 var rb = prefab.GetComponent<Rigidbody2D>();

@@ -1,7 +1,8 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
 using System.Collections.Generic;
-using Systems.Stacks.Definition;
 
-namespace Systems.Stacks.Instances
+
+namespace NoWebGame.Combat.Stacks.Registry
 {
     public static class StackStorage
     {

@@ -1,16 +1,24 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Presentation;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Stack;
-using Systems.Time;
-using UnityEngine;
-using Time = Systems.Time.Time;
 
-namespace PlayerScripts.Skills
+
+
+
+using UnityEngine;
+using Time = global::NoWebGame.Systems.Time.Time;
+
+namespace NoWebGame.Combat.Casting
 {
     /// <summary>루트 Commit과 Continuation 수집을 분리하며, 명령별 실패와 취소를 일회성으로 정리합니다.</summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "PlayerScripts.Skills", "Assembly-CSharp", "CommandCollector")]
     public class CommandCollector : MonoBehaviour, ICommandPort
     {
         private SkillRunner _runner;
@@ -93,7 +101,7 @@ namespace PlayerScripts.Skills
             if (cmd.Commit != null) return Reject(cmd, "RootRequiresCommitAdmission");
             if (!_ready) return Reject(cmd, "CollectorUnavailable");
             if (!cmd.Caster || cmd.Mech == null) return Reject(cmd, "MissingCasterOrMechanism");
-            StackManager.ConsumptionChange consumption = null;
+            global::NoWebGame.Combat.Stacks.Runtime.StackManager.ConsumptionChange consumption = null;
             var added = false;
             try
             {

@@ -1,12 +1,14 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
 using System.Collections.Generic;
 using System.Linq;
-using Moves;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Stacks.ExclusiveGroups;
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Stack
+namespace NoWebGame.Combat.Stacks.Runtime
 {
     public class VariableStorage
     {

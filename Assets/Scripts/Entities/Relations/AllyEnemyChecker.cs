@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Systems.SubSystems
+namespace NoWebGame.Entities.Relations
 {
     public static class AllyEnemyChecker
     {

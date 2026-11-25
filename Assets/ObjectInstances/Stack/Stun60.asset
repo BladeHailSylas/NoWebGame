@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aaa80c4b4ec24a849201d64e0233debe, type: 3}
   m_Name: Stun60
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Stacks.Definition.CCDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Stacks.Definitions.CCDefinition
   id: e13c8802a500b5948a0dd41fd5dd5059
   displayName: "\uAE30\uC808"
   maxStacks: 1000000

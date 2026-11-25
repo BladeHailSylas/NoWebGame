@@ -1,8 +1,11 @@
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Stack;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Stacks.Runtime;
 
-namespace PlayerScripts.Skills
+
+
+
+namespace NoWebGame.Combat.Casting
 {
     /// <summary>큐 수락 때 선택한 분기와 소비 정책을 고정합니다. Variable 자료는 CastContext.Var에 남습니다.</summary>
     public sealed class SwitchSelection
@@ -22,7 +25,7 @@ namespace PlayerScripts.Skills
         internal bool CanAccept(SwitchVariable variable) => !Consume || !variable.Variable ||
             (variable.Consumption != null && variable.Consumption.Key.def == variable.Variable &&
              variable.Consumption.Amount == variable.Amount && variable.Consumption.CanConsume);
-        internal StackManager.ConsumptionChange Begin(SwitchVariable variable, long tick)
+        internal global::NoWebGame.Combat.Stacks.Runtime.StackManager.ConsumptionChange Begin(SwitchVariable variable, long tick)
             => Consume && variable.Variable ? variable.Consumption.Begin(tick) : null;
     }
 }

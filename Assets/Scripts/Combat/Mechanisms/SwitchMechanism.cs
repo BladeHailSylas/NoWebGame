@@ -1,10 +1,14 @@
-using PlayerScripts.Skills;
-using Systems.Anchor;
-using Systems.Data;
-using Systems.Stacks.Definition;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Diagnostics.Runtime;
+
+
+
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
     /// <summary>
     /// - CastContext에 포함된 Variable은 최대 하나 (Exclusive 정책)
@@ -13,6 +17,8 @@ namespace Moves.Mechanisms
     /// - 첫 번째로 일치하는 FollowUp을 실행한다.
     /// - 어떤 것도 일치하지 않으면 defaultFollowUp을 실행한다.
     /// </summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "SwitchMechanism")]
+    [System.Serializable]
     public class SwitchMechanism : NewMechanism, INewMechanism
     {
         // 부정형 저장: 옛 SerializeReference에 필드가 없으면 false이므로 기존 소비 동작을 유지합니다.
@@ -70,6 +76,7 @@ namespace Moves.Mechanisms
         }
     }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "SwitchCase")]
     [System.Serializable]
     public class SwitchCase
     {

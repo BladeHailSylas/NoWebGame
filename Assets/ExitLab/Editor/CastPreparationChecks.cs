@@ -1,23 +1,39 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Input;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Utils;
+
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -94,7 +110,7 @@ namespace ExitLab
                 _two = Entity("two", "You", Vector2.right * 2);
                 _skill = ScriptableObject.CreateInstance<SkillData>(); Owned.Add(_skill);
                 var spec = ScriptableObject.CreateInstance<CharacterSpec>(); Owned.Add(spec);
-                var context = new Context(_caster, _caster.gameObject, _caster.transform, resolver, _collector, spec, new PlayerScripts.Core.Logger("preparation test"));
+                var context = new Context(_caster, _caster.gameObject, _caster.transform, resolver, _collector, spec, new global::NoWebGame.Combat.Runtime.Logger("preparation test"));
                 context.RegisterScheduler(GameTime.DelayScheduler);
                 context.RegisterStats(new StatsBridge(context, new BaseStatsContainer(100, 0, 0, 0, 100, 0, 0)));
                 context.RegisterVariableStorage(new VariableStorage());

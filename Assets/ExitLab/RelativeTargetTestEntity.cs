@@ -1,9 +1,16 @@
 #if UNITY_EDITOR
-using Moves;
-using PlayerScripts.Acts;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Movement;
+
+
+
+
+
 using UnityEngine;
 
 namespace ExitLab

@@ -1,10 +1,12 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Systems.Stacks.Definition
+namespace NoWebGame.Combat.Stacks.Definitions
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks.Definition", "Assembly-CSharp", "ReadOnlyFieldAttribute")]
     public class ReadOnlyFieldAttribute : PropertyAttribute { }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks.Definition", "Assembly-CSharp", "StackDefinition")]
     public abstract class StackDefinition : ScriptableObject
     {
         [SerializeField, ReadOnlyField] private string id; // GUID 기반
@@ -36,6 +38,7 @@ namespace Systems.Stacks.Definition
         Accumulating,
     }
 
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks.Definition", "Assembly-CSharp", "StackMetadata")]
     public readonly struct StackMetadata
     {
         public readonly int Metadata;

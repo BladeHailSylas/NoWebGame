@@ -1,11 +1,23 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Interaction;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement.Travel;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Skills;
-using PlayerScripts.Stats;
-using Systems.Data;
+
+
+
+
+
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -55,11 +67,11 @@ namespace ExitLab
                 stats.ReduceStat(ReduceType.Health, new DamageData(DamageType.Fixed, 100, 100, trace: effect.Damage()));
                 Check(stats.Health == 900 && stats.Shield == 50 && lines.Exists(x => x.Contains("shield=150->50") && x.Contains("healthDelta=0")), "shield absorbs without HP loss");
                 var victim = go.AddComponent<TemporaryAITarget>();
-                var context = new PlayerScripts.Core.Context(victim, go, go.transform, null, null, null, null);
+                var context = new global::NoWebGame.Combat.Runtime.Context(victim, go, go.transform, null, null, null, null);
                 var bridge = new StatsBridge(context, new BaseStatsContainer(1000, 0, 0, 0, 100, 0, 0));
-                var storage = new PlayerScripts.Stack.VariableStorage();
-                var stack = new PlayerScripts.Stack.StackManager(context, storage);
-                var policy = new PlayerScripts.Core.InteractionFilter(victim, bridge, stack);
+                var storage = new global::NoWebGame.Combat.Stacks.Runtime.VariableStorage();
+                var stack = new global::NoWebGame.Combat.Stacks.Runtime.StackManager(context, storage);
+                var policy = new global::NoWebGame.Combat.Interaction.InteractionFilter(victim, bridge, stack);
                 policy.FilterDamage(new DamageData(DamageType.Fixed, 100, 100, trace: effect.Damage()));
                 Check(bridge.Stats.Health == 1000 && lines.Exists(x => x.Contains("reason=DamagePolicyDenied")), "missing neutral permission denies damage");
                 policy.FilterDamage(new DamageData(DamageType.Fixed, 100, 100, attacker: go.transform, trace: effect.Damage()));

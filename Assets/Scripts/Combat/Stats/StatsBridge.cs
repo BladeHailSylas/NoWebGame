@@ -1,9 +1,13 @@
-using Moves;
-using PlayerScripts.Core;
-using Systems.Data;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Diagnostics.Runtime;
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Stats
+namespace NoWebGame.Combat.Stats
 {
     /// <summary>
     /// Maintains the player's runtime statistics and exposes helper methods for
@@ -64,7 +68,7 @@ namespace PlayerScripts.Stats
         }
 
         // Stack 전용 경로는 성공/복구 가능한 기여 기록을 그대로 전달합니다.
-        internal StatsContainer.BuffChange PrepareBuffChange(StatsContainer.BuffContribution previous,
+        internal global::NoWebGame.Combat.Stats.StatsContainer.BuffChange PrepareBuffChange(global::NoWebGame.Combat.Stats.StatsContainer.BuffContribution previous,
             EffectType type, byte value, int amount) => Stats.PrepareBuffChange(previous, type, value, amount);
 
         public void TryRemove(BuffData data)

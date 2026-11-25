@@ -1,10 +1,12 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Systems.Time;
 using System;
 using JetBrains.Annotations;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
 using UnityEngine;
 
-namespace Systems.Stacks
+namespace NoWebGame.Combat.Stacks.Runtime
 {
     public readonly struct StackKey : IEquatable<StackKey>
     {

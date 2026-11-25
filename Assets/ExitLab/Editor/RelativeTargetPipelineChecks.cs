@@ -1,26 +1,43 @@
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Entities.Summon;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Moves.ObjectEntity;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Interaction;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Moves;
-using Moves.Mechanisms;
-using Moves.ObjectEntity;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.SubSystems;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -313,7 +330,7 @@ namespace ExitLab
             Damage(caster.transform); Check(stats.Stats.Health == 10000, "Enemy receiver permission required");
             foreach (var name in new[] { "AllowEnemyDamage", "AllowNeutralDamage", "AllowOwnerDamage" })
             {
-                var def = ScriptableObject.CreateInstance<VariableDefinition>(); f.Owned.Add(def); def.name = name; def.displayName = name; def.exclusiveGroup = Array.Empty<Systems.Stacks.ExclusiveGroups.ExclusiveGroup>();
+                var def = ScriptableObject.CreateInstance<VariableDefinition>(); f.Owned.Add(def); def.name = name; def.displayName = name; def.exclusiveGroup = Array.Empty<global::NoWebGame.Combat.Stacks.Definitions.ExclusiveGroup>();
                 storage.AddStorage(new StackKey(def), new VariableState(1, 0));
             }
             Damage(caster.transform); Check(stats.Stats.Health == 9900, "Enemy permission allows new damage");

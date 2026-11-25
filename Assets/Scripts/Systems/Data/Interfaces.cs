@@ -1,12 +1,17 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Systems.Data;
 using System.Collections;
 using System.Collections.Generic;
-using Moves;
-using PlayerScripts.Acts;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
+
+
+
+
 using UnityEngine;
 
-namespace Systems.Data
+namespace NoWebGame.Systems.Data
 {
 	public interface IEntity : IVulnerable, IStackable
 	{
@@ -25,7 +30,8 @@ namespace Systems.Data
 	{
 		Stack = 0, Haste, DamageBoost, ArmorBoost, APBoost, DRBoost, Invisibility, Invincible, Slow, Stunned, Suppressed, Rooted, Tumbled, Damage //Damage는 지속 피해, duration을 0으로 하면 즉시 피해도 가능함
 	}
-	public class EffectState
+	[UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Data", "Assembly-CSharp", "EffectState")]
+    public class EffectState
 	{
 		public float duration;
 		public int amplifier;
@@ -242,7 +248,8 @@ namespace Systems.Data
 	}
 
 // 제네릭 베이스: 타입 가드 + 제네릭 오버로드
-	[System.Obsolete]
+	[UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Data", "Assembly-CSharp", "SkillMechanismBase`1")]
+[System.Obsolete]
 	public abstract class SkillMechanismBase<TParam> : ScriptableObject, ISkillMechanism
 		where TParam : ISkillParams
 	{

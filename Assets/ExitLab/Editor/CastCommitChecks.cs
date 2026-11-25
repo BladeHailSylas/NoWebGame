@@ -1,26 +1,39 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -61,7 +74,7 @@ namespace ExitLab
                 if (!Application.isPlaying) Call(Collector, "OnEnable");
                 Collector.CommandEnqueued += Commands.Add;
                 Caster = Go("Commit caster").AddComponent<TemporaryAITarget>();
-                var context = new Context(Caster, Caster.gameObject, Caster.transform, resolver, Collector, null, new PlayerScripts.Core.Logger("Commit test"));
+                var context = new Context(Caster, Caster.gameObject, Caster.transform, resolver, Collector, null, new global::NoWebGame.Combat.Runtime.Logger("Commit test"));
                 context.RegisterScheduler(Scheduler);
                 Stats = new StatsBridge(context, new BaseStatsContainer(100, 0, 100, 0, 1, 0, 0)); context.RegisterStats(Stats);
                 Storage = new VariableStorage();

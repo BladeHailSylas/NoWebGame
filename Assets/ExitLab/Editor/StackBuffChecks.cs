@@ -1,14 +1,21 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Systems.Time;
+using global::NoWebGame.Moves;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using PlayerScripts.Core;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -86,7 +93,7 @@ namespace ExitLab
             Application.logMessageReceived += Observe;
             try
             {
-                Scalars(); Percentages(); OwnershipAndReset(); FailuresAndRollback();
+                DamageReduction(); Scalars(); Percentages(); OwnershipAndReset(); FailuresAndRollback();
                 Check(Errors.Count == 0, "no unexpected Unity errors: " + string.Join(";", Errors));
                 Debug.Log("StackBuffChecks PASS " + Results.Count);
             }
@@ -95,6 +102,61 @@ namespace ExitLab
             {
                 DelayScheduler.Instance = old; Application.logMessageReceived -= Observe;
                 File.WriteAllLines(Path.GetFullPath(Path.Combine(Application.dataPath, "../../stack-s2-results.txt")), Results);
+            }
+        }
+        private static void DamageReduction()
+        {
+            // 최종 잔여 피해 배율을 검사합니다. 20% DR은 감소율 0.2가 아닌 배율 0.8입니다.
+            var stats = new StatsContainer(new BaseStatsContainer(1000, 0, 100, 0, 100, 0, 100));
+            void Hit(int expected, DamageType type = DamageType.Normal)
+            {
+                stats.ResetToBase();
+                stats.ReduceStat(ReduceType.Health, new DamageData(type, 100, 100));
+                Check(stats.Health == 1000 - expected, "DR actual damage " + type + " = " + expected);
+            }
+            Check(Near(stats.TotalDamageReduction(), 1), "DR absent leaves full damage"); Hit(100);
+            stats.TryApply(new BuffData(EffectType.DRBoost, 20));
+            Check(Near(stats.TotalDamageReduction(), 0.8), "single DR preserves fractional remaining factor"); Hit(80);
+            stats.TryApply(new BuffData(EffectType.DRBoost, 25));
+            Check(Near(stats.TotalDamageReduction(), 0.6), "20 and 25 percent DR compose multiplicatively"); Hit(60);
+            stats.TryRemove(new BuffData(EffectType.DRBoost, 20));
+            Check(Near(stats.TotalDamageReduction(), 0.75), "removing one DR preserves the other");
+            stats.TryRemove(new BuffData(EffectType.DRBoost, 25));
+            stats.TryApply(new BuffData(EffectType.DRBoost, 85));
+            Check(Near(stats.TotalDamageReduction(), 0.15), "DR exact lower boundary"); Hit(15);
+            stats.TryApply(new BuffData(EffectType.DRBoost, 50));
+            Check(Near(stats.TotalDamageReduction(), 0.15), "combined DR cannot cross lower boundary"); Hit(15);
+            stats.TryRemove(new BuffData(EffectType.DRBoost, 85));
+            Check(Near(stats.TotalDamageReduction(), 0.5), "removal recomputes unclamped remaining contribution");
+            stats.TryApply(new BuffData(EffectType.DRBoost, 100));
+            Check(Near(stats.TotalDamageReduction(), 0.15), "100 percent DR still leaves minimum damage"); Hit(15); Hit(100, DamageType.Fixed);
+            stats.TryRemove(new BuffData(EffectType.DRBoost, 100)); stats.TryRemove(new BuffData(EffectType.DRBoost, 50));
+            Check(Near(stats.TotalDamageReduction(), 1), "all ordinary DR removal restores full damage"); Hit(100);
+
+            using var split = new Fixture(); using var batch = new Fixture();
+            var def = split.Buff(EffectType.DRBoost); var a = new StackKey(def, "A"); var b = new StackKey(def, "B");
+            split.Manager.ApplyStack(a, 1, 0); split.Manager.ApplyStack(a, 1, 0); batch.Manager.ApplyStack(a, 2, 0);
+            Check(Near(split.Stats.TotalDamageReduction(), 0.8) && Near(batch.Stats.TotalDamageReduction(), 0.8), "public DR split and batch are identical");
+            split.Manager.ApplyStack(b, 1, 1);
+            Check(Near(split.Stats.TotalDamageReduction(), 0.72), "public DR independent Keys multiply");
+            split.Stats.TryApply(new BuffData(EffectType.DRBoost, 50));
+            Check(Near(split.Bridge.DR, 0.36), "StatsBridge DR includes ordinary and owned contributions once");
+            split.Manager.ApplyStack(a, 100, 2); split.Manager.ApplyStack(a, 100, 3);
+            Check(Near(split.Stats.TotalDamageReduction(), 0.15) && split.States[a].Amount == 10, "capped DR refresh retains lower boundary without extra contribution");
+            split.Manager.ApplyStack(a, -9, 4);
+            Check(Near(split.Stats.TotalDamageReduction(), 0.405), "decreasing capped DR restores product of remaining contributions");
+            split.Manager.ApplyStack(a, -1, 4);
+            Check(Near(split.Stats.TotalDamageReduction(), 0.45), "owned removal preserves other Key and ordinary DR");
+            split.Manager.Tick(6); batch.Manager.Tick(5);
+            Check(Near(split.Stats.TotalDamageReduction(), 0.5) && Near(batch.Stats.TotalDamageReduction(), 1), "DR expiry releases owned contributions only");
+            split.Stats.TryRemove(new BuffData(EffectType.DRBoost, 50));
+            Check(Near(split.Stats.TotalDamageReduction(), 1), "DR expiry and removal leave no residual factor");
+            for (var cycle = 0; cycle < 20; cycle++)
+            {
+                split.Manager.ApplyStack(a, 2, 10 + cycle * 10);
+                Check(Near(split.Stats.TotalDamageReduction(), 0.8), "DR repeated cycle applies once " + cycle);
+                split.Manager.Tick(15 + cycle * 10);
+                Check(Near(split.Stats.TotalDamageReduction(), 1) && split.Count == 0, "DR repeated cycle fully releases " + cycle);
             }
         }
         private static int Measure(StatsContainer stats, EffectType type) => type switch

@@ -1,17 +1,24 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Moves;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Stack
+namespace NoWebGame.Combat.Stacks.Runtime
 {
     /// <summary>
     /// StackManager (Expirable + Periodic Variable 지원)

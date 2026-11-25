@@ -11,14 +11,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 13cc4e30249147108873ff264a883568, type: 3}
   m_Name: NestedExitContract
-  m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Definitions.SkillData
   mechanismData:
     rid: 1000
   references:
     version: 2
     RefIds:
     - rid: 1000
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1001
@@ -27,7 +27,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 1001
-      type: {class: DashMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: DashMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         cooldownTicks: 0
         delayTicks: 0
@@ -51,7 +51,7 @@ MonoBehaviour:
         onInterrupted:
         - rid: 1002
     - rid: 1002
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1003
@@ -60,7 +60,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 1
     - rid: 1003
-      type: {class: ProjectileMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: ProjectileMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         cooldownTicks: 0
         delayTicks: 0

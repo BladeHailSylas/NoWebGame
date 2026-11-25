@@ -1,6 +1,6 @@
 using System;
 
-namespace Systems.Data
+namespace NoWebGame.Entities.Relations
 {
     /// <summary>두 Entity 사이의 단일 판정 결과. Mask의 비트값과 직접 변환하지 않습니다.</summary>
     public enum EntityRelation

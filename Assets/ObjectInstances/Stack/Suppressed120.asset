@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aaa80c4b4ec24a849201d64e0233debe, type: 3}
   m_Name: Suppressed120
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Stacks.Definition.CCDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Stacks.Definitions.CCDefinition
   id: 58043ad49b236a14183c12b2928a2079
   displayName: "\uC5B5\uC555"
   maxStacks: 1000000

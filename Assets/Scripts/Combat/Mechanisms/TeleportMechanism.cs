@@ -1,11 +1,17 @@
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Movement;
 using System.Collections.Generic;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using Systems.Data;
+
+
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "TeleportMechanism")]
+    [System.Serializable]
     public class TeleportMechanism : NewMechanism, INewMechanism
     {
         [Header("Settings")]

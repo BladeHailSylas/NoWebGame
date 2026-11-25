@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 445649f50aec67e4cafa4d013ee54b14, type: 3}
   m_Name: New Challenger
-  m_EditorClassIdentifier: Assembly-CSharp::Characters.CharacterSpec
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Characters.CharacterSpec
   displayName: "\uAE40\uAE38\uAD90"
   baseHp: 128000
   baseHpGen: 1000

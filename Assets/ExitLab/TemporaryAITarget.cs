@@ -1,5 +1,8 @@
-using Moves;
-using Systems.Data;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+
+
 using UnityEngine;
 
 namespace ExitLab

@@ -1,9 +1,14 @@
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "HitscanMechanism")]
     [Serializable]
     /// <summary>
     /// Defines how hitscan-based skills behave — instant ray-based hit detection.

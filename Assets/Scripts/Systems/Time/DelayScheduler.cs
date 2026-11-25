@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Systems.Time
+namespace NoWebGame.Systems.Time
 {
     /// <summary>같은 세션의 절대 Tick으로 예약·조회합니다. 실행을 담당하지 않는 시간 판정 모듈입니다.</summary>
     public sealed class DelayScheduler

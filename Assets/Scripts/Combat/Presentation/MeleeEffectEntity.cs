@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace Moves.Effects.Definitions
+namespace NoWebGame.Combat.Presentation
 {
     /// <summary>
     /// Melee 범위를 부채꼴 메쉬로 표시.
     /// </summary>
-    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Effects.Definitions", "Assembly-CSharp", "MeleeEffectEntity")]
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class MeleeEffectEntity : MonoBehaviour
     {
         [SerializeField] private float lifetime = 0.2f;

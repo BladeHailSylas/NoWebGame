@@ -1,24 +1,37 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -94,7 +107,7 @@ namespace ExitLab
                 Collector = services.AddComponent<CommandCollector>(); services.SetActive(true);
                 Collector.CommandEnqueued += Commands.Add;
                 Entity = Go("S1 actor").AddComponent<TemporaryAITarget>();
-                Context = new Context(Entity, Entity.gameObject, Entity.transform, resolver, Collector, null, new PlayerScripts.Core.Logger("S1"));
+                Context = new Context(Entity, Entity.gameObject, Entity.transform, resolver, Collector, null, new global::NoWebGame.Combat.Runtime.Logger("S1"));
                 Context.RegisterScheduler(Scheduler);
                 Stats = new StatsBridge(Context, new BaseStatsContainer(100, 0, 100, 0, 100, 0, 0)); Context.RegisterStats(Stats);
                 Attacker = new Attacker(Context, Entity.transform, Bindings, Collector);

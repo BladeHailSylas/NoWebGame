@@ -1,17 +1,27 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using Systems.Data;
-using Systems.Time;
+
+
+
+
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Acts
+namespace NoWebGame.Combat.Casting
 {
     /// <summary>
     /// Coordinates player attacks by resolving skill bindings and enqueueing
@@ -288,7 +298,7 @@ namespace PlayerScripts.Acts
             var hadLast = _lastCommitTick.TryGetValue(slot, out var previousLast);
             var hadCooldown = _onCooldown.TryGetValue(slot, out var previousCooldown);
             DelayId nextCooldown = default;
-            StackManager.ConsumptionChange consumption = null;
+            global::NoWebGame.Combat.Stacks.Runtime.StackManager.ConsumptionChange consumption = null;
             CastCommit commit = null;
             commit = new CastCommit(tick, prepared.Mech.DelayTicks, () =>
             {

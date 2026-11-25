@@ -1,9 +1,13 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+
+using global::NoWebGame.Combat.Casting;
 using System;
 using System.Collections.Generic;
-using Systems.Data;
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Movement.Travel
 {
     // 숫자 0은 기존 직렬화 데이터에 새 필드가 없을 때의 호환 기본값입니다.
     public enum ExitCallbackMode { Legacy = 0, Classified = 1 }

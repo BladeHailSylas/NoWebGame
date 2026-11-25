@@ -1,13 +1,14 @@
 using System.Collections;
 using UnityEngine;
 
-namespace UIs
+namespace NoWebGame.UIs
 {
     /// <summary>
     /// SpriteManager
     /// 엔티티의 시각 표현을 담당.
     /// 로직과 분리하여 유지.
     /// </summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "UIs", "Assembly-CSharp", "SpriteManager")]
     public class SpriteManager : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer spriteRenderer;

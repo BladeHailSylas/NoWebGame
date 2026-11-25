@@ -1,13 +1,15 @@
-﻿using Systems.Data;
+using global::NoWebGame.Systems.Data;
+
 using UnityEngine;
 
-namespace Utils
+namespace NoWebGame.Input
 {
     /// <summary>
     /// 화면 커서의 월드 좌표를 얻는 모듈.
     /// 마우스 또는 게임패드 조준 입력을 받아, 지정된 평면 상의 커서 위치를 계산한다.
     /// </summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Utils", "Assembly-CSharp", "CursorResolver")]
+[DisallowMultipleComponent]
     public class CursorResolver : MonoBehaviour
     {
         [Header("Settings")]
@@ -41,7 +43,7 @@ namespace Utils
             fixedPos = default;
 
             // 1️⃣ 입력 좌표 가져오기
-            var screenPos = Input.mousePosition;
+            var screenPos = global::UnityEngine.Input.mousePosition;
             if (mainCamera is null)
             {
                 if (debugLog) Debug.LogWarning("[CursorResolver] 카메라가 지정되지 않았습니다.");

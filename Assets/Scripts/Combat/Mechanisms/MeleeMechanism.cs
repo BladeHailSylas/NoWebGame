@@ -1,10 +1,16 @@
+using global::NoWebGame.Combat.Presentation;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
 using System;
 using System.Collections.Generic;
-using Moves.Effects.Definitions;
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "MeleeMechanism")]
     [Serializable]
     public class MeleeMechanism : NewMechanism, INewMechanism
     {

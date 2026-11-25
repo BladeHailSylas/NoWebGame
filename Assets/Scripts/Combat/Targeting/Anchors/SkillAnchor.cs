@@ -1,7 +1,8 @@
 using UnityEngine;
 
-namespace Systems.Anchor
+namespace NoWebGame.Combat.Targeting.Anchors
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Anchor", "Assembly-CSharp", "SkillAnchor")]
     public sealed class SkillAnchor : MonoBehaviour
     {
         public int castId;              // 고유 식별

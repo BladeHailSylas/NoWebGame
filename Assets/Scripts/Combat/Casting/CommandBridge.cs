@@ -1,7 +1,10 @@
-using Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Diagnostics.Runtime;
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Skills
+namespace NoWebGame.Combat.Casting
 {
     public interface ICommandPort
     {

@@ -1,5 +1,7 @@
-using Moves;
-using Moves.ObjectEntity;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Moves.ObjectEntity;
+
+
 using UnityEditor;
 
 namespace Editor

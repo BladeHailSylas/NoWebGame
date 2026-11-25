@@ -1,15 +1,25 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Core;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -137,7 +147,7 @@ namespace ExitLab
             Check(p.Calls.Count == 1 && f.Empty(k), "overshoot executes once without carry");
             var input = p.Calls[0];
             Check(input.Caster == f.Caster && input.OriginCastPosition == new Vector2(2, 3) && !input.Target.TryGetPosition(out _) && input.Mode == TargetMode.TowardsSelf, "direct contract retains applier Origin, unresolved Target and mode");
-            Check(input.Destination == null && input.SwitchSelection == null && input.Var.Variable == null && input.Damage.Type == Systems.Data.DamageType.Normal && input.Damage.Value == 1 && input.Trace.AttackId != 0, "direct payload defaults and trace; no Switch receipt");
+            Check(input.Destination == null && input.SwitchSelection == null && input.Var.Variable == null && input.Damage.Type == global::NoWebGame.Systems.Data.DamageType.Normal && input.Damage.Value == 1 && input.Trace.AttackId != 0, "direct payload defaults and trace; no Switch receipt");
             Check(f.Stats.Stats.Mana == 100, "direct trigger spends no root mana");
             p.Action = null; f.Manager.Tick(100);
             Check(p.Calls.Count == 1 && f.Empty(k), "consumed trigger never retries on Tick");

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Systems.Data
+namespace NoWebGame.Systems.Data
 {
 	/// <summary>
 	/// Represents a deterministic 2D vector where 1.0f equals 1000 fixed units.

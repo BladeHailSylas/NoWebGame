@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d2b9c92af2d4ccab500ec5114880c3a, type: 3}
   m_Name: SecondAttackCharged
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Stacks.Definition.VariableDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Stacks.Definitions.VariableDefinition
   id: 3bc1f4c479528bb4b810e0b893a602e1
   displayName: "\uAC15\uD3C9"
   maxStacks: 1

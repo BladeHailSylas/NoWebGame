@@ -1,7 +1,11 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Systems.Time;
+
 using System.Threading;
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Diagnostics.Runtime
 {
     /// <summary>진단 전용 값입니다. 명령의 동등성/게임 규칙에 사용하지 않습니다.</summary>
     public readonly struct AttackTrace
@@ -31,12 +35,12 @@ namespace Moves
         public static void Write(AttackTrace trace, string stage, string details, bool detail = false)
         {
             if (!Enabled || (detail && !Detail) || (CasterFilter != 0 && CasterFilter != trace.CasterId)) return;
-            var tick = Systems.Time.Time.Ticker?.TickCount.ToString() ?? "none";
+            var tick = global::NoWebGame.Systems.Time.Time.Ticker?.TickCount.ToString() ?? "none";
             Debug.Log($"[AttackTrace] seq={Interlocked.Increment(ref _sequence)} tick={tick} attack={trace.AttackId} command={trace.CommandId} parent={trace.ParentCommandId} effect={trace.EffectId} damage={trace.DamageId} caster={trace.Caster} stage={stage} {details}");
         }
         public static void Hit(CastContext ctx, Collider2D collider, string result)
         {
-            var entity = collider ? collider.GetComponentInParent<Systems.Data.Entity>(true) : null;
+            var entity = collider ? collider.GetComponentInParent<global::NoWebGame.Entities.Core.Entity>(true) : null;
             Write(ctx.Trace, "Hit", $"result={result} collider={Identity(collider)} colliderLayer={(collider ? collider.gameObject.layer : -1)} entity={Identity(entity)} entityLayer={(entity ? entity.gameObject.layer : -1)}");
         }
     }

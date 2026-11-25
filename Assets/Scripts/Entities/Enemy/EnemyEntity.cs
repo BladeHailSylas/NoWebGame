@@ -1,32 +1,51 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.UIs;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Interaction;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Prototypes.Enemy;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Characters;
-using JetBrains.Annotations;
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Stacks.Instances;
-using Systems.Time;
-using Systems.SubSystems;
-using UIs;
-using UnityEngine;
-using Logger = PlayerScripts.Core.Logger;
 
-namespace Systems.Data
+using JetBrains.Annotations;
+
+
+
+
+
+
+
+
+
+
+
+
+
+using UnityEngine;
+using Logger = global::NoWebGame.Combat.Runtime.Logger;
+
+namespace NoWebGame.Entities.Enemy
 {
     /// <summary>
     /// MonoBehaviour entry point that orchestrates all player-related modules. It
     /// centralises lifecycle management and bridges Unity callbacks into pure C#
     /// systems for maintainability.
     /// </summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Data", "Assembly-CSharp", "EnemyEntity")]
+[DisallowMultipleComponent]
     public sealed class EnemyEntity : Entity, IEntity
     {
         [Header("Configuration")]
@@ -90,7 +109,7 @@ namespace Systems.Data
                 spec.baseSpeed
             );
             _statsBridge = new StatsBridge(_context, baseStats);
-            _context.RegisterScheduler(Time.Time.DelayScheduler);
+            _context.RegisterScheduler(global::NoWebGame.Systems.Time.Time.DelayScheduler);
             _context.RegisterStats(_statsBridge);
             _stackManager = new StackManager(_context, new VariableStorage());
             _context.RegisterStackManager(_stackManager);
@@ -112,7 +131,7 @@ namespace Systems.Data
         private bool ValidateDependencies()
         {
             if (!spec || !GetComponent<Rigidbody2D>() || !GetComponent<Collider2D>() ||
-                Time.Time.Ticker == null || Time.Time.DelayScheduler == null)
+                global::NoWebGame.Systems.Time.Time.Ticker == null || global::NoWebGame.Systems.Time.Time.DelayScheduler == null)
             {
                 _logger.Error("Enemy에는 CharacterSpec, Rigidbody2D, Collider2D와 먼저 활성화된 TickerRunner가 필요합니다.");
                 return false;
@@ -125,7 +144,7 @@ namespace Systems.Data
         {
             if (!_initialized || _subscribedTicker != null) return;
             _attacker?.Resume();
-            _subscribedTicker = Time.Time.Ticker;
+            _subscribedTicker = global::NoWebGame.Systems.Time.Time.Ticker;
             if (_subscribedTicker != null) _subscribedTicker.OnTick += TickHandler;
         }
 

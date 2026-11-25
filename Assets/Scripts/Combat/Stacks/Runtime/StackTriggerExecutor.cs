@@ -1,9 +1,14 @@
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Diagnostics.Runtime;
 using System;
-using Moves;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Stack
+namespace NoWebGame.Combat.Stacks.Runtime
 {
     /// <summary>
     /// 상태 없는 Stack 실행 경계입니다. 수량·수명·소비는 Manager만 소유합니다.

@@ -1,15 +1,28 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Presentation;
+using global::NoWebGame.Combat.Targeting.Anchors;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Moves.ObjectEntity;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Systems.Time;
 using System.Collections.Generic;
-using Moves.Effects.Definitions;
-using Moves.Mechanisms;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using Systems.Anchor;
-using Systems.Data;
-using Systems.Time;
+
+
+
+
+
+
+
 using UnityEngine;
 
-namespace Moves.ObjectEntity
+namespace NoWebGame.Combat.Effects.Runtime
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "AreaEntity")]
     public class AreaEntity : ObjectPrefab
     {
         [SerializeReference] public IAreaShapes areaShape;
@@ -81,7 +94,7 @@ namespace Moves.ObjectEntity
             }
             else
             {
-                _ticker = Systems.Time.Time.Ticker;
+                _ticker = global::NoWebGame.Systems.Time.Time.Ticker;
                 if (_ticker != null && isActiveAndEnabled) _ticker.OnTick += TickHandler;
             }
         }

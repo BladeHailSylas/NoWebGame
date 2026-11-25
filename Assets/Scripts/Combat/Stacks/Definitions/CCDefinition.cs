@@ -1,9 +1,11 @@
-using Systems.Data;
+using global::NoWebGame.Systems.Data;
+
 using UnityEngine;
 
-namespace Systems.Stacks.Definition
+namespace NoWebGame.Combat.Stacks.Definitions
 {
-    [CreateAssetMenu(menuName = "Stacks/CCDefinition")]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks.Definition", "Assembly-CSharp", "CCDefinition")]
+[CreateAssetMenu(menuName = "Stacks/CCDefinition")]
     public class CCDefinition : StackDefinition
     {
         public EffectType Type;

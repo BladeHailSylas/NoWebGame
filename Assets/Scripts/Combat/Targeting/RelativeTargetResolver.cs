@@ -1,11 +1,16 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Systems.Data;
 using System.Collections.Generic;
-using Moves;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Skills
+namespace NoWebGame.Combat.Targeting
 {
-    public partial class TargetResolver
+public partial class TargetResolver
     {
         private TargetResolveResult ResolveRelative(TargetRequest request)
         {
@@ -21,7 +26,7 @@ namespace PlayerScripts.Skills
                 return cursorResolver ? ResolveTowardsCursor(request) : new TargetResolveResult(default, request.CasterPos, false);
             if (request.Mode == TargetMode.TowardsEntity && Camera.main)
             {
-                var point = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                var point = (Vector2)Camera.main.ScreenToWorldPoint(global::UnityEngine.Input.mousePosition);
                 return ResolveRelativeAt(request, point);
             }
             AttackLog.Write(request.Trace, "TargetRejected", "reason=UnsupportedModeOrMissingCamera");

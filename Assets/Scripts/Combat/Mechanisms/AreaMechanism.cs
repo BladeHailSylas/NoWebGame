@@ -1,12 +1,18 @@
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Combat.Presentation;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Moves.ObjectEntity;
+using global::NoWebGame.Combat.Casting;
 using System;
 using System.Collections.Generic;
-using Moves.Effects.Definitions;
-using Moves.ObjectEntity;
+
+
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "AreaMechanism")]
     [Serializable]
     public class AreaMechanism : NewMechanism, INewMechanism
     {

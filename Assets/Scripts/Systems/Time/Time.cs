@@ -1,6 +1,7 @@
-using UIs;
+using global::NoWebGame.Diagnostics.Runtime;
 
-namespace Systems.Time
+
+namespace NoWebGame.Systems.Time
 {
     public static class Time
     {
@@ -26,8 +27,8 @@ namespace Systems.Time
             }
             if (Ticker == ticker) Ticker = null;
             if (DelayScheduler == scheduler) DelayScheduler = null;
-            if (Systems.Time.Ticker.Instance == ticker) Systems.Time.Ticker.Instance = null;
-            if (Systems.Time.DelayScheduler.Instance == scheduler) Systems.Time.DelayScheduler.Instance = null;
+            if (global::NoWebGame.Systems.Time.Ticker.Instance == ticker) global::NoWebGame.Systems.Time.Ticker.Instance = null;
+            if (global::NoWebGame.Systems.Time.DelayScheduler.Instance == scheduler) global::NoWebGame.Systems.Time.DelayScheduler.Instance = null;
         }
 
         private static void TickHandler(long tick)

@@ -1,16 +1,24 @@
-using Moves;
-using Moves.Mechanisms;
-using PlayerScripts.Core;
-using Systems.Anchor;
-using Systems.Data;
-using UnityEngine;
-using Utils;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Input;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Systems.Data;
 
-namespace PlayerScripts.Skills
+
+
+
+
+using UnityEngine;
+
+
+namespace NoWebGame.Combat.Targeting
 {
     /// <summary>
     /// TargetResolver의 입력 데이터 (시전자, 사거리, 모드 등)
     /// </summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "PlayerScripts.Skills", "Assembly-CSharp", "TargetRequest")]
     public readonly struct TargetRequest
     {
         public readonly AttackTrace Trace;
@@ -37,6 +45,7 @@ namespace PlayerScripts.Skills
     /// <summary>
     /// TargetResolver의 반환 결과 (타깃 / 앵커 / 감지 여부)
     /// </summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "PlayerScripts.Skills", "Assembly-CSharp", "TargetResolveResult")]
     public readonly struct TargetResolveResult
     {
         public readonly SkillTarget Target;
@@ -51,7 +60,8 @@ namespace PlayerScripts.Skills
         }
     }
 
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "PlayerScripts.Skills", "Assembly-CSharp", "TargetResolver")]
+[DisallowMultipleComponent]
     public partial class TargetResolver : MonoBehaviour
     {
         [Header("Dependencies")] [Tooltip("커서 위치를 감지할 CursorResolver 모듈")]
@@ -93,7 +103,7 @@ namespace PlayerScripts.Skills
         private TargetResolveResult ResolveTowardsEntity(TargetRequest req)
         {
             // 커서 위치에서 Collider 검색
-            var screenPos = Input.mousePosition;
+            var screenPos = global::UnityEngine.Input.mousePosition;
             var worldPos = Camera.main.ScreenToWorldPoint(screenPos);
             worldPos.z = 0f;
             var hit = Physics2D.OverlapPoint(worldPos, req.TargetMask);

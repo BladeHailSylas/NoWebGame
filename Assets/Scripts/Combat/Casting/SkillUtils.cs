@@ -1,8 +1,14 @@
-using System.Collections.Generic;
-using PlayerScripts.Skills;
-using Systems.Data;
+using global::NoWebGame.Moves;
 
-namespace Moves
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
+using System.Collections.Generic;
+
+
+
+namespace NoWebGame.Combat.Casting
 {
     public static class SkillUtils
     {

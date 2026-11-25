@@ -1,15 +1,24 @@
-using Characters;
-using PlayerScripts.Acts;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.SubSystems;
-using Systems.Time;
-using UIs;
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.UIs;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Systems.Time;
+
+
+
+
+
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Core
+namespace NoWebGame.Combat.Runtime
 {
     /// <summary>
     /// Shared dependency container for all player modules. It bundles Unity

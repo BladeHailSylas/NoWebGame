@@ -1,16 +1,23 @@
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Targeting;
 using System.Collections.Generic;
-using Moves.Mechanisms;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using Systems.Anchor;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Time;
+
+
+
+
+
+
+
+
 using UnityEngine;
 
-namespace Moves.ObjectEntity
+namespace NoWebGame.Entities.Summon
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "SummonEntity")]
     public class SummonEntity : SummonEntityBase, IVulnerable, IStackable
     {
         public void Init(CastContext ctx)

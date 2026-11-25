@@ -1,7 +1,8 @@
-using Systems.Data;
+using global::NoWebGame.Entities.Core;
+
 using UnityEngine;
 
-namespace Systems.SubSystems
+namespace NoWebGame.Entities.Relations
 {
     /// <summary>
     /// Caster를 기준으로 Entity 사이의 관계를 판정합니다.

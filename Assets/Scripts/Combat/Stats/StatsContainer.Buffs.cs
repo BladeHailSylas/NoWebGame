@@ -1,8 +1,9 @@
+using global::NoWebGame.Systems.Data;
 using System;
 using System.Collections.Generic;
-using Systems.Data;
 
-namespace PlayerScripts.Stats
+
+namespace NoWebGame.Combat.Stats
 {
     public sealed partial class StatsContainer
     {

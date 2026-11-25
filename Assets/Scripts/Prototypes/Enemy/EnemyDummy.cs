@@ -1,14 +1,20 @@
-﻿// Enemy에 붙입니다. 아주 단순한 체력/넉백 처리 예시입니다.
+// Enemy에 붙입니다. 아주 단순한 체력/넉백 처리 예시입니다.
 
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
 using System;
 using UnityEngine;
-using Moves;
-using PlayerScripts.Core;
-using Systems.Data;
-using Unity.VisualScripting;
 
+
+
+using Unity.VisualScripting;
+namespace NoWebGame.Prototypes.Enemy
+{
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "", "Assembly-CSharp", "EnemyDummy")]
 [RequireComponent(typeof(Rigidbody2D))]
-public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더미, 절대 이렇게 만들면 안 됨(IVulnerable의 구현이 여기서 왜 필요함)
+    public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더미, 절대 이렇게 만들면 안 됨(IVulnerable의 구현이 여기서 왜 필요함)
 {
 	public readonly float BasicHealth = 100000f;
 	public float MaxHealth { get; private set; }
@@ -100,4 +106,6 @@ public class EnemyDummy : Entity, IVulnerable//, ITargetable //그냥 임시 더
 		IsDead = true;
 		gameObject.SetActive(false);
 	}
+}
+
 }

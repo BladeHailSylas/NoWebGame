@@ -1,13 +1,14 @@
 using UnityEngine;
 
-namespace Debuggers
+namespace NoWebGame.Diagnostics.Runtime
 {
     /// <summary>
     /// TargetAnchor(��Ÿ�� ��Ŀ) �ð�ȭ �����.
     /// - ����: ���� ��, �̸� ��, (����) �ֱ� �̵� ����/���� ��
     /// - ���Ӻ�: LineRenderer�� ���� ���� ǥ��(�ɼ�)
     /// </summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Debuggers", "Assembly-CSharp", "TargetAnchorDebug")]
+[DisallowMultipleComponent]
     public sealed class TargetAnchorDebug : MonoBehaviour
     {
         [Header("Appearance")]

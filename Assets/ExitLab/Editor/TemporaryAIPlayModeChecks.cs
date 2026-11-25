@@ -1,11 +1,13 @@
+using global::NoWebGame.Entities.Enemy;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.IO;
-using Systems.Data;
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {

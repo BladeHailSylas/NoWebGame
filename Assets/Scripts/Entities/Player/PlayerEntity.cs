@@ -1,29 +1,47 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.UIs;
+using Logger = global::NoWebGame.Combat.Runtime.Logger;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Interaction;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Systems.Time;
 using System.Collections.Generic;
-using Characters;
-using Moves;
-using PlayerScripts.Acts;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Stacks.Instances;
-using Systems.SubSystems;
-using Systems.Time;
-using UIs;
+
+
+
+
+
+
+
+
+
+
+
+
+
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Time = Systems.Time.Time;
+using Time = global::NoWebGame.Systems.Time.Time;
 
-namespace PlayerScripts.Core
+namespace NoWebGame.Entities.Player
 {
     /// <summary>
     /// MonoBehaviour entry point that orchestrates all player-related modules. It
     /// centralizes lifecycle management and bridges Unity callbacks into pure C#
     /// systems for maintainability.
     /// </summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "PlayerScripts.Core", "Assembly-CSharp", "PlayerEntity")]
+[DisallowMultipleComponent]
     public sealed class PlayerEntity : Entity, IEntity, IDashable, ITeleportative
     {
         [Header("Configuration")]

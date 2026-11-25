@@ -1,8 +1,14 @@
-using Systems.Data;
-using Systems.SubSystems;
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Entities.Relations;
+
+
 using UnityEngine;
 
-namespace Moves
+namespace NoWebGame.Combat.Targeting
 {
     /// <summary>이행 기간에만 별도 인터페이스를 둡니다. 구형/외부 Mechanism은 명시적으로 Legacy입니다.</summary>
     public interface IRelativeTargeting

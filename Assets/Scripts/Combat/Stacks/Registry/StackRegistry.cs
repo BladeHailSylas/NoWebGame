@@ -1,10 +1,11 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Systems.Stacks.Definition;
-using Systems.Stacks.Instances;
 
-namespace Systems.Stacks
+
+
+namespace NoWebGame.Combat.Stacks.Registry
 {
     public sealed class StackRegistry
     {

@@ -1,8 +1,15 @@
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Moves;
-using Moves.Mechanisms;
+
+
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -29,7 +36,7 @@ namespace ExitLab
                 Check(point.TryGetPosition(out p) && p == Vector2.right, "fixed Position", checks);
                 Check(SkillTarget.At(Vector2.zero).IsResolved && !default(SkillTarget).IsResolved, "origin vs unresolved", checks);
                 var commandA = new SkillCommand(root.transform, TargetMode.TowardsEntity, default, null, default, target, masker: 1 << 7);
-                var commandB = new SkillCommand(root.transform, TargetMode.TowardsCursor, new Systems.Data.FixedVector2(9, 0), null, default, target);
+                var commandB = new SkillCommand(root.transform, TargetMode.TowardsCursor, new global::NoWebGame.Systems.Data.FixedVector2(9, 0), null, default, target);
                 Check(commandA.Equals(commandB) && commandA.GetHashCode() == commandB.GetHashCode(), "command equality/hash consistency", checks);
                 Check(commandA.Mask.value == (1 << 7), "LayerMask is preserved, not shifted twice", checks);
                 entity.targetable = false;

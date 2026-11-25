@@ -1,12 +1,16 @@
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Entities.Relations;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Editor;
-using Moves;
-using Moves.Mechanisms;
-using Systems.Data;
+
+
+
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;

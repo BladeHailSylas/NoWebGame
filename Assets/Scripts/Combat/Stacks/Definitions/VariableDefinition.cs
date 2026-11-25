@@ -1,9 +1,10 @@
-using Systems.Stacks.ExclusiveGroups;
+
 using UnityEngine;
 
-namespace Systems.Stacks.Definition
+namespace NoWebGame.Combat.Stacks.Definitions
 {
-    [CreateAssetMenu(menuName = "Stacks/VariableDefinition")]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks.Definition", "Assembly-CSharp", "VariableDefinition")]
+[CreateAssetMenu(menuName = "Stacks/VariableDefinition")]
     public class VariableDefinition : StackDefinition
     {
         public bool isPeriodic;

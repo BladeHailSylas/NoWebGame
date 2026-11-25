@@ -1,8 +1,10 @@
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Systems.Time;
 using System;
-using Systems.Data;
-using Systems.Time;
 
-namespace PlayerScripts.Skills
+
+
+namespace NoWebGame.Combat.Casting
 {
     public enum CastCommitState { Prepared, Committed, Executing, ExecutionReturned, Cancelled, ExecutionException, DispatchAborted }
 

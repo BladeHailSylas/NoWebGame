@@ -1,9 +1,16 @@
+using global::NoWebGame.Entities.Core;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
 using System.Collections.Generic;
-using Systems.Data;
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "RayMechanism")]
+    [System.Serializable]
     public class RayMechanism : NewMechanism, INewMechanism
     {
         [Header("Ray")]

@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Systems.SubSystems
+namespace NoWebGame.Movement.Travel
 {
     /// <summary>Production은 FixedUpdate 물리 이후, Script simulation은 명시적 통보 이후 관측합니다.</summary>
-    [DisallowMultipleComponent]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.SubSystems", "Assembly-CSharp", "TravelPhysicsObserver")]
+[DisallowMultipleComponent]
     public sealed class TravelPhysicsObserver : MonoBehaviour
     {
         private static readonly HashSet<TravelPhysicsObserver> Active = new();

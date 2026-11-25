@@ -1,25 +1,41 @@
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Entities.Enemy;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using Moves.ObjectEntity;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stack;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -169,7 +185,7 @@ namespace ExitLab
                 double Factor() => (double)typeof(StatsContainer).GetMethod("OwnedPercentageFactor", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(ls, new object[] { type });
                 Check(list.Count == 0 && Math.Abs(Factor() - 0.8) < 1e-12, type + " owned aggregate 20 percent; no duplicate legacy entries");
                 if (type == EffectType.DRBoost)
-                    Defect("DR-separate-truncation", ls.TotalDamageReduction().ToString(), "0.8 before unrelated rounding policy", ls.TotalDamageReduction() == 0);
+                    Check(Math.Abs(ls.TotalDamageReduction() - 0.8) < 1e-12, "DR truncation fixed: aggregate 20 percent leaves factor 0.8");
                 listManager.Tick(3);
                 Check(list.Count == 0 && Factor() == 1, "R03-" + type + "-release fixed: no remaining contribution");
             }

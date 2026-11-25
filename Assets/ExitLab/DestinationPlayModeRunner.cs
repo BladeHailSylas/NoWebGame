@@ -1,21 +1,37 @@
 #if UNITY_EDITOR
+using global::NoWebGame.Characters;
+using global::NoWebGame.Combat.Definitions;
+using global::NoWebGame.Combat.Effects.Runtime;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Actions;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Runtime;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Stats;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Entities.Relations;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Time;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Characters;
-using Moves;
-using Moves.Mechanisms;
-using Moves.ObjectEntity;
-using PlayerScripts.Acts;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using PlayerScripts.Stats;
-using Systems.Data;
-using Systems.Time;
+
+
+
+
+
+
+
+
+
+
 using UnityEditor;
 using UnityEngine;
-using GameTime = Systems.Time.Time;
+using GameTime = global::NoWebGame.Systems.Time.Time;
 
 namespace ExitLab
 {
@@ -77,7 +93,7 @@ namespace ExitLab
             var target = Actor("target", new Vector2(scenario == "target" ? 1 : 10, 0), "You");
             if (scenario is "pierce" or "nonpierce") Actor("bystander", Vector2.right, "You");
             if (scenario == "wall") { var wall = Go("wall", Vector2.right); wall.layer = LayerMask.NameToLayer("Walls&Obstacles"); wall.AddComponent<BoxCollider2D>().size = new Vector2(.2f, 2); }
-            var context = new Context(caster, caster.gameObject, caster.transform, services.GetComponent<TargetResolver>(), collector, null, new PlayerScripts.Core.Logger("DestinationTest"));
+            var context = new Context(caster, caster.gameObject, caster.transform, services.GetComponent<TargetResolver>(), collector, null, new global::NoWebGame.Combat.Runtime.Logger("DestinationTest"));
             context.RegisterScheduler(GameTime.DelayScheduler);
             var stats = new StatsBridge(context, new BaseStatsContainer(1000, 0, 0, 0, 100, 0, 1000)); context.RegisterStats(stats);
             var mover = new Mover(context, stats, rb, col);

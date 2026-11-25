@@ -1,13 +1,15 @@
+using global::NoWebGame.Systems.Time;
 using System.Collections.Generic;
-using Systems.Time;
+
 using UnityEngine;
 using TMPro;
-namespace UIs
+namespace NoWebGame.Diagnostics.Runtime
 {
     /// <summary>
     /// 디버그 정보 표시 전용 컴포넌트.
     /// Tick 종료 시 UpdateOverlay() 호출.
     /// </summary>
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "UIs", "Assembly-CSharp", "DebugOverlay")]
     public class DebugOverlay : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI debugText;

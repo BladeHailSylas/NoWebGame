@@ -1,12 +1,23 @@
-using Systems.Data;
-using Systems.SubSystems;
-using Systems.Time;
-using Moves.Mechanisms;
-using UnityEngine;
-using GameTime = Systems.Time.Time;
+using global::NoWebGame.Combat.Mechanisms;
+using global::NoWebGame.Moves.ObjectEntity;
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Spatial;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Movement.Physics;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Systems.Time;
 
-namespace Moves.ObjectEntity
+
+
+
+using UnityEngine;
+using GameTime = global::NoWebGame.Systems.Time.Time;
+
+namespace NoWebGame.Combat.Effects.Runtime
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.ObjectEntity", "Assembly-CSharp", "ProjectileEntity")]
     public class ProjectileEntity : ObjectPrefab
     {
         private const byte LegacyMinimumLife = 15;

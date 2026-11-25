@@ -1,9 +1,12 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Combat.Stacks.Registry;
 using System.Collections.Generic;
-using Systems.Stacks.Definition;
+
 using UnityEngine;
 
-namespace Systems.Stacks
+namespace NoWebGame.Combat.Stacks.Registry
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Stacks", "Assembly-CSharp", "StackRegistryObject")]
     public class StackRegistryObject : MonoBehaviour
     {
         private StackRegistry _stack;

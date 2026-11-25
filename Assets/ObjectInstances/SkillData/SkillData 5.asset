@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 13cc4e30249147108873ff264a883568, type: 3}
   m_Name: SkillData 5
-  m_EditorClassIdentifier: Assembly-CSharp::Moves.SkillData
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Definitions.SkillData
   mechanismData:
     rid: 1457004252751986767
   ManaCost: 0
@@ -19,7 +19,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1457004252751986767
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 1457004252751986768
@@ -28,7 +28,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 1457004252751986768
-      type: {class: ProjectileMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: ProjectileMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -59,7 +59,7 @@ MonoBehaviour:
         onCompleted: []
         onInterrupted: []
     - rid: 1457004252751986769
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 5885962136461246536
@@ -68,7 +68,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 5885962136461246536
-      type: {class: StackMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: StackMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0
@@ -93,7 +93,7 @@ MonoBehaviour:
         - rid: 5885962136461246537
         onExpire: []
     - rid: 5885962136461246537
-      type: {class: MechanismData, ns: Moves, asm: Assembly-CSharp}
+      type: {class: MechanismData, ns: NoWebGame.Moves, asm: Assembly-CSharp}
       data:
         mechanism:
           rid: 5885962136461246538
@@ -102,7 +102,7 @@ MonoBehaviour:
         respectBusy: 0
         targetSource: 0
     - rid: 5885962136461246538
-      type: {class: DamageMechanism, ns: Moves.Mechanisms, asm: Assembly-CSharp}
+      type: {class: DamageMechanism, ns: NoWebGame.Combat.Mechanisms, asm: Assembly-CSharp}
       data:
         destination:
           mode: 0

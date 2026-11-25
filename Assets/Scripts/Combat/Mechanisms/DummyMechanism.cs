@@ -1,11 +1,15 @@
+using global::NoWebGame.Moves;
+using global::NoWebGame.Combat.Casting;
 using System;
 using System.Collections.Generic;
-using PlayerScripts.Skills;
-using Systems.Data;
+
+
 using UnityEngine;
 
-namespace Moves.Mechanisms
+namespace NoWebGame.Combat.Mechanisms
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Moves.Mechanisms", "Assembly-CSharp", "DummyMechanism")]
+    [System.Serializable]
     public class DummyMechanism : NewMechanism, INewMechanism
     {
         [SerializeReference] public List<MechanismData> onHit;

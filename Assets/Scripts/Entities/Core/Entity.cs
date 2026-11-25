@@ -1,12 +1,18 @@
+using global::NoWebGame.Combat.Stacks.Definitions;
+using global::NoWebGame.Moves;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Combat.Stacks.Runtime;
+using global::NoWebGame.Entities.Relations;
 using System;
 using JetBrains.Annotations;
-using Moves;
-using Systems.Stacks;
-using Systems.Stacks.Definition;
+
+
+
 using UnityEngine;
 
-namespace Systems.Data
+namespace NoWebGame.Entities.Core
 {
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Data", "Assembly-CSharp", "Entity")]
     public abstract class Entity : MonoBehaviour, IEntity
     {
         public bool targetable = true;
@@ -38,6 +44,7 @@ namespace Systems.Data
 
         public void Die() {}
     }
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "Systems.Data", "Assembly-CSharp", "EntityEvents")]
     public sealed class EntityEvents
     {
         public event Action<StackKey, int> OnStackApplied;

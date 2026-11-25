@@ -448,7 +448,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa12d03ed6337b1469f69bf118b6dfa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIs.SpriteManager
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.UIs.SpriteManager
   spriteRenderer: {fileID: 200275562}
   flashDuration: 0.08
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -463,7 +463,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f10d2aa305541f69a4f935fd04df024, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Data.EnemyEntity
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Entities.Enemy.EnemyEntity
   targetable: 1
   Owner: {fileID: 0}
   relationProfile: 0
@@ -659,7 +659,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c54c6a981fdc406091e20a6b861a510a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerScripts.Skills.CommandCollector
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Casting.CommandCollector
 --- !u!4 &477561986
 Transform:
   m_ObjectHideFlags: 0
@@ -686,7 +686,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5571cfcd474e40a9931fb9eaf6264251, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerScripts.Skills.TargetResolver
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Targeting.TargetResolver
   cursorResolver: {fileID: 977408138}
   debugLog: 1
 --- !u!1 &519420028
@@ -873,7 +873,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f10d2aa305541f69a4f935fd04df024, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Data.EnemyEntity
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Entities.Enemy.EnemyEntity
   targetable: 1
   Owner: {fileID: 0}
   relationProfile: 0
@@ -960,7 +960,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa12d03ed6337b1469f69bf118b6dfa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIs.SpriteManager
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.UIs.SpriteManager
   spriteRenderer: {fileID: 1671437605}
   flashDuration: 0.08
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -1076,7 +1076,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4ce5a62e6da893d8a21e0a4318d6d58, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Moves.AttackTraceSettings
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Diagnostics.Runtime.AttackTraceSettings
   traceEnabled: 1
   caster: {fileID: 1725135780}
   detailed: 1
@@ -1433,7 +1433,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f10d2aa305541f69a4f935fd04df024, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Data.EnemyEntity
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Entities.Enemy.EnemyEntity
   targetable: 1
   Owner: {fileID: 0}
   relationProfile: 0
@@ -1457,7 +1457,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa12d03ed6337b1469f69bf118b6dfa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIs.SpriteManager
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.UIs.SpriteManager
   spriteRenderer: {fileID: 1911433986}
   flashDuration: 0.08
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -2460,7 +2460,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa12d03ed6337b1469f69bf118b6dfa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIs.SpriteManager
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.UIs.SpriteManager
   spriteRenderer: {fileID: 1516805769}
   flashDuration: 0.08
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -2616,7 +2616,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60fe31796a0b4db8ad782dc80a9a73af, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Anchor.AnchorRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Combat.Targeting.Anchors.AnchorRegistry
   capacity: 100
 --- !u!4 &2010725997
 Transform:
@@ -2818,7 +2818,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f10d2aa305541f69a4f935fd04df024, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Systems.Data.EnemyEntity
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Entities.Enemy.EnemyEntity
   targetable: 1
   Owner: {fileID: 0}
   relationProfile: 0
@@ -2842,7 +2842,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa12d03ed6337b1469f69bf118b6dfa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIs.SpriteManager
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.UIs.SpriteManager
   spriteRenderer: {fileID: 348985067}
   flashDuration: 0.08
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -2957,7 +2957,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d2eb63236214f9493ef3586272aaeee, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIs.DebugOverlay
+  m_EditorClassIdentifier: Assembly-CSharp::NoWebGame.Diagnostics.Runtime.DebugOverlay
   debugText: {fileID: 733104176}
 --- !u!1 &2103950303
 GameObject:

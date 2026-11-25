@@ -1,11 +1,18 @@
+using global::NoWebGame.Combat.Casting;
+using global::NoWebGame.Combat.Targeting;
+using global::NoWebGame.Diagnostics.Runtime;
+using global::NoWebGame.Movement;
+using global::NoWebGame.Movement.Travel;
+using global::NoWebGame.Systems.Data;
+using global::NoWebGame.Systems.Time;
 using System;
-using Moves;
-using PlayerScripts.Core;
-using PlayerScripts.Skills;
-using Systems.Data;
+
+
+
+
 using UnityEngine;
 
-namespace PlayerScripts.Acts
+namespace NoWebGame.Combat.Actions
 {
     /// <summary>
     /// Pure C# binder that stores the latest player input values and routes them to
@@ -51,7 +58,7 @@ namespace PlayerScripts.Acts
         public void AddDashContract(DashContract contract)
         {
             // 새로 생성된 Player는 아직 Tick을 받지 않았을 수 있습니다.
-            var now = Systems.Time.Time.Ticker?.TickCount ?? _tick;
+            var now = global::NoWebGame.Systems.Time.Time.Ticker?.TickCount ?? _tick;
             var dashContract = new DashContract(
                 contract.Context, contract.EndTick + now, contract.Speed, contract.PreventActivation, contract.Penetrative,
                 contract.OnHit, contract.OnExpire, contract.ExpireWhenUnexpected
